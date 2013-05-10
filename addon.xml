@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon
+  id="plugin.weather.metoffice"
+  version="0.0.1"
+  name="Met Office"
+  provider-name="powlo">
+  <requires>
+	<import addon="xbmc.python" version="2.0"/>
+  </requires>
+  <extension point="xbmc.python.weather" library="default.py"/>
+  <extension point="xbmc.addon.metadata">
+	<summary lang="en">Weather forecast from the Met Office.</summary>
+	<description lang="en">Weather forecast provided by Met Office (http://www.metoffice.gov.uk/)</description>
+	<platform>all</platform>
+  </extension>
+</addon>
