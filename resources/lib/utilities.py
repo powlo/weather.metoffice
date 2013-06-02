@@ -161,3 +161,12 @@ def clear():
         d['Day%i.FanartCode' % count] = 'na'
 
     return d
+
+def match_name(text, sitelist):
+    locations = list()
+    ids = list()
+    for x in sitelist['Locations']['Location']:
+        if x['name'].lower().find(text.lower()) != -1:
+            locations.append(x['name'])
+            ids.append(x['id'])
+    return locations, ids

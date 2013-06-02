@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
-  id="plugin.weather.metoffice"
-  version="0.0.1"
+  id="weather.metoffice"
+  version="0.0.2"
   name="Met Office"
   provider-name="powlo">
   <requires>

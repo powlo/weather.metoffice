@@ -2,13 +2,14 @@
 <settings>
 	<category label="Location Settings">
 		<setting id="Location1" label="Location 1" type="action" action="RunScript($ID,Location1)" default=""/>
-		<setting id="Location2" label="Location 2" type="action" action="RunScript($ID,Location2)" default=""/>
-		<setting id="Location3" label="Location 3" type="action" action="RunScript($ID,Location3)" default=""/>
+		<setting id="Location2" label="Location 2" type="action" action="RunScript($ID,Location2)" enable="!eq(-1,)" default=""/>
+		<setting id="Location3" label="Location 3" type="action" action="RunScript($ID,Location3)" enable="!eq(-1,)" default=""/>
 		<setting id="Location1id" type="text" visible="false" default=""/>
 		<setting id="Location2id" type="text" visible="false" default=""/>
 		<setting id="Location3id" type="text" visible="false" default=""/>
 	</category>
 	<category label="Configuration">
 		<setting id="ApiKey" label="API Key" type="text" default=""/>
+		<setting id="Debug" label="Debug Mode" type="bool" default="false"/>
 	</category>
 </settings>

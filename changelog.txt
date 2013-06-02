@@ -1,0 +1,17 @@
+------------------------------------------------------------------------------
+ 0.0.2 - 2/Jun/2013
+------------------------------------------------------------------------------
+-General code reorganisation.
+-Users can delete locations from settings by entering empty data.
+-Code falls back to known good location if XBMC requests a forecast location
+ that's not set.
+-Will try to refetch forecast to avoid IncompleteRead exceptions.
+-Will set null forecast data only if the forecast fetch failed.
+-Added logging info.
+-Debug option added to settings.
+-Locations in settings are only visible if the previous is not null.
+-Exclude list created to support zipping/repobuilder.
+------------------------------------------------------------------------------
+ 0.0.1 - 10/May/2013
+------------------------------------------------------------------------------
+First stab.
