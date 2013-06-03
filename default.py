@@ -51,6 +51,12 @@ def set_locations():
     WEATHER_WINDOW.setProperty('Locations', str(locations))
     log('available locations: %s' % str(locations))
 
+def set_empty_forecast():
+    log("Setting empty forecast...")
+    clear = utilities.clear()
+    for field, value in clear.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
+
 def set_forecast(num):
     """
     Sets forecast related Window properties for the given location
@@ -61,26 +67,19 @@ def set_forecast(num):
     :type num: str
     :returns: None
     """
-    while True:
-        if num:
-            location_name = __addon__.getSetting('Location%s' % num)
-            location_id = __addon__.getSetting('Location%sid' % num)
-        else:
-            dialog = xbmcgui.Dialog()
-            dialog.ok('No Locations Set', 'Set locations under weather settings.')
-        if (location_id and location_name):
-            break
-        else:
-            log("Location '%s' not set..." % (num))
-            log("Trying next location down...")
-            num = str(int(num)-1)
+    location_name = __addon__.getSetting('Location%s' % num)
+    location_id = __addon__.getSetting('Location%sid' % num)
+    if not (location_id and location_name):
+        log("Error fetching data for Location%s" % num)
+        set_empty_forecast()
+        sys.exit(1)
+
     #Get five day forecast:
     datapoint = Datapoint(API_KEY)
     try:
         log("Fetching forecast for Location%s '%s (%s)' from the Met Office..." % (num, location_name, location_id))
         data = datapoint.get_json_forecast(location_id)
         report = utilities.parse_json_day_forecast(data)
-
         log("Setting Window properties...")
         for day, forecast in report.iteritems():
             for field, value in forecast.iteritems():
@@ -92,10 +91,9 @@ def set_forecast(num):
             WEATHER_WINDOW.setProperty(field, value)
 
     except:
+        set_empty_forecast()
         log("Setting empty forecast...")
-        clear = utilities.clear()
-        for field, value in clear.iteritems():
-            WEATHER_WINDOW.setProperty(field, value)
+
     #Get observations:
     #data = weather.get_json_observations(OBSERVATION_ID)
     #observation = utilities.parse_json_observations(data)
@@ -145,16 +143,6 @@ def set_location(location):
         else:
             dialog.ok("No Matches", "No locations found containing '%s'" % text)
             log("No locations found containing '%s'" % text)
-    else:
-        locations = int(WEATHER_WINDOW.getProperty('Locations'))
-        position = int(location.lstrip('Location'))
-        if position <= locations:
-            log("Clearing '%s'..." % location)
-            for x in range(position,locations):
-                __addon__.setSetting('Location%s' % str(x), __addon__.getSetting('Location%s' % str(x+1)))
-                __addon__.setSetting('Location%sid' % str(x), __addon__.getSetting('Location%sid' % str(x+1)))
-            __addon__.setSetting('Location%s' % str(locations), '')
-            __addon__.setSetting('Location%sid' % str(locations), '')
 
 #MAIN CODE
 LOCATIONS_MAX = 3

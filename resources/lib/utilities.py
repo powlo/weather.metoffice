@@ -79,6 +79,13 @@ def parse_json_day_forecast(data):
         forecast['Day%s' % count]['Outlook'] = WEATHER_CODES[weather_type][1]
         forecast['Day%s' % count]['OutlookIcon'] = "%s.png" % WEATHER_CODES[weather_type][0]
         forecast['Day%s' % count]['FanartCode'] = "%s.png" % WEATHER_CODES[weather_type][0]
+        
+    #Add empty days for those not supported by Datapoint
+    forecast['Day5'] = dict()
+    forecast['Day5']['Title'] = ''
+    forecast['Day6'] = dict()
+    forecast['Day6']['Title'] = ''
+
     return forecast
 
 def parse_json_current_forecast(data):
