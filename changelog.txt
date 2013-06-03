@@ -1,4 +1,12 @@
 ------------------------------------------------------------------------------
+ 0.0.3 - 3/Jun/2013
+------------------------------------------------------------------------------
+- Removed ability to clear locations in settings. Clearing locations dynamically in settings
+doesn't work because XBMC doesn't properly apply settings until user clicks "OK".
+- Removed dialog popup telling user to add locations. This could get annnoying.
+- json parser clears the title of days not used by Datapoint, so that when switching from an
+addon that _does_ use it, old data doesn't show up.
+------------------------------------------------------------------------------
  0.0.2 - 2/Jun/2013
 ------------------------------------------------------------------------------
 -General code reorganisation.
