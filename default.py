@@ -104,6 +104,14 @@ def set_forecast(num):
     #'Forecast.IsFetched' and 'Current.IsFetched' seem to have no effect
     WEATHER_WINDOW.setProperty('Forecast.IsFetched', 'true')
     WEATHER_WINDOW.setProperty('Current.IsFetched', 'true')
+
+def get_keyboard_text():
+    """
+    Gets keyboard text from XBMC
+    """
+    keyboard = xbmc.Keyboard()
+    keyboard.doModal()
+    return keyboard.isConfirmed() and keyboard.getText()
     
 def set_location(location):
     """
@@ -117,32 +125,32 @@ def set_location(location):
     :returns: None
     """
     log("Setting '%s'..." % location)
+    text = get_keyboard_text()
+    if not text:
+        log('No text entered.')
+        sys.exit(1)
     datapoint = Datapoint(API_KEY)
     dialog = xbmcgui.Dialog()
-    keyboard = xbmc.Keyboard()
-    keyboard.doModal()
-    if (keyboard.isConfirmed() and keyboard.getText() != ''):
-        text = keyboard.getText()
-        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-        try:
-            log("Fetching site list...")
-            sitelist = datapoint.get_json_forecast_sitelist()
-        except HTTPError as e:
-            dialog.ok(str(e), "Is your API Key correct?")
-            log(str(e))
-            sys.exit(1)
-        finally:
-            xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+    try:
+        log("Fetching site list...")
+        sitelist = datapoint.get_json_forecast_sitelist()
+    except HTTPError as e:
+        dialog.ok(str(e), "Is your API Key correct?")
+        log(str(e))
+        sys.exit(1)
+    finally:
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
-        locations, ids = utilities.match_name(text, sitelist)
-        if locations != []:
-            selected = dialog.select("Matching Locations", locations)
-            if selected != -1:
-                __addon__.setSetting(location, locations[selected])
-                __addon__.setSetting(location + 'id', ids[selected])
-        else:
-            dialog.ok("No Matches", "No locations found containing '%s'" % text)
-            log("No locations found containing '%s'" % text)
+    locations, ids = utilities.match_name(text, sitelist)
+    if locations != []:
+        selected = dialog.select("Matching Locations", locations)
+        if selected != -1:
+            __addon__.setSetting(location, locations[selected])
+            __addon__.setSetting(location + 'id', ids[selected])
+    else:
+        dialog.ok("No Matches", "No locations found containing '%s'" % text)
+        log("No locations found containing '%s'" % text)
 
 #MAIN CODE
 LOCATIONS_MAX = 3
