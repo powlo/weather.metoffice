@@ -1,4 +1,9 @@
 ------------------------------------------------------------------------------
+ 0.0.3 - 6/Jun/2013
+------------------------------------------------------------------------------
+- Addon now gets current location from IP address
+and returns location search results ordered by distance
+------------------------------------------------------------------------------
  0.0.3 - 3/Jun/2013
 ------------------------------------------------------------------------------
 - Removed ability to clear locations in settings. Clearing locations dynamically in settings
