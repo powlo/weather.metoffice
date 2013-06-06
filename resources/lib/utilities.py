@@ -1,5 +1,8 @@
 from datetime import datetime
 import time
+import math
+import urllib2
+import json
 
 MAX_DAYS = 5
 
@@ -169,11 +172,35 @@ def clear():
 
     return d
 
-def match_name(text, sitelist):
-    locations = list()
-    ids = list()
-    for x in sitelist['Locations']['Location']:
+def filter_sitelist(text, sitelist):
+    filteredsitelist = list()
+    for x in sitelist:
         if x['name'].lower().find(text.lower()) != -1:
-            locations.append(x['name'])
-            ids.append(x['id'])
-    return locations, ids
+            filteredsitelist.append(x)
+    return filteredsitelist
+
+def get_json_freegeoipnet():
+    retry = 3
+    url = 'http://freegeoip.net/json/'
+    while True:
+        try:
+            response = urllib2.urlopen(url)
+            data = response.read()
+            break
+        except:
+            if retry:
+                retry -= 1
+            else:
+                raise
+    return json.loads(data)
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    EARTH_RADIUS = 6371
+    lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
+    dlat = lat2-lat1
+    dlon = lon2-lon1
+    a = math.sin(dlat/2)**2 + \
+        math.cos(lat1) * math.cos(lat2) * \
+        math.sin(dlon/2)**2
+    c = 2 * math.asin(math.sqrt(a))
+    return EARTH_RADIUS * c

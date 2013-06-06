@@ -6,6 +6,7 @@ from datetime import datetime
 import time
 import sys
 from urllib2 import HTTPError
+from operator import itemgetter
 
 ### addon info
 __addon__       = xbmcaddon.Addon()
@@ -112,7 +113,11 @@ def get_keyboard_text():
     keyboard = xbmc.Keyboard()
     keyboard.doModal()
     return keyboard.isConfirmed() and keyboard.getText()
-    
+
+def get_coords_from_ip():
+    data = utilities.get_json_freegeoipnet()
+    return (float(data['latitude']), float(data['longitude']))
+
 def set_location(location):
     """
     Sets a location by providing a keyboard prompt to the user.
@@ -134,19 +139,25 @@ def set_location(location):
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     try:
         log("Fetching site list...")
-        sitelist = datapoint.get_json_forecast_sitelist()
+        sitelist = datapoint.get_json_forecast_sitelist()['Locations']['Location']
     except HTTPError as e:
         dialog.ok(str(e), "Is your API Key correct?")
         log(str(e))
         sys.exit(1)
     finally:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-
-    locations, ids = utilities.match_name(text, sitelist)
-    if locations != []:
-        selected = dialog.select("Matching Locations", locations)
+    (latitude, longitude) = get_coords_from_ip()
+    for site in sitelist:
+        site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
+    filtered_sites = utilities.filter_sitelist(text, sitelist)
+    if filtered_sites != []:
+        filtered_sites = sorted(filtered_sites,key=itemgetter('distance'))
+        names = [x['name'] for x in filtered_sites]
+        names_distances = ["%s (%skm)" % (x['name'], x['distance']) for x in filtered_sites]
+        ids = [x['id'] for x in filtered_sites]
+        selected = dialog.select("Matching Sites", names_distances)
         if selected != -1:
-            __addon__.setSetting(location, locations[selected])
+            __addon__.setSetting(location, names[selected])
             __addon__.setSetting(location + 'id', ids[selected])
     else:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
