@@ -3,8 +3,6 @@
 import urllib
 import urllib2
 import json
-import httplib
-from httplib import HTTP
 
 BASE_URL = "http://datapoint.metoffice.gov.uk/public/data/"
 
@@ -49,11 +47,11 @@ class Datapoint(object):
         return json.loads(data)
 
     #get capabilities
-    def get_json_capabilites(self):
+    def get_json_forecast_capabilites(self):
         retry = self.RETRY_MAX
         params = urllib.urlencode({'key' : self.key})
         substitute = {'datatype': 'json', 'params': params}
-        url = BASE_URL + FORECAST_SITE_LIST_URL % substitute
+        url = BASE_URL + FORECAST_CAPABILITIES_URL % substitute
         while True:
             try:
                 response = urllib2.urlopen(url)
@@ -102,5 +100,3 @@ class Datapoint(object):
                 else:
                     raise
         return json.loads(data)
-
-###U R HERE  - Write code to fetch observation data
