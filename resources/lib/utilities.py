@@ -178,19 +178,8 @@ def filter_sitelist(text, sitelist):
     return filteredsitelist
 
 def get_freegeoipnet(datatype='json'):
-    retry = 3
     url = 'http://freegeoip.net/%s/' % datatype
-    while True:
-        try:
-            response = urllib2.urlopen(url)
-            data = response.read()
-            break
-        except:
-            if retry:
-                retry -= 1
-            else:
-                raise
-    return data
+    return retryurlopen(url)
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     EARTH_RADIUS = 6371
@@ -202,3 +191,13 @@ def haversine_distance(lat1, lon1, lat2, lon2):
         math.sin(dlon/2)**2
     c = 2 * math.asin(math.sqrt(a))
     return EARTH_RADIUS * c
+
+def retryurlopen(url, retry=3):
+    while True:
+        try:
+            return urllib2.urlopen(url).read()
+        except:
+            if retry:
+                retry -= 1
+            else:
+                raise

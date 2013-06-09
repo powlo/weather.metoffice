@@ -2,6 +2,7 @@
 #http://www.metoffice.gov.uk/datapoint
 import urllib
 import urllib2
+from utilities import retryurlopen
 
 BASE_URL = "http://datapoint.metoffice.gov.uk/public/data/"
 
@@ -33,17 +34,7 @@ class Datapoint(object):
         params = urllib.urlencode({'key' : self.key})
         substitute = {'datatype': datatype, 'params': params}
         url = BASE_URL + FORECAST_SITE_LIST_URL % substitute
-        while True:
-            try:
-                response = urllib2.urlopen(url)
-                data = response.read().decode('latin-1')
-                break
-            except:
-                if retry:
-                    retry -= 1
-                else:
-                    raise
-        return data
+        return retryurlopen(url)
 
     #get capabilities
     def get_forecast_capabilites(self, datatype='json'):
@@ -51,17 +42,7 @@ class Datapoint(object):
         params = urllib.urlencode({'key' : self.key})
         substitute = {'datatype': datatype, 'params': params}
         url = BASE_URL + FORECAST_CAPABILITIES_URL % substitute
-        while True:
-            try:
-                response = urllib2.urlopen(url)
-                data = response.read()
-                break
-            except:
-                if retry:
-                    retry -= 1
-                else:
-                    raise
-        return data
+        return retryurlopen(url)
         
     #get weather forecast for a given location
     def get_forecast(self, location, datatype='json', res='daily'):
@@ -69,17 +50,7 @@ class Datapoint(object):
         params = urllib.urlencode({'res': res, 'key' : self.key})
         substitute = {'datatype': datatype, 'location': location, 'params': params}
         url = BASE_URL + FORECAST_LOCATION_URL % substitute
-        while True:
-            try:
-                response = urllib2.urlopen(url)
-                data = response.read()
-                break
-            except:
-                if retry:
-                    retry -= 1
-                else:
-                    raise
-        return data
+        return retryurlopen(url)
 
     #get current observations for a location
     def get_observations(self, location, datatype='json', res='hourly'):
@@ -87,14 +58,4 @@ class Datapoint(object):
         params = urllib.urlencode({'res': res, 'key' : self.key})
         substitute = {'datatype': datatype, 'location': location, 'params': params}
         url = BASE_URL + OBSERVATION_LOCATION_URL % substitute
-        while True:
-            try:
-                response = urllib2.urlopen(url)
-                data = response.read()
-                break
-            except:
-                if retry:
-                    retry -= 1
-                else:
-                    raise
-        return data
+        return retryurlopen(url)

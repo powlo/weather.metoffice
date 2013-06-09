@@ -6,7 +6,7 @@ import time
 import sys
 import json
 from datetime import datetime
-from urllib2 import HTTPError
+from urllib2 import HTTPError, URLError
 from operator import itemgetter
 
 ### addon info
@@ -80,7 +80,7 @@ def set_forecast(num):
     datapoint = Datapoint(API_KEY)
     try:
         log("Fetching forecast for Location%s '%s (%s)' from the Met Office..." % (num, location_name, location_id))
-        data = json.loads(datapoint.get_forecast(location_id))
+        data = json.loads(datapoint.get_forecast(location_id).decode('latin-1'))
         report = utilities.parse_json_day_forecast(data)
         log("Setting Window properties...")
         for day, forecast in report.iteritems():
@@ -140,14 +140,14 @@ def set_location(location):
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     try:
         log("Fetching site list...")
-        data = json.loads(datapoint.get_forecast_sitelist())
+        data = json.loads(datapoint.get_forecast_sitelist().decode('latin-1'))
         sitelist = data['Locations']['Location']
-    except HTTPError as e:
-        dialog.ok(str(e), "Is your API Key correct?")
+    except (HTTPError, URLError) as e:
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+        dialog.ok(str(e.reason), "Is your API Key correct?")
         log(str(e))
         sys.exit(1)
-    finally:
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     (latitude, longitude) = get_coords_from_ip()
     for site in sitelist:
         site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
