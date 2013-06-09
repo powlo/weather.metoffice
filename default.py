@@ -2,9 +2,10 @@ import xbmc
 import xbmcgui
 import xbmcaddon
 import os
-from datetime import datetime
 import time
 import sys
+import json
+from datetime import datetime
 from urllib2 import HTTPError
 from operator import itemgetter
 
@@ -79,7 +80,7 @@ def set_forecast(num):
     datapoint = Datapoint(API_KEY)
     try:
         log("Fetching forecast for Location%s '%s (%s)' from the Met Office..." % (num, location_name, location_id))
-        data = datapoint.get_json_forecast(location_id)
+        data = json.loads(datapoint.get_forecast(location_id))
         report = utilities.parse_json_day_forecast(data)
         log("Setting Window properties...")
         for day, forecast in report.iteritems():
@@ -96,7 +97,7 @@ def set_forecast(num):
         log("Setting empty forecast...")
 
     #Get observations:
-    #data = weather.get_json_observations(OBSERVATION_ID)
+    #data = weather.get_observations(OBSERVATION_ID)
     #observation = utilities.parse_json_observations(data)
     #for field, value in observation.iteritems():
     #    WEATHER_WINDOW.setProperty(field, value)
@@ -115,7 +116,7 @@ def get_keyboard_text():
     return keyboard.isConfirmed() and keyboard.getText()
 
 def get_coords_from_ip():
-    data = utilities.get_json_freegeoipnet()
+    data = json.loads(utilities.get_freegeoipnet())
     return (float(data['latitude']), float(data['longitude']))
 
 def set_location(location):
@@ -139,7 +140,8 @@ def set_location(location):
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     try:
         log("Fetching site list...")
-        sitelist = datapoint.get_json_forecast_sitelist()['Locations']['Location']
+        data = json.loads(datapoint.get_forecast_sitelist())
+        sitelist = data['Locations']['Location']
     except HTTPError as e:
         dialog.ok(str(e), "Is your API Key correct?")
         log(str(e))
@@ -180,7 +182,9 @@ if not API_KEY:
     sys.exit(1)
 
 set_locations()
-if sys.argv[1].startswith('Location'):
+if sys.argv[1].startswith('Default'):
+    set_default()
+elif sys.argv[1].startswith('Location'):
     set_location(sys.argv[1])
 else:
     set_forecast(sys.argv[1])

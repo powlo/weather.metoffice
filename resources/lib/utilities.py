@@ -48,8 +48,6 @@ WEATHER_CODES = {
 
 #Calculate noon
 #http://en.wikipedia.org/wiki/Equation_of_time#Alternative_calculation
-def parse_json_sitelist(data):
-    pass
 
 def parse_json_day_forecast(data):
     """
@@ -179,9 +177,9 @@ def filter_sitelist(text, sitelist):
             filteredsitelist.append(x)
     return filteredsitelist
 
-def get_json_freegeoipnet():
+def get_freegeoipnet(datatype='json'):
     retry = 3
-    url = 'http://freegeoip.net/json/'
+    url = 'http://freegeoip.net/%s/' % datatype
     while True:
         try:
             response = urllib2.urlopen(url)
@@ -192,7 +190,7 @@ def get_json_freegeoipnet():
                 retry -= 1
             else:
                 raise
-    return json.loads(data)
+    return data
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     EARTH_RADIUS = 6371
