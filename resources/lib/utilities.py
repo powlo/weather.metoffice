@@ -112,7 +112,7 @@ def parse_json_current_forecast(data):
     forecast['Current.Humidity'] = humidity
     forecast['Current.FeelsLike'] = feelslike
     forecast['Current.UVIndex'] = maxuvindex
-    forecast['Current.DewPoint'] = ''
+    forecast['Current.DewPoint'] = dewpoint_temp(temp, humidity)
     forecast['Current.OutlookIcon'] = '%s.png' % outlook_code
     forecast['Current.FanartCode'] = '%s.png' % outlook_code
     return forecast
@@ -201,3 +201,6 @@ def retryurlopen(url, retry=3):
                 retry -= 1
             else:
                 raise
+
+def dewpoint_temp(temp, humidity):
+    return str(int(temp) - ((100 - int(humidity))/5))
