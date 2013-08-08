@@ -119,6 +119,35 @@ def get_coords_from_ip():
     data = json.loads(utilities.get_freegeoipnet())
     return (float(data['latitude']), float(data['longitude']))
 
+def get_sitelist():
+    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+    try:
+        log("Fetching site list...")
+        datapoint = Datapoint(API_KEY)
+        data = json.loads(datapoint.get_forecast_sitelist().decode('latin-1'))
+        sitelist = data['Locations']['Location']
+    except (HTTPError, URLError) as e:
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+        dialog.ok(str(e.reason), "Is your API Key correct?")
+        log(str(e))
+        sys.exit(1)
+    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+    (latitude, longitude) = get_coords_from_ip()
+    for site in sitelist:
+        site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
+
+    return sitelist
+
+
+def auto_location(location):
+    log("Auto-assigning location '%s'..." % location)
+    sitelist = get_sitelist()
+    sitelist.sort(key=itemgetter('distance'))
+    first = sitelist[0]
+    __addon__.setSetting(location, first['name'])
+    __addon__.setSetting(location + 'id', first['id'])
+    log("Location set to '%s'" % first['name'])
+
 def set_location(location):
     """
     Sets a location by providing a keyboard prompt to the user.
@@ -137,20 +166,7 @@ def set_location(location):
         sys.exit(1)
     datapoint = Datapoint(API_KEY)
     dialog = xbmcgui.Dialog()
-    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-    try:
-        log("Fetching site list...")
-        data = json.loads(datapoint.get_forecast_sitelist().decode('latin-1'))
-        sitelist = data['Locations']['Location']
-    except (HTTPError, URLError) as e:
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-        dialog.ok(str(e.reason), "Is your API Key correct?")
-        log(str(e))
-        sys.exit(1)
-    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-    (latitude, longitude) = get_coords_from_ip()
-    for site in sitelist:
-        site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
+    sitelist = get_sitelist()
     filtered_sites = utilities.filter_sitelist(text, sitelist)
     if filtered_sites != []:
         filtered_sites = sorted(filtered_sites,key=itemgetter('distance'))
@@ -171,6 +187,7 @@ WEATHER_WINDOW_ID = 12600
 WEATHER_WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
 DEBUG = __addon__.getSetting('Debug')
 API_KEY = __addon__.getSetting('ApiKey')
+AUTOLOCATION = __addon__.getSetting('AutoLocation')
 
 log('Startup...')
 WEATHER_WINDOW.setProperty('WeatherProvider', __addonname__)
@@ -181,10 +198,11 @@ if not API_KEY:
     log('Error, No API Key')
     sys.exit(1)
 
+if AUTOLOCATION and not __addon__.getSetting('Location1'):
+    auto_location('Location1')
+
 set_locations()
-if sys.argv[1].startswith('Default'):
-    set_default()
-elif sys.argv[1].startswith('Location'):
+if sys.argv[1].startswith('Location'):
     set_location(sys.argv[1])
 else:
     set_forecast(sys.argv[1])

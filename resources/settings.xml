@@ -10,6 +10,7 @@
 	</category>
 	<category label="Configuration">
 		<setting id="ApiKey" label="API Key" type="text" default=""/>
+		<setting id="AutoLocation" label="Auto-assign Location" type="bool" default="true"/>
 		<setting id="Debug" label="Debug Mode" type="bool" default="false"/>
 	</category>
 </settings>
