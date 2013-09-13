@@ -23,7 +23,7 @@ sys.path.append(__resource__)
 #We can now import from local lib dir
 #Need to think about whether this fudging is a good thing
 import utilities
-from datapointapi import Datapoint
+import datapointapi
 
 def log(txt):
     """
@@ -61,10 +61,9 @@ def set_forecast():
         sys.exit(1)
 
     #Get five day forecast:
-    datapoint = Datapoint(API_KEY)
     try:
         log("Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
-        data = json.loads(datapoint.get_forecast(location_id).decode('latin-1'))
+        data = json.loads(datapointapi.get_forecast(location_id, API_KEY).decode('latin-1'))
         report = utilities.parse_json_day_forecast(data)
         log("Setting Window properties...")
         for day, forecast in report.iteritems():
@@ -107,8 +106,7 @@ def get_sitelist():
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     try:
         log("Fetching site list...")
-        datapoint = Datapoint(API_KEY)
-        data = json.loads(datapoint.get_forecast_sitelist().decode('latin-1'))
+        data = json.loads(datapointapi.get_forecast_sitelist(API_KEY).decode('latin-1'))
         sitelist = data['Locations']['Location']
     except (HTTPError, URLError) as e:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
@@ -147,7 +145,6 @@ def set_location():
     if not text:
         log('No text entered.')
         sys.exit(1)
-    datapoint = Datapoint(API_KEY)
     dialog = xbmcgui.Dialog()
     sitelist = get_sitelist()
     filtered_sites = utilities.filter_sitelist(text, sitelist)
@@ -160,7 +157,6 @@ def set_location():
         if selected != -1:
             __addon__.setSetting('ForecastLocation', names[selected])
             __addon__.setSetting('ForecastLocationID', ids[selected])
-
     else:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
         log("No locations found containing '%s'" % text)
@@ -168,8 +164,6 @@ def set_location():
 #MAIN CODE
 WEATHER_WINDOW_ID = 12600
 WEATHER_WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
-WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
-WEATHER_WINDOW.setProperty('Locations', '1')
 
 DEBUG = __addon__.getSetting('Debug')
 API_KEY = __addon__.getSetting('ApiKey')
@@ -191,4 +185,8 @@ if sys.argv[1] == ('SetForecastLocation'):
     set_location()
 else:
     set_forecast()
+
+WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
+WEATHER_WINDOW.setProperty('Locations', '1')
+
 log('Done!')
