@@ -37,29 +37,13 @@ def log(txt):
         message = u'%s: %s' % (__addonid__, txt)
         xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)
 
-def set_locations():
-    """
-    Sets Window properties 'Location<n>' and 'Locations'
-    based on addon settings.
-    """
-    locations = 0
-    for count in range(1, LOCATIONS_MAX+1):
-        loc_name = __addon__.getSetting('Location%s' % count)
-        if loc_name != '':
-            locations += 1
-        else:
-            __addon__.setSetting('Location%sid' % count, '')
-        WEATHER_WINDOW.setProperty('Location%s' % count, loc_name)
-    WEATHER_WINDOW.setProperty('Locations', str(locations))
-    log('available locations: %s' % str(locations))
-
 def set_empty_forecast():
     log("Setting empty forecast...")
     clear = utilities.clear()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
-def set_forecast(num):
+def set_forecast():
     """
     Sets forecast related Window properties for the given location
     by making Datapoint API queries for the location id
@@ -69,17 +53,17 @@ def set_forecast(num):
     :type num: str
     :returns: None
     """
-    location_name = __addon__.getSetting('Location%s' % num)
-    location_id = __addon__.getSetting('Location%sid' % num)
+    location_name = __addon__.getSetting('ForecastLocation')
+    location_id = __addon__.getSetting('ForecastLocationID')
     if not (location_id and location_name):
-        log("Error fetching data for Location%s" % num)
+        log("Forecast location is not set")
         set_empty_forecast()
         sys.exit(1)
 
     #Get five day forecast:
     datapoint = Datapoint(API_KEY)
     try:
-        log("Fetching forecast for Location%s '%s (%s)' from the Met Office..." % (num, location_name, location_id))
+        log("Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
         data = json.loads(datapoint.get_forecast(location_id).decode('latin-1'))
         report = utilities.parse_json_day_forecast(data)
         log("Setting Window properties...")
@@ -139,27 +123,28 @@ def get_sitelist():
     return sitelist
 
 
-def auto_location(location):
-    log("Auto-assigning location '%s'..." % location)
+def auto_location():
+    log("Auto-assigning forecast location...")
     sitelist = get_sitelist()
     sitelist.sort(key=itemgetter('distance'))
     first = sitelist[0]
-    __addon__.setSetting(location, first['name'])
-    __addon__.setSetting(location + 'id', first['id'])
+    __addon__.setSetting('ForecastLocation', first['name'])
+    __addon__.setSetting('ForecastLocationID', first['id'])
+    #maintain support for unused Location spinner
+    WEATHER_WINDOW.setProperty('Location1', first['name'])
+    WEATHER_WINDOW.setProperty('Locations', '1')
     log("Location set to '%s'" % first['name'])
 
-def set_location(location):
+def set_location():
     """
-    Sets a location by providing a keyboard prompt to the user.
-    The name entered by the user is searched in the Met Office
+    Sets the forecast location by providing a keyboard prompt
+    to the user. The name entered by the user is searched in
     site list. All matches are presented as a select list to
     the user. On successful selection internal addon setting
-    is set and the Window property is set.
-    :param location: The location to be targeted. Eg, 'Location1'
-    :type location: string
+    is set.
     :returns: None
     """
-    log("Setting '%s'..." % location)
+    log("Setting forecast location...")
     text = get_keyboard_text()
     if not text:
         log('No text entered.')
@@ -175,14 +160,17 @@ def set_location(location):
         ids = [x['id'] for x in filtered_sites]
         selected = dialog.select("Matching Sites", names_distances)
         if selected != -1:
-            __addon__.setSetting(location, names[selected])
-            __addon__.setSetting(location + 'id', ids[selected])
+            __addon__.setSetting('ForecastLocation', names[selected])
+            __addon__.setSetting('ForecastLocationID', ids[selected])
+            
+            #maintain support for unused location spinner
+            WEATHER_WINDOW.setProperty('Location1', names[selected])
+            WEATHER_WINDOW.setProperty('Locations', '1')
     else:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
         log("No locations found containing '%s'" % text)
 
 #MAIN CODE
-LOCATIONS_MAX = 3
 WEATHER_WINDOW_ID = 12600
 WEATHER_WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
 DEBUG = __addon__.getSetting('Debug')
@@ -198,12 +186,11 @@ if not API_KEY:
     log('Error, No API Key')
     sys.exit(1)
 
-if AUTOLOCATION and not __addon__.getSetting('Location1'):
-    auto_location('Location1')
+if AUTOLOCATION and not __addon__.getSetting('ForecastLocation'):
+    auto_location()
 
-set_locations()
-if sys.argv[1].startswith('Location'):
-    set_location(sys.argv[1])
+if sys.argv[1] == ('SetForecastLocation'):
+    set_location()
 else:
-    set_forecast(sys.argv[1])
+    set_forecast()
 log('Done!')
