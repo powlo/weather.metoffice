@@ -130,9 +130,7 @@ def auto_location():
     first = sitelist[0]
     __addon__.setSetting('ForecastLocation', first['name'])
     __addon__.setSetting('ForecastLocationID', first['id'])
-    #maintain support for unused Location spinner
-    WEATHER_WINDOW.setProperty('Location1', first['name'])
-    WEATHER_WINDOW.setProperty('Locations', '1')
+
     log("Location set to '%s'" % first['name'])
 
 def set_location():
@@ -162,10 +160,7 @@ def set_location():
         if selected != -1:
             __addon__.setSetting('ForecastLocation', names[selected])
             __addon__.setSetting('ForecastLocationID', ids[selected])
-            
-            #maintain support for unused location spinner
-            WEATHER_WINDOW.setProperty('Location1', names[selected])
-            WEATHER_WINDOW.setProperty('Locations', '1')
+
     else:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
         log("No locations found containing '%s'" % text)
@@ -173,6 +168,9 @@ def set_location():
 #MAIN CODE
 WEATHER_WINDOW_ID = 12600
 WEATHER_WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
+WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
+WEATHER_WINDOW.setProperty('Locations', '1')
+
 DEBUG = __addon__.getSetting('Debug')
 API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = __addon__.getSetting('AutoLocation')
