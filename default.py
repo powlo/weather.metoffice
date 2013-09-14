@@ -61,9 +61,11 @@ def set_forecast():
         sys.exit(1)
 
     #Get five day forecast:
+    #todo: be more specific with the exception
     try:
         log("Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
-        data = json.loads(datapointapi.get_forecast(location_id, API_KEY).decode('latin-1'))
+        params = {'key':API_KEY, 'res':'daily'}
+        data = json.loads(datapointapi.request(resource='wxfcs', object=location_id, params=params).decode('latin-1'))
         report = utilities.parse_json_day_forecast(data)
         log("Setting Window properties...")
         for day, forecast in report.iteritems():
@@ -102,28 +104,28 @@ def get_coords_from_ip():
     data = json.loads(utilities.get_freegeoipnet())
     return (float(data['latitude']), float(data['longitude']))
 
-def get_sitelist():
+def get_sitelist(resource):
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+    log("Fetching site list...")
+    params = {'key': API_KEY}
     try:
-        log("Fetching site list...")
-        data = json.loads(datapointapi.get_forecast_sitelist(API_KEY).decode('latin-1'))
-        sitelist = data['Locations']['Location']
+        data = json.loads(datapointapi.request(resource=resource, params=params).decode('latin-1'))
     except (HTTPError, URLError) as e:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+        dialog = xbmcgui.Dialog()
         dialog.ok(str(e.reason), "Is your API Key correct?")
         log(str(e))
         sys.exit(1)
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+    sitelist = data['Locations']['Location']
     (latitude, longitude) = get_coords_from_ip()
     for site in sitelist:
         site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
-
     return sitelist
-
 
 def auto_location():
     log("Auto-assigning forecast location...")
-    sitelist = get_sitelist()
+    sitelist = get_sitelist('wxfcs')
     sitelist.sort(key=itemgetter('distance'))
     first = sitelist[0]
     __addon__.setSetting('ForecastLocation', first['name'])
@@ -146,7 +148,7 @@ def set_location():
         log('No text entered.')
         sys.exit(1)
     dialog = xbmcgui.Dialog()
-    sitelist = get_sitelist()
+    sitelist = get_sitelist('wxfcs')
     filtered_sites = utilities.filter_sitelist(text, sitelist)
     if filtered_sites != []:
         filtered_sites = sorted(filtered_sites,key=itemgetter('distance'))

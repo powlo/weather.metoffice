@@ -4,40 +4,25 @@ import urllib
 import urllib2
 from utilities import retryurlopen
 
+#resource can be 'wxobs', 'wxfcs'
+#format can be 'val', 'txt', 'image', 'layer'
+#datatype can be 'json', 'xml'
+#object can be 'sitelist', 'capabilties', \d+ (string of digits)
 BASE_URL = "http://datapoint.metoffice.gov.uk/public/data/"
+RESOURCE_URL = "%(format)s/%(resource)s/all/%(datatype)s/%(object)s?%(params)s"
 
-OBSERVATION_SITE_LIST_URL      = "val/wxobs/all/%(datatype)s/sitelist?%(params)s"
-OBSERVATION_CAPABILITIES_URL   = "val/wxobs/all/%(datatype)s/capabilities?%(params)s"
-OBSERVATION_LOCATION_URL       = "val/wxobs/all/%(datatype)s/%(location)s?%(params)s"
-
-FORECAST_SITE_LIST_URL         = "val/wxfcs/all/%(datatype)s/sitelist?%(params)s"
-FORECAST_CAPABILITIES_URL      = "val/wxfcs/all/%(datatype)s/capabilities?%(params)s"
-FORECAST_LOCATION_URL          = "val/wxfcs/all/%(datatype)s/%(location)s?%(params)s"
-
-#get list of sites supported
-def get_forecast_sitelist(key, datatype='json'):
-    params = urllib.urlencode({'key' : key})
-    substitute = {'datatype': datatype, 'params': params}
-    url = BASE_URL + FORECAST_SITE_LIST_URL % substitute
+#get data from datapoint
+def request(format='val', resource='wxobs', datatype='json', object='sitelist', params={}):
+    #todo: validate parameters
+    get_params = urllib.urlencode(params)
+    substitute = {'format': format,
+                  'resource': resource,
+                  'datatype': datatype,
+                  'object': object,
+                  'params': get_params}
+    url = BASE_URL + RESOURCE_URL % substitute
     return retryurlopen(url)
 
-#get capabilities
-def get_forecast_capabilites(key, datatype='json'):
-    params = urllib.urlencode({'key' : key})
-    substitute = {'datatype': datatype, 'params': params}
-    url = BASE_URL + FORECAST_CAPABILITIES_URL % substitute
-    return retryurlopen(url)
-    
-#get weather forecast for a given location
-def get_forecast(location, key, datatype='json', res='daily'):
-    params = urllib.urlencode({'res': res, 'key' : key})
-    substitute = {'datatype': datatype, 'location': location, 'params': params}
-    url = BASE_URL + FORECAST_LOCATION_URL % substitute
-    return retryurlopen(url)
-
-#get current observations for a location
-def get_observations(location, key, datatype='json', res='hourly'):
-    params = urllib.urlencode({'res': res, 'key' : key})
-    substitute = {'datatype': datatype, 'location': location, 'params': params}
-    url = BASE_URL + OBSERVATION_LOCATION_URL % substitute
-    return retryurlopen(url)
+def parse_sitelist():
+    #write a helper to disect the json data
+    pass
