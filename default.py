@@ -104,10 +104,15 @@ def get_coords_from_ip():
     data = json.loads(utilities.get_freegeoipnet())
     return (float(data['latitude']), float(data['longitude']))
 
-def get_sitelist(resource):
-    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-    log("Fetching site list...")
+def get_sitelist(category):
+    
+    log("Fetching %s site list..." % category)
+    if category == 'Forecast':
+        resource = 'wxfcs'
+    else:
+        resource = 'wxobs'
     params = {'key': API_KEY}
+    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     try:
         data = json.loads(datapointapi.request(resource=resource, params=params).decode('latin-1'))
     except (HTTPError, URLError) as e:
@@ -124,8 +129,10 @@ def get_sitelist(resource):
     return sitelist
 
 def auto_location():
+    #if auto location is on and if each info region is enabled
+    #then get an auto location for that category
     log("Auto-assigning forecast location...")
-    sitelist = get_sitelist('wxfcs')
+    sitelist = get_sitelist('Forecast')
     sitelist.sort(key=itemgetter('distance'))
     first = sitelist[0]
     __addon__.setSetting('ForecastLocation', first['name'])
@@ -133,7 +140,7 @@ def auto_location():
 
     log("Location set to '%s'" % first['name'])
 
-def set_location():
+def set_location(category):
     """
     Sets the forecast location by providing a keyboard prompt
     to the user. The name entered by the user is searched in
@@ -142,13 +149,14 @@ def set_location():
     is set.
     :returns: None
     """
-    log("Setting forecast location...")
+    assert(category in datapointapi.SITELIST_TYPES)
+    log("Setting %s location..." % category)
     text = get_keyboard_text()
     if not text:
         log('No text entered.')
         sys.exit(1)
     dialog = xbmcgui.Dialog()
-    sitelist = get_sitelist('wxfcs')
+    sitelist = get_sitelist(category)
     filtered_sites = utilities.filter_sitelist(text, sitelist)
     if filtered_sites != []:
         filtered_sites = sorted(filtered_sites,key=itemgetter('distance'))
@@ -157,8 +165,8 @@ def set_location():
         ids = [x['id'] for x in filtered_sites]
         selected = dialog.select("Matching Sites", names_distances)
         if selected != -1:
-            __addon__.setSetting('ForecastLocation', names[selected])
-            __addon__.setSetting('ForecastLocationID', ids[selected])
+            __addon__.setSetting('%sLocation' % category, names[selected])
+            __addon__.setSetting('%sLocationID' % category, ids[selected])
     else:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
         log("No locations found containing '%s'" % text)
@@ -183,8 +191,8 @@ if not API_KEY:
 if AUTOLOCATION and not __addon__.getSetting('ForecastLocation'):
     auto_location()
 
-if sys.argv[1] == ('SetForecastLocation'):
-    set_location()
+if sys.argv[1] == ('SetLocation'):
+    set_location(sys.argv[2])
 else:
     set_forecast()
 
