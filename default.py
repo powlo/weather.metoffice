@@ -152,9 +152,6 @@ def set_location(category):
     assert(category in datapointapi.SITELIST_TYPES)
     log("Setting %s location..." % category)
     text = get_keyboard_text()
-    if not text:
-        log('No text entered.')
-        sys.exit(1)
     dialog = xbmcgui.Dialog()
     sitelist = get_sitelist(category)
     filtered_sites = utilities.filter_sitelist(text, sitelist)
