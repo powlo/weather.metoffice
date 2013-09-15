@@ -49,7 +49,7 @@ WEATHER_CODES = {
 #Calculate noon
 #http://en.wikipedia.org/wiki/Equation_of_time#Alternative_calculation
 
-def parse_json_day_forecast(data):
+def parse_json_daily_forecast(data):
     """
     Takes raw api data and converts into something recognisable to xbmc
     
@@ -69,7 +69,8 @@ def parse_json_day_forecast(data):
     <Param name="W" units="">Weather Type</Param>
     <Param name="PPd" units="%">Precipitation Probability Day</Param>
     <Param name="PPn" units="%">Precipitation Probability Night</Param>
-    """    
+    """
+    #todo: rewrite this so it doesn't build dicts within a dict. this is unnecessary
     forecast = dict()
     for count, day in enumerate(data['SiteRep']['DV']['Location']['Period']):
         weather_type = day['Rep'][0]['W']
@@ -89,35 +90,7 @@ def parse_json_day_forecast(data):
 
     return forecast
 
-def parse_json_current_forecast(data):
-    #need a way of choosing day or night forecast
-    forecast = dict()
-    latest = data['SiteRep']['DV']['Location']['Period'][0]['Rep'][0]
-    temp = latest['Dm']
-    weather_type = latest['W']
-    wind = latest['S']
-    direction = latest['D']
-    humidity = latest['Hn']
-    feelslike = latest['FDm']
-    maxuvindex = latest['U']
-    weather_type = latest['W']
-    outlook_text = WEATHER_CODES[weather_type][1]
-    outlook_code = WEATHER_CODES[weather_type][0]   
-
-    forecast['Current.Location'] = data['SiteRep']['DV']['Location']['name'].title()
-    forecast['Current.Condition'] = outlook_text
-    forecast['Current.Temperature'] = temp
-    forecast['Current.Wind'] = wind
-    forecast['Current.WindDirection'] = direction
-    forecast['Current.Humidity'] = humidity
-    forecast['Current.FeelsLike'] = feelslike
-    forecast['Current.UVIndex'] = maxuvindex
-    forecast['Current.DewPoint'] = dewpoint_temp(temp, humidity)
-    forecast['Current.OutlookIcon'] = '%s.png' % outlook_code
-    forecast['Current.FanartCode'] = '%s.png' % outlook_code
-    return forecast
-
-def parse_json_observations(data):
+def parse_json_observation(data):
     """
     Observations return the following data:
     <Param name="G" units="mph">Wind Gust</Param>
@@ -129,26 +102,31 @@ def parse_json_observations(data):
     <Param name="P" units="hpa">Pressure</Param>    
     """
     latest_obs = data['SiteRep']['DV']['Location']['Period'][-1]['Rep'][-1]
-    temp = latest_obs['T']
-    weather_type = latest_obs['W']
-    wind = latest_obs['S']
-    direction = latest_obs['D']
-    weather_type = latest_obs['W']
-    outlook_text = WEATHER_CODES[weather_type][1]
-    outlook_code = WEATHER_CODES[weather_type][0]   
-
     observation = dict()
     observation['Current.Location'] = data['SiteRep']['DV']['Location']['name']
-    observation['Current.Condition'] = outlook_text
-    observation['Current.Temperature'] = temp
-    observation['Current.Wind'] = wind
-    observation['Current.WindDirection'] = direction
-    observation['Current.OutlookIcon'] = '%s.png' % outlook_code
-    observation['Current.FanartCode'] = '%s.png' % outlook_code
+    observation['Current.Condition'] = WEATHER_CODES[latest_obs.get('W', 'NA')][1]
+    observation['Current.Visibility'] = latest_obs.get('V')
+    observation['Current.Pressure'] = latest_obs.get('P')
+    observation['Current.Temperature'] = latest_obs.get('T')
+    observation['Current.Wind'] = latest_obs.get('S')
+    observation['Current.WindDirection'] = latest_obs.get('D')
+    observation['Current.OutlookIcon'] = '%s.png' % WEATHER_CODES[latest_obs.get('W', 'NA')][0]  
+    observation['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','NA')][0]  
 
     return observation
 
-def clear():
+def empty_forecast():
+    d = dict()
+    for count in range (MAX_DAYS):
+        d['Day%i.Title' % count] = 'N/A'
+        d['Day%i.HighTemp' % count] = '0'
+        d['Day%i.LowTemp' % count] = '0'
+        d['Day%i.Outlook' % count] = 'N/A'
+        d['Day%i.OutlookIcon' % count] = 'na.png'
+        d['Day%i.FanartCode' % count] = 'na'
+    return d
+
+def empty_observation():
     d = dict()
     d['Current.Condition'] = 'N/A'
     d['Current.Temperature'] = '0'
@@ -160,14 +138,6 @@ def clear():
     d['Current.DewPoint'] = '0'
     d['Current.OutlookIcon'] = 'na.png'
     d['Current.FanartCode'] = 'na'
-    for count in range (MAX_DAYS):
-        d['Day%i.Title' % count] = 'N/A'
-        d['Day%i.HighTemp' % count] = '0'
-        d['Day%i.LowTemp' % count] = '0'
-        d['Day%i.Outlook' % count] = 'N/A'
-        d['Day%i.OutlookIcon' % count] = 'na.png'
-        d['Day%i.FanartCode' % count] = 'na'
-
     return d
 
 def filter_sitelist(text, sitelist):

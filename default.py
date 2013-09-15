@@ -39,7 +39,13 @@ def log(txt):
 
 def set_empty_forecast():
     log("Setting empty forecast...")
-    clear = utilities.clear()
+    clear = utilities.empty_forecast()
+    for field, value in clear.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
+
+def set_empty_observation():
+    log("Setting empty observation...")
+    clear = utilities.empty_observation()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
@@ -53,12 +59,14 @@ def set_forecast():
     :type num: str
     :returns: None
     """
+    #todo: can remove this and just let the url request fail when location is null
     location_name = __addon__.getSetting('ForecastLocation')
     location_id = __addon__.getSetting('ForecastLocationID')
     if not (location_id and location_name):
         log("Forecast location is not set")
         set_empty_forecast()
-        sys.exit(1)
+        return
+        #sys.exit(1)
 
     #Get five day forecast:
     #todo: be more specific with the exception
@@ -66,20 +74,34 @@ def set_forecast():
         log("Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
         params = {'key':API_KEY, 'res':'daily'}
         data = json.loads(datapointapi.request(resource='wxfcs', object=location_id, params=params).decode('latin-1'))
-        report = utilities.parse_json_day_forecast(data)
+        report = utilities.parse_json_daily_forecast(data)
         log("Setting Window properties...")
         for day, forecast in report.iteritems():
             for field, value in forecast.iteritems():
                 WEATHER_WINDOW.setProperty('%s.%s' % (day, field), value)
-
-        #get current forecast based on the same data
-        report = utilities.parse_json_current_forecast(data)
-        for field, value in report.iteritems():
-            WEATHER_WINDOW.setProperty(field, value)
-
+        WEATHER_WINDOW.setProperty('Forecast.IsFetched', 'true')
     except:
         set_empty_forecast()
-        log("Setting empty forecast...")
+
+def set_observation():
+    location_name = __addon__.getSetting('ObservationLocation')
+    location_id = __addon__.getSetting('ObservationLocationID')
+    if not (location_id and location_name):
+        log("Observation location is not set")
+        set_empty_observation()
+        return
+
+    try:
+        log("Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
+        params = {'key':API_KEY, 'res':'hourly'}
+        data = json.loads(datapointapi.request(object=location_id, params=params).decode('latin-1'))
+        log("Setting Window properties...")
+        report = utilities.parse_json_observation(data)
+        for field, value in report.iteritems():
+            WEATHER_WINDOW.setProperty(field, value)
+        WEATHER_WINDOW.setProperty('Current.IsFetched', 'true')
+    except:
+        set_empty_observation()
 
     #Get observations:
     #data = weather.get_observations(OBSERVATION_ID)
@@ -89,8 +111,6 @@ def set_forecast():
     #what does setting "isfetched" achieve?
     #WEATHER_WINDOW.setProperty('Location%s' % num, location_name)
     #'Forecast.IsFetched' and 'Current.IsFetched' seem to have no effect
-    WEATHER_WINDOW.setProperty('Forecast.IsFetched', 'true')
-    WEATHER_WINDOW.setProperty('Current.IsFetched', 'true')
 
 def get_keyboard_text():
     """
@@ -192,7 +212,7 @@ if sys.argv[1] == ('SetLocation'):
     set_location(sys.argv[2])
 else:
     set_forecast()
-
+    set_observation()
 WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
 WEATHER_WINDOW.setProperty('Locations', '1')
 
