@@ -31,7 +31,7 @@ def log(txt):
     :param txt: Message to be logged. Eg, 'Downloading data'
     :type txt: str
     """
-    if DEBUG == 'true':
+    if DEBUG:
         if isinstance (txt,str):
             txt = txt.decode("utf-8")
         message = u'%s: %s' % (__addonid__, txt)
@@ -128,10 +128,10 @@ def get_coords_from_ip():
     longitude = utilities.GEOIP_PROVIDERS[provider]['longitude']
     return (float(data[latitude]), float(data[longitude]))
 
-def get_sitelist(category):
+def get_sitelist(location):
     
-    log("Fetching %s site list..." % category)
-    if category == 'Forecast':
+    log("Fetching %s site list..." % location)
+    if location == 'ForecastLocation':
         resource = 'wxfcs'
     else:
         resource = 'wxobs'
@@ -165,24 +165,22 @@ def get_sitelist(category):
             site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
     return sitelist
 
-def auto_location():
-    #todo: if auto location is on and if each info region is enabled
-    #then get an auto location for that category
-    log("Auto-assigning forecast location...")
-    sitelist = get_sitelist('Forecast')
+def auto_location(location):
+    log("Auto-assigning '%s'..." % location)
+    sitelist = get_sitelist(location)
     try:
         sitelist.sort(key=itemgetter('distance'))
     except KeyError:
-        #if geoip service can't addd distance then we can't autolocate
+        #if geoip service can't add distance then we can't autolocate
         log("Can't autolocate. Returned sitelist doesn't have 'distance' key.")
         return
     first = sitelist[0]
-    __addon__.setSetting('ForecastLocation', first['name'])
-    __addon__.setSetting('ForecastLocationID', first['id'])
+    __addon__.setSetting(location, first['name'])
+    __addon__.setSetting('%sID' % location, first['id'])
 
     log("Location set to '%s'" % first['name'])
 
-def set_location(category):
+def set_location(location):
     """
     Sets the forecast location by providing a keyboard prompt
     to the user. The name entered by the user is searched in
@@ -191,11 +189,11 @@ def set_location(category):
     is set.
     :returns: None
     """  
-    assert(category in datapointapi.SITELIST_TYPES)
-    log("Setting %s location..." % category)
+    assert(location in datapointapi.SITELIST_TYPES)
+    log("Setting '%s' ..." % location)
     text = get_keyboard_text()
     dialog = xbmcgui.Dialog()
-    sitelist = get_sitelist(category)
+    sitelist = get_sitelist(location)
     filtered_sites = utilities.filter_sitelist(text, sitelist)
     if filtered_sites != []:
         try:
@@ -207,8 +205,8 @@ def set_location(category):
             
         selected = dialog.select("Matching Sites", display_list)
         if selected != -1:
-            __addon__.setSetting('%sLocation' % category, filtered_sites[selected]['name'])
-            __addon__.setSetting('%sLocationID' % category, filtered_sites[selected]['id'])
+            __addon__.setSetting(location, filtered_sites[selected]['name'])
+            __addon__.setSetting("%sID" % location, filtered_sites[selected]['id'])
     else:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
         log("No locations found containing '%s'" % text)
@@ -217,9 +215,10 @@ def set_location(category):
 WEATHER_WINDOW_ID = 12600
 WEATHER_WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
 
-DEBUG = __addon__.getSetting('Debug')
+DEBUG = True if __addon__.getSetting('Debug') == 'true' else False
 API_KEY = __addon__.getSetting('ApiKey')
-AUTOLOCATION = __addon__.getSetting('AutoLocation')
+AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
+FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
 
 log('Startup...')
 WEATHER_WINDOW.setProperty('WeatherProvider', __addonname__)
@@ -233,8 +232,10 @@ if not API_KEY:
 if sys.argv[1] == ('SetLocation'):
     set_location(sys.argv[2])
 else:
-    if AUTOLOCATION and not __addon__.getSetting('ForecastLocation'):
-        auto_location()
+    if FORCEAUTOLOCATION or (AUTOLOCATION and not __addon__.getSetting('ForecastLocation')):
+        auto_location('ForecastLocation')
+    if FORCEAUTOLOCATION or (AUTOLOCATION and not __addon__.getSetting('ObservationLocation')):
+        auto_location('ObservationLocation')
     set_forecast()
     set_observation()
 

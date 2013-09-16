@@ -11,7 +11,7 @@ from utilities import retryurlopen
 BASE_URL = "http://datapoint.metoffice.gov.uk/public/data/"
 RESOURCE_URL = "%(format)s/%(resource)s/all/%(datatype)s/%(object)s?%(params)s"
 
-SITELIST_TYPES = ['Forecast', 'Observation']
+SITELIST_TYPES = ['ForecastLocation', 'ObservationLocation']
 
 #get data from datapoint
 def request(format='val', resource='wxobs', datatype='json', object='sitelist', params={}):
