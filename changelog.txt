@@ -1,30 +1,27 @@
-------------------------------------------------------------------------------
- 0.0.3 - 6/Jun/2013
-------------------------------------------------------------------------------
-- Addon now gets current location from IP address
-and returns location search results ordered by distance
-------------------------------------------------------------------------------
- 0.0.3 - 3/Jun/2013
-------------------------------------------------------------------------------
-- Removed ability to clear locations in settings. Clearing locations dynamically in settings
-doesn't work because XBMC doesn't properly apply settings until user clicks "OK".
-- Removed dialog popup telling user to add locations. This could get annnoying.
-- json parser clears the title of days not used by Datapoint, so that when switching from an
-addon that _does_ use it, old data doesn't show up.
-------------------------------------------------------------------------------
- 0.0.2 - 2/Jun/2013
-------------------------------------------------------------------------------
--General code reorganisation.
--Users can delete locations from settings by entering empty data.
--Code falls back to known good location if XBMC requests a forecast location
- that's not set.
--Will try to refetch forecast to avoid IncompleteRead exceptions.
--Will set null forecast data only if the forecast fetch failed.
--Added logging info.
--Debug option added to settings.
--Locations in settings are only visible if the previous is not null.
--Exclude list created to support zipping/repobuilder.
-------------------------------------------------------------------------------
- 0.0.1 - 10/May/2013
-------------------------------------------------------------------------------
-First stab.
+bf57dae	Paul Backhouse	2013-09-16	Version 0.0.6
+1d3b81d	Paul Backhouse	2013-09-16	Tidying up code.
+67d79cc	Paul Backhouse	2013-09-16	Added ability to force autolocation
+ad2e18c	Paul Backhouse	2013-09-16	Assign 'isFetched' even when we set an empty forecast/observation
+9296f0e	Paul Backhouse	2013-09-16	Split page fetching and json processing to provide more relevent error reporting
+4de3dd4	Paul Backhouse	2013-09-16	Multiple GeoIP providers
+0ebec75	Paul Backhouse	2013-09-15	Observation data is used in "Weather.Current..."
+44aadfe	Paul Backhouse	2013-09-14	Allow user to enter an empty location
+5635049	Paul Backhouse	2013-09-14	Added Observation setting
+edce567	Paul Backhouse	2013-09-14	Generic API interface
+d9ee74d	Paul Backhouse	2013-09-13	Remove Datapoint class
+710c2f1	Paul Backhouse	2013-09-13	Bump version
+411273e	Paul Backhouse	2013-09-13	Added default API Key
+74a3fea	Paul Backhouse	2013-09-13	Removed option for multiple locations.
+0420d92	Powlo	2013-08-08	Added option to autolocate.
+210659b	Powlo	2013-08-05	Dewpoint calculated from temp and humidity
+9f5206a	Powlo	2013-06-09	Created retry function in utilities to be used when a url might fail or when the url might return partial data.
+b3d5b48	Powlo	2013-06-09	Made datapoint and freegeoip interfaces datatype agnostic.
+34a315d	Powlo	2013-06-07	Tidy up
+a519d2d	Powlo	2013-06-06	Bump version and changelog
+6fe04bd	Powlo	2013-06-06	Addon now gets current location from IP address and presents location search results orded by distance from current location.
+cd7ced2	Powlo	2013-06-04	Moved keyboard text fetching into its own function and removed slightly needless conditional indentation.
+bf021c6	Powlo	2013-06-03	bump changelog
+4a581af	Powlo	2013-06-03	- Removed ability to clear locations in settings. Clearing locations dynamically in settings doesn't work because XBMC doesn't properly apply settings until user clicks "OK". - Removed dialog popup telling user to add locations. This could get annnoying. - json parser clears the title of days not used by Datapoint, so that when switching from an addon that _does_ use it, old data doesn't show up.
+c796c0f	Powlo	2013-06-02	Large rewrite. See changelog for details.
+fe0cfd4	Powlo	2013-05-10	First stab
+6272fbe	Paul Backhouse	2013-05-10	Initial commit
