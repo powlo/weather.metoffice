@@ -42,6 +42,15 @@ WEATHER_CODES = {
     '30': ('17', 'Thunder')
 }
 
+#This list must appear in the same order as it appears in 
+#the settings.xml in order for the indexes to align.
+GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitude':'lon'},
+             {'url':'http://freegeoip.net/json/', 'latitude':'latitude', 'longitude':'longitude'},
+             {'url':'http://www.telize.com/geoip/','latitude':'latitude', 'longitude':'longitude'},
+             {'url':'http://api.hostip.info/get_json.php?position=true','latitude':'lat', 'longitude':'lng'},
+             {'url':'http://geoiplookup.net/geoapi.php?output=json', 'latitude':'latitude', 'longitude':'longitude'}
+                   ]
+
 #calculate sunrise/sunset:
 # H = | (1/15)*arccos[-tan(L)*tan(23.44*sin(360(D+284)/365))] |.
 # http://www.had2know.com/society/sunrise-sunset-time-calculator-formula.html
@@ -146,10 +155,6 @@ def filter_sitelist(text, sitelist):
         if x['name'].lower().find(text.lower()) != -1:
             filteredsitelist.append(x)
     return filteredsitelist
-
-def get_freegeoipnet(datatype='json'):
-    url = 'http://freegeoip.net/%s/' % datatype
-    return retryurlopen(url)
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     EARTH_RADIUS = 6371

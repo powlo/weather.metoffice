@@ -120,9 +120,13 @@ def get_keyboard_text():
     keyboard.doModal()
     return keyboard.isConfirmed() and keyboard.getText()
 
-def get_coords_from_ip():
-    data = json.loads(utilities.get_freegeoipnet())
-    return (float(data['latitude']), float(data['longitude']))
+def get_coords_from_ip():  
+    provider = int(__addon__.getSetting('GeoIPProvider'))
+    page = utilities.retryurlopen(utilities.GEOIP_PROVIDERS[provider]['url'])
+    data = json.loads(page)
+    latitude = utilities.GEOIP_PROVIDERS[provider]['latitude']
+    longitude = utilities.GEOIP_PROVIDERS[provider]['longitude']
+    return (float(data[latitude]), float(data[longitude]))
 
 def get_sitelist(category):
     
@@ -143,17 +147,27 @@ def get_sitelist(category):
         sys.exit(1)
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     sitelist = data['Locations']['Location']
-    (latitude, longitude) = get_coords_from_ip()
-    for site in sitelist:
-        site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
+    if __addon__.getSetting('GeoLocation') == 'true':
+        try:
+            (latitude, longitude) = get_coords_from_ip()
+        except TypeError:
+            #TypeError occurs when lat or long are null and cant be converted to float
+            return sitelist
+        for site in sitelist:
+            site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
     return sitelist
 
 def auto_location():
-    #if auto location is on and if each info region is enabled
+    #todo: if auto location is on and if each info region is enabled
     #then get an auto location for that category
     log("Auto-assigning forecast location...")
     sitelist = get_sitelist('Forecast')
-    sitelist.sort(key=itemgetter('distance'))
+    try:
+        sitelist.sort(key=itemgetter('distance'))
+    except KeyError:
+        #if geoip service can't addd distance then we can't autolocate
+        log("Can't autolocate. Returned sitelist doesn't have 'distance' key.")
+        return
     first = sitelist[0]
     __addon__.setSetting('ForecastLocation', first['name'])
     __addon__.setSetting('ForecastLocationID', first['id'])
@@ -168,7 +182,7 @@ def set_location(category):
     the user. On successful selection internal addon setting
     is set.
     :returns: None
-    """
+    """  
     assert(category in datapointapi.SITELIST_TYPES)
     log("Setting %s location..." % category)
     text = get_keyboard_text()
@@ -176,14 +190,17 @@ def set_location(category):
     sitelist = get_sitelist(category)
     filtered_sites = utilities.filter_sitelist(text, sitelist)
     if filtered_sites != []:
-        filtered_sites = sorted(filtered_sites,key=itemgetter('distance'))
-        names = [x['name'] for x in filtered_sites]
-        names_distances = ["%s (%skm)" % (x['name'], x['distance']) for x in filtered_sites]
-        ids = [x['id'] for x in filtered_sites]
-        selected = dialog.select("Matching Sites", names_distances)
+        try:
+            filtered_sites = sorted(filtered_sites,key=itemgetter('distance'))
+            display_list = ["%s (%skm)" % (x['name'], x['distance']) for x in filtered_sites]
+        except KeyError:
+            filtered_sites = sorted(filtered_sites,key=itemgetter('name'))
+            display_list = [x['name'] for x in filtered_sites]
+            
+        selected = dialog.select("Matching Sites", display_list)
         if selected != -1:
-            __addon__.setSetting('%sLocation' % category, names[selected])
-            __addon__.setSetting('%sLocationID' % category, ids[selected])
+            __addon__.setSetting('%sLocation' % category, filtered_sites[selected]['name'])
+            __addon__.setSetting('%sLocationID' % category, filtered_sites[selected]['id'])
     else:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
         log("No locations found containing '%s'" % text)
@@ -205,14 +222,14 @@ if not API_KEY:
     log('Error, No API Key')
     sys.exit(1)
 
-if AUTOLOCATION and not __addon__.getSetting('ForecastLocation'):
-    auto_location()
-
 if sys.argv[1] == ('SetLocation'):
     set_location(sys.argv[2])
 else:
+    if AUTOLOCATION and not __addon__.getSetting('ForecastLocation'):
+        auto_location()
     set_forecast()
     set_observation()
+
 WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
 WEATHER_WINDOW.setProperty('Locations', '1')
 

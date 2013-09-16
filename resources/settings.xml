@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
 	<category label="Location Settings">
-		<setting id="ForecastLocation" label="Forecast Location" type="action" action="RunScript($ID,SetLocation, Forecast)" default=""/>
-		<setting id="ForecastLocationID" type="text" visible="false" default=""/>
 		<setting id="ObservationLocation" label="Observation Location" type="action" action="RunScript($ID,SetLocation, Observation)" default=""/>
 		<setting id="ObservationLocationID" type="text" visible="false" default=""/>
+		<setting id="ForecastLocation" label="Forecast Location" type="action" action="RunScript($ID,SetLocation, Forecast)" default=""/>
+		<setting id="ForecastLocationID" type="text" visible="false" default=""/>
 	</category>
 	<category label="Configuration">
 		<setting id="ApiKey" label="API Key" type="text" default="4eeb196d-a473-4634-a9da-397974138bf5"/>
-		<setting id="AutoLocation" label="Auto-assign Location" type="bool" default="true"/>
+		<setting id="GeoLocation" label="Use Geo-Location" type="bool" default="true"/>
+		<setting id="AutoLocation" label="Auto-assign Location" type="bool" default="true" enable="eq(-1,true)"/>
+	    <setting id="GeoIPProvider" 
+	    	label="GeoIP Provider" 
+	    	type="enum" 
+	    	values="www.ip-api.com|www.freegeoip.net|www.telize.com|www.hostip.info"
+	    	enable="eq(-2,true)"
+	    	default="1"/>
+        <setting type="sep"/>
 		<setting id="Debug" label="Debug Mode" type="bool" default="false"/>
 	</category>
 </settings>
