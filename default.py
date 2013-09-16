@@ -138,13 +138,21 @@ def get_sitelist(category):
     params = {'key': API_KEY}
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     try:
-        data = json.loads(datapointapi.request(resource=resource, params=params).decode('latin-1'))
+        page=datapointapi.request(resource=resource, params=params).decode('latin-1')
     except (HTTPError, URLError) as e:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-        dialog = xbmcgui.Dialog()
-        dialog.ok(str(e.reason), "Is your API Key correct?")
+        log("Is your API Key correct?")
         log(str(e))
         sys.exit(1)
+    try:
+        data = json.loads(page)
+    except ValueError as e:
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+        log("There was a problem with the json data.")
+        log(str(e))
+        log(data)
+        sys.exit(1)
+        
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     sitelist = data['Locations']['Location']
     if __addon__.getSetting('GeoLocation') == 'true':
