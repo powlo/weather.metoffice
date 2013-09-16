@@ -70,10 +70,12 @@ def set_forecast():
 
     #Get five day forecast:
     #todo: be more specific with the exception
+    log("Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
+    params = {'key':API_KEY, 'res':'daily'}
+    url = datapointapi.url(resource='wxfcs', object=location_id, params=params)
     try:
-        log("Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
-        params = {'key':API_KEY, 'res':'daily'}
-        data = json.loads(datapointapi.request(resource='wxfcs', object=location_id, params=params).decode('latin-1'))
+        page = utilities.retryurlopen(url).decode('latin-1')
+        data = json.loads(page)
         report = utilities.parse_json_daily_forecast(data)
         log("Setting Window properties...")
         for day, forecast in report.iteritems():
@@ -91,10 +93,12 @@ def set_observation():
         set_empty_observation()
         return
 
+    log("Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
+    params = {'key':API_KEY, 'res':'hourly'}
+    url = datapointapi.url(object=location_id, params=params)
     try:
-        log("Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
-        params = {'key':API_KEY, 'res':'hourly'}
-        data = json.loads(datapointapi.request(object=location_id, params=params).decode('latin-1'))
+        page = utilities.retryurlopen(url).decode('latin-1')
+        data = json.loads(page)
         log("Setting Window properties...")
         report = utilities.parse_json_observation(data)
         for field, value in report.iteritems():
@@ -122,7 +126,8 @@ def get_keyboard_text():
 
 def get_coords_from_ip():  
     provider = int(__addon__.getSetting('GeoIPProvider'))
-    page = utilities.retryurlopen(utilities.GEOIP_PROVIDERS[provider]['url'])
+    url = utilities.GEOIP_PROVIDERS[provider]['url']
+    page = utilities.retryurlopen(url)
     data = json.loads(page)
     latitude = utilities.GEOIP_PROVIDERS[provider]['latitude']
     longitude = utilities.GEOIP_PROVIDERS[provider]['longitude']
@@ -137,8 +142,9 @@ def get_sitelist(location):
         resource = 'wxobs'
     params = {'key': API_KEY}
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+    url = datapointapi.url(resource=resource, params=params)
     try:
-        page=datapointapi.request(resource=resource, params=params).decode('latin-1')
+        page = utilities.retryurlopen(url).decode('latin-1')
     except (HTTPError, URLError) as e:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
         log("Is your API Key correct?")

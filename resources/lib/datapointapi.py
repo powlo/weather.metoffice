@@ -14,7 +14,7 @@ RESOURCE_URL = "%(format)s/%(resource)s/all/%(datatype)s/%(object)s?%(params)s"
 SITELIST_TYPES = ['ForecastLocation', 'ObservationLocation']
 
 #get data from datapoint
-def request(format='val', resource='wxobs', datatype='json', object='sitelist', params={}):
+def url(format='val', resource='wxobs', datatype='json', object='sitelist', params={}):
     #todo: validate parameters
     get_params = urllib.urlencode(params)
     substitute = {'format': format,
@@ -22,8 +22,7 @@ def request(format='val', resource='wxobs', datatype='json', object='sitelist', 
                   'datatype': datatype,
                   'object': object,
                   'params': get_params}
-    url = BASE_URL + RESOURCE_URL % substitute
-    return retryurlopen(url)
+    return BASE_URL + RESOURCE_URL % substitute
 
 def parse_sitelist():
     #write a helper to disect the json data
