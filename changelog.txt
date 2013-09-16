@@ -1,4 +1,4 @@
-bf57dae	Paul Backhouse	2013-09-16	Version 0.0.6
+4d8d21d	Paul Backhouse	2013-09-16	Version 0.0.6
 1d3b81d	Paul Backhouse	2013-09-16	Tidying up code.
 67d79cc	Paul Backhouse	2013-09-16	Added ability to force autolocation
 ad2e18c	Paul Backhouse	2013-09-16	Assign 'isFetched' even when we set an empty forecast/observation
