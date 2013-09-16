@@ -42,7 +42,7 @@ def set_empty_forecast():
     clear = utilities.empty_forecast()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
-
+    
 def set_empty_observation():
     log("Setting empty observation...")
     clear = utilities.empty_observation()
@@ -79,9 +79,9 @@ def set_forecast():
         for day, forecast in report.iteritems():
             for field, value in forecast.iteritems():
                 WEATHER_WINDOW.setProperty('%s.%s' % (day, field), value)
-        WEATHER_WINDOW.setProperty('Forecast.IsFetched', 'true')
     except:
         set_empty_forecast()
+    WEATHER_WINDOW.setProperty('Forecast.IsFetched', 'true')
 
 def set_observation():
     location_name = __addon__.getSetting('ObservationLocation')
@@ -99,9 +99,9 @@ def set_observation():
         report = utilities.parse_json_observation(data)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
-        WEATHER_WINDOW.setProperty('Current.IsFetched', 'true')
     except:
         set_empty_observation()
+    WEATHER_WINDOW.setProperty('Current.IsFetched', 'true')
 
     #Get observations:
     #data = weather.get_observations(OBSERVATION_ID)
