@@ -5,6 +5,7 @@ import urllib2
 import json
 
 MAX_DAYS = 5
+MAX_MINUTES = 8
 
 #Translate Datapoint Codes into XBMC codes
 WEATHER_CODES = {
@@ -80,6 +81,7 @@ def parse_json_daily_forecast(data):
     <Param name="PPn" units="%">Precipitation Probability Night</Param>
     """
     #todo: rewrite this so it doesn't build dicts within a dict. this is unnecessary
+    #todo: set night values
     forecast = dict()
     for count, day in enumerate(data['SiteRep']['DV']['Location']['Period']):
         weather_type = day['Rep'][0]['W']
@@ -98,6 +100,41 @@ def parse_json_daily_forecast(data):
     forecast['Day6']['Title'] = ''
 
     return forecast
+
+def parse_json_3hourly_forecast(data):
+    """
+    <Param name="F" units="C">Feels Like Temperature</Param>
+    <Param name="G" units="mph">Wind Gust</Param>
+    <Param name="H" units="%">Screen Relative Humidity</Param>
+    <Param name="T" units="C">Temperature</Param><Param name="V" units="">Visibility</Param>
+    <Param name="D" units="compass">Wind Direction</Param>
+    <Param name="S" units="mph">Wind Speed</Param>
+    <Param name="U" units="">Max UV Index</Param>
+    <Param name="W" units="">Weather Type</Param>
+    <Param name="Pp" units="%">Precipitation Probability</Param>
+    """
+    """
+    NB/TODO: If a report contains the value "Day", then we set day values
+    if it contains night then we set night values
+    if it contains a number then we set hourly values
+    use these facts to automate json handling
+    """
+    forecast = dict()
+    for day, period in enumerate(data['SiteRep']['DV']['Location']['Period']):
+        for minute, report in enumerate(period['Rep']):
+            forecast['Day%s.Time%s.FeelsTemp' % (day, minute)] = report.get('F')
+            forecast['Day%s.Time%s.WindGust' % (day, minute)] = report.get('G')
+            forecast['Day%s.Time%s.Humidity' % (day, minute)] = report.get('H')
+            forecast['Day%s.Time%s.Temp' % (day, minute)] = report.get('T')
+            forecast['Day%s.Time%s.Visibility' % (day, minute)] = report.get('T')
+            forecast['Day%s.Time%s.WindDirection' % (day, minute)] = report.get('D')
+            forecast['Day%s.Time%s.WindSpeed' % (day, minute)] = report.get('S')
+            forecast['Day%s.Time%s.MaxUV' % (day, minute)] = report.get('U')
+            forecast['Day%s.Time%s.WeatherType' % (day, minute)] = report.get('W')
+            forecast['Day%s.Time%s.Precipitation' % (day, minute)] = report.get('Pp')
+
+    return forecast
+
 
 def parse_json_observation(data):
     """
@@ -133,6 +170,22 @@ def empty_forecast():
         d['Day%i.Outlook' % count] = 'N/A'
         d['Day%i.OutlookIcon' % count] = 'na.png'
         d['Day%i.FanartCode' % count] = 'na'
+    return d
+
+def empty_3hourly_forecast():
+    d = dict()
+    for day in range (MAX_DAYS):
+        for minute in range (MAX_MINUTES):
+            d['Day%s.Time%s.FeelsTemp' % (day,minute)] = 'N/A'
+            d['Day%s.Time%s.WindGust' % (day,minute)] = 'N/A'
+            d['Day%s.Time%s.Humidity' % (day,minute)] = 'N/A'
+            d['Day%s.Time%s.Temp' % (day,minute)] = 'N/A'
+            d['Day%s.Time%s.Visibility' % (day,minute)] = 'N/A'
+            d['Day%s.Time%s.WindDirection' % (day,minute)] = 'N/A'
+            d['Day%s.Time%s.WindSpeed' % (day,minute)] = 'N/A'
+            d['Day%s.Time%s.MaxUV' % (day,minute)] = 'N/A'
+            d['Day%s.Time%s.WeatherType' % (day,minute)] = 'na'
+            d['Day%s.Time%s.Precipitation' % (day,minute)] = 'N/A'
     return d
 
 def empty_observation():

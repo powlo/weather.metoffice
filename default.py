@@ -43,20 +43,24 @@ def set_empty_forecast():
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
     
+def set_empty_3hourly_forecast():
+    log("Setting empty forecast...")
+    clear = utilities.empty_3hourly_forecast()
+    for field, value in clear.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
+    
 def set_empty_observation():
     log("Setting empty observation...")
     clear = utilities.empty_observation()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
-def set_forecast():
+def set_five_day_forecast():
     """
     Sets forecast related Window properties for the given location
     by making Datapoint API queries for the location id
     that corresponds to the location number. If the forecast
     can't be fetched then empty data is assigned.
-    :param num: Location number who's forecast will be fetched, eg '1'
-    :type num: str
     :returns: None
     """
     #todo: can remove this and just let the url request fail when location is null
@@ -84,6 +88,37 @@ def set_forecast():
     except:
         set_empty_forecast()
     WEATHER_WINDOW.setProperty('Forecast.IsFetched', 'true')
+
+def set_3hourly_forecast():
+    """
+    Sets forecast related Window properties for the given location
+    by making Datapoint API queries for the location id
+    that corresponds to the location number. If the forecast
+    can't be fetched then empty data is assigned.
+    :returns: None
+    """
+    #todo: can remove this and just let the url request fail when location is null
+    location_name = __addon__.getSetting('ForecastLocation')
+    location_id = __addon__.getSetting('ForecastLocationID')
+    if not (location_id and location_name):
+        log("Forecast location is not set")
+        set_empty_3hourly_forecast()
+        return
+
+    #Get three hour forecast:
+    log("Fetching 3 hourly forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
+    params = {'key':API_KEY, 'res':'3hourly'}
+    url = datapointapi.url(resource='wxfcs', object=location_id, params=params)
+    try:
+        page = utilities.retryurlopen(url).decode('latin-1')
+        data = json.loads(page)
+        report = utilities.parse_json_3hourly_forecast(data)
+        log("Setting Window properties...")
+        for field, value in report.iteritems():
+            WEATHER_WINDOW.setProperty(field, value)
+    except:
+        set_empty_3hourly_forecast()
+    WEATHER_WINDOW.setProperty('ThreeHourly.IsFetched', 'true')
 
 def set_observation():
     location_name = __addon__.getSetting('ObservationLocation')
@@ -242,7 +277,8 @@ else:
         auto_location('ForecastLocation')
     if FORCEAUTOLOCATION or (AUTOLOCATION and not __addon__.getSetting('ObservationLocation')):
         auto_location('ObservationLocation')
-    set_forecast()
+    set_five_day_forecast()
+    set_3hourly_forecast()
     set_observation()
 
 WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
