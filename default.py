@@ -82,9 +82,8 @@ def set_five_day_forecast():
         data = json.loads(page)
         report = utilities.parse_json_daily_forecast(data)
         log("Setting Window properties...")
-        for day, forecast in report.iteritems():
-            for field, value in forecast.iteritems():
-                WEATHER_WINDOW.setProperty('%s.%s' % (day, field), value)
+        for field, value in report.iteritems():
+            WEATHER_WINDOW.setProperty(field, value)
     except:
         set_empty_forecast()
     WEATHER_WINDOW.setProperty('Forecast.IsFetched', 'true')

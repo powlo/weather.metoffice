@@ -63,7 +63,7 @@ def parse_json_daily_forecast(data):
     """
     Takes raw api data and converts into something recognisable to xbmc
     
-    Met Office Forecast Data:    
+    Met Office Daily Forecast Data:
     <Param name="FDm" units="C">Feels Like Day Maximum Temperature</Param>
     <Param name="Dm" units="C">Day Maximum Temperature</Param>
     <Param name="FNm" units="C">Feels Like Night Minimum Temperature</Param>
@@ -80,24 +80,19 @@ def parse_json_daily_forecast(data):
     <Param name="PPd" units="%">Precipitation Probability Day</Param>
     <Param name="PPn" units="%">Precipitation Probability Night</Param>
     """
-    #todo: rewrite this so it doesn't build dicts within a dict. this is unnecessary
     #todo: set night values
     forecast = dict()
     for count, day in enumerate(data['SiteRep']['DV']['Location']['Period']):
         weather_type = day['Rep'][0]['W']
-        forecast['Day%s' % count] = dict()
-        forecast['Day%s' % count]['Title'] = datetime.fromtimestamp(time.mktime(time.strptime(day['value'], '%Y-%m-%dZ'))).strftime('%A')
-        forecast['Day%s' % count]['HighTemp'] = day['Rep'][0]['Dm']
-        forecast['Day%s' % count]['LowTemp'] = day['Rep'][1]['Nm']
-        forecast['Day%s' % count]['Outlook'] = WEATHER_CODES[weather_type][1]
-        forecast['Day%s' % count]['OutlookIcon'] = "%s.png" % WEATHER_CODES[weather_type][0]
-        forecast['Day%s' % count]['FanartCode'] = "%s.png" % WEATHER_CODES[weather_type][0]
+        forecast['Day%s.Title' % count] = datetime.fromtimestamp(time.mktime(time.strptime(day['value'], '%Y-%m-%dZ'))).strftime('%A')
+        forecast['Day%s.HighTemp' % count] = day['Rep'][0]['Dm']
+        forecast['Day%s.LowTemp' % count] = day['Rep'][1]['Nm']
+        forecast['Day%s.Outlook' % count] = WEATHER_CODES[weather_type][1]
+        forecast['Day%s.OutlookIcon' % count] = "%s.png" % WEATHER_CODES[weather_type][0]
         
     #Add empty days for those not supported by Datapoint
-    forecast['Day5'] = dict()
-    forecast['Day5']['Title'] = ''
-    forecast['Day6'] = dict()
-    forecast['Day6']['Title'] = ''
+    forecast['Day5.Title'] = ''
+    forecast['Day6.Title'] = ''
 
     return forecast
 
