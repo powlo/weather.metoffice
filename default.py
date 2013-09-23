@@ -80,7 +80,7 @@ def set_five_day_forecast():
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
-        report = utilities.parse_json_daily_forecast(data)
+        report = utilities.parse_json_default_forecast(data)
         log("Setting Window properties...")
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)

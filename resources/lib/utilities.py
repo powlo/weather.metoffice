@@ -59,7 +59,7 @@ GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitud
 #Calculate noon
 #http://en.wikipedia.org/wiki/Equation_of_time#Alternative_calculation
 
-def parse_json_daily_forecast(data):
+def parse_json_default_forecast(data):
     """
     Takes raw api data and converts into something recognisable to xbmc
     
@@ -95,6 +95,45 @@ def parse_json_daily_forecast(data):
     forecast['Day6.Title'] = ''
 
     return forecast
+
+def parse_json_daily_forecast(data):
+    """
+    Takes raw api data and converts into something recognisable to xbmc
+    
+    Met Office Daily Forecast Data:
+    <Param name="FDm" units="C">Feels Like Day Maximum Temperature</Param>
+    <Param name="Dm" units="C">Day Maximum Temperature</Param>
+    <Param name="FNm" units="C">Feels Like Night Minimum Temperature</Param>
+    <Param name="Nm" units="C">Night Minimum Temperature</Param>
+    <Param name="Gn" units="mph">Wind Gust Noon</Param>
+    <Param name="Gm" units="mph">Wind Gust Midnight</Param>
+    <Param name="Hn" units="%">Screen Relative Humidity Noon</Param>
+    <Param name="Hm" units="%">Screen Relative Humidity Midnight</Param>
+    <Param name="V" units="">Visibility</Param>
+    <Param name="D" units="compass">Wind Direction</Param>
+    <Param name="S" units="mph">Wind Speed</Param>
+    <Param name="U" units="">Max UV Index</Param>
+    <Param name="W" units="">Weather Type</Param>
+    <Param name="PPd" units="%">Precipitation Probability Day</Param>
+    <Param name="PPn" units="%">Precipitation Probability Night</Param>
+    """
+    forecast = dict()
+    dv = data['SiteRep']['DV']
+    #test on dv as beginnings of universal parser
+    if dv['type'] == 'Forecast':
+        for p, period in enumerate(dv['Location']['Period']):
+            for rep in period:
+                rep_value = rep['value']
+                weather_type = rep.get('W', 'NA')
+                for key, value in rep.iteritems():
+                    forecast['Daily%s.%s.%s' % (p, rep_value, key)] = value
+
+                #extra xbmc targeted info:
+                forecast['Daily%s.%s.Outlook' % (p, rep_value)] = WEATHER_CODES.get(weather_type)[1]
+                forecast['Daily%s.%s.OutlookIcon' % (p, rep_value)] = "%s.png" % WEATHER_CODES.get(weather_type)[0]
+            forecast['Daily%s.DayOfWeek' % p] = datetime.fromtimestamp(time.mktime(time.strptime(period['value'], '%Y-%m-%dZ'))).strftime('%A')
+    return forecast
+
 
 def parse_json_3hourly_forecast(data):
     """
