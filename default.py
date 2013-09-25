@@ -136,7 +136,8 @@ def set_observation():
         log("Setting Window properties...")
         report = utilities.parse_json_observation(data)
         for field, value in report.iteritems():
-            WEATHER_WINDOW.setProperty(field, value)
+            if value:
+                WEATHER_WINDOW.setProperty(field, value)
     except:
         set_empty_observation()
     WEATHER_WINDOW.setProperty('Current.IsFetched', 'true')

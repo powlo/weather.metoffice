@@ -185,11 +185,12 @@ def parse_json_observation(data):
     observation = dict()
     observation['Current.Location'] = data['SiteRep']['DV']['Location']['name']
     observation['Current.Condition'] = WEATHER_CODES[latest_obs.get('W', 'NA')][1]
-    observation['Current.Visibility'] = latest_obs.get('V')
-    observation['Current.Pressure'] = latest_obs.get('P')
-    observation['Current.Temperature'] = latest_obs.get('T')
-    observation['Current.Wind'] = latest_obs.get('S')
-    observation['Current.WindDirection'] = latest_obs.get('D')
+    observation['Current.Visibility'] = latest_obs.get('V', 'n/a')
+    observation['Current.Pressure'] = latest_obs.get('P', 'n/a')
+    observation['Current.Temperature'] = latest_obs.get('T', 'n/a')
+    observation['Current.Wind'] = latest_obs.get('S', 'n/a')
+    observation['Current.WindDirection'] = latest_obs.get('D', 'n/a')
+    observation['Current.WindGust'] = latest_obs.get('G', 'n/a')
     observation['Current.OutlookIcon'] = '%s.png' % WEATHER_CODES[latest_obs.get('W', 'NA')][0]  
     observation['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','NA')][0]  
 
