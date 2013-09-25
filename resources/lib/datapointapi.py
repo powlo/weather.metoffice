@@ -9,16 +9,17 @@ from utilities import retryurlopen
 #datatype can be 'json', 'xml'
 #object can be 'sitelist', 'capabilties', \d+ (string of digits)
 BASE_URL = "http://datapoint.metoffice.gov.uk/public/data/"
-RESOURCE_URL = "%(format)s/%(resource)s/all/%(datatype)s/%(object)s?%(params)s"
+RESOURCE_URL = "%(format)s/%(resource)s/%(group)s/%(datatype)s/%(object)s?%(params)s"
 
-SITELIST_TYPES = ['ForecastLocation', 'ObservationLocation']
+SITELIST_TYPES = ['ForecastLocation', 'ObservationLocation', 'RegionalLocation']
 
 #get data from datapoint
-def url(format='val', resource='wxobs', datatype='json', object='sitelist', params={}):
+def url(format='val', resource='wxobs', group='all', datatype='json', object='sitelist', params={}):
     #todo: validate parameters
     get_params = urllib.urlencode(params)
     substitute = {'format': format,
                   'resource': resource,
+                  'group': group,
                   'datatype': datatype,
                   'object': object,
                   'params': get_params}

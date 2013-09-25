@@ -169,15 +169,15 @@ def get_coords_from_ip():
     return (float(data[latitude]), float(data[longitude]))
 
 def get_sitelist(location):
-    
-    log("Fetching %s site list..." % location)
-    if location == 'ForecastLocation':
-        resource = 'wxfcs'
-    else:
-        resource = 'wxobs'
-    params = {'key': API_KEY}
+    url_params = {
+        'ForecastLocation' : {'resource' : 'wxfcs'},
+        'ObservationLocation' : {'resource' : 'wxobs'},
+        'RegionalLocation' : {'resource' : 'wxfcs', 'format': 'txt', 'group' : 'regionalforecast'},
+        }
+    args = url_params[location]
+    args.update({'params':{'key': API_KEY}})
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-    url = datapointapi.url(resource=resource, params=params)
+    url = datapointapi.url(**args)
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
     except (HTTPError, URLError) as e:
@@ -203,7 +203,10 @@ def get_sitelist(location):
             #TypeError occurs when lat or long are null and cant be converted to float
             return sitelist
         for site in sitelist:
-            site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
+            try:
+                site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
+            except KeyError:
+                pass
     return sitelist
 
 def auto_location(location):
@@ -235,6 +238,14 @@ def set_location(location):
     text = get_keyboard_text()
     dialog = xbmcgui.Dialog()
     sitelist = get_sitelist(location)
+
+    if location == 'RegionalLocation':
+        #bug in datapoint: sitelist requires cleaning for regional forecast
+        sitelist = utilities.clean_sitelist(sitelist)
+        #long names are more user friendly
+        for site in sitelist:
+            site['name'] = utilities.LONG_REGIONAL_NAMES[site['name']]
+
     filtered_sites = utilities.filter_sitelist(text, sitelist)
     if filtered_sites != []:
         try:

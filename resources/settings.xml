@@ -5,6 +5,8 @@
 		<setting id="ObservationLocationID" type="text" visible="false" default=""/>
 		<setting id="ForecastLocation" label="Forecast Location" type="action" action="RunScript($ID,SetLocation, ForecastLocation)" default=""/>
 		<setting id="ForecastLocationID" type="text" visible="false" default=""/>
+		<setting id="RegionalLocation" label="Regional Forecast Location" type="action" action="RunScript($ID,SetLocation, RegionalLocation)" default=""/>
+		<setting id="RegionalLocationID" type="text" visible="false" default=""/>
 	</category>
 	<category label="Configuration">
 		<setting id="ApiKey" label="API Key" type="text" default="4eeb196d-a473-4634-a9da-397974138bf5"/>

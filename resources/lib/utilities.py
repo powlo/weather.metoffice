@@ -52,6 +52,23 @@ GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitud
              {'url':'http://geoiplookup.net/geoapi.php?output=json', 'latitude':'latitude', 'longitude':'longitude'}
                    ]
 
+LONG_REGIONAL_NAMES = {'os': 'Orkney and Shetland',
+                       'he': 'Highland and Eilean Siar',
+                       'gr': 'Grampian',
+                       'ta': 'Tayside',
+                       'st': 'Strathclyde',
+                       'dg': 'Dumfries, Galloway, Lothian',
+                       'ni': 'Northern Ireland',
+                       'yh': 'Yorkshire and the Humber',
+                       'ne': 'Northeast England',
+                       'em': 'East Midlands',
+                       'ee': 'East of England',
+                       'se': 'London and Southeast England',
+                       'nw': 'Northwest England',
+                       'wm': 'West Midlands',
+                       'sw': 'Southwest England',
+                       'wl': 'Wales',
+                       'uk': 'United Kingdom'}
 #calculate sunrise/sunset:
 # H = | (1/15)*arccos[-tan(L)*tan(23.44*sin(360(D+284)/365))] |.
 # http://www.had2know.com/society/sunrise-sunset-time-calculator-formula.html
@@ -236,6 +253,23 @@ def empty_observation():
     d['Current.OutlookIcon'] = 'na.png'
     d['Current.FanartCode'] = 'na'
     return d
+
+
+def clean_sitelist(sitelist):
+    """
+    A bug in datapoint returns keys prefixed with '@'
+    This func chops them out
+    """
+    new_sites = []
+    new_site = {}
+
+    for site in sitelist:
+        for key in site:
+           if key.startswith('@'):
+               new_key = key[1:]
+               new_site[new_key] = site[key]
+        new_sites.append(new_site.copy())
+    return new_sites
 
 def filter_sitelist(text, sitelist):
     filteredsitelist = list()
