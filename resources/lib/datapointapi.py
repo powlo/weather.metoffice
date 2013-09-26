@@ -24,7 +24,3 @@ def url(format='val', resource='wxobs', group='all', datatype='json', object='si
                   'object': object,
                   'params': get_params}
     return BASE_URL + RESOURCE_URL % substitute
-
-def parse_sitelist():
-    #write a helper to disect the json data
-    pass

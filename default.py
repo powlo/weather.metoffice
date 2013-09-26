@@ -37,14 +37,20 @@ def log(txt):
         message = u'%s: %s' % (__addonid__, txt)
         xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)
 
-def set_empty_forecast():
-    log("Setting empty forecast...")
-    clear = utilities.empty_forecast()
+def set_empty_daily_forecast():
+    log("Setting empty daily forecast...")
+    clear = utilities.empty_daily_forecast()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
-    
+
 def set_empty_3hourly_forecast():
-    log("Setting empty forecast...")
+    log("Setting empty 3 hourly forecast...")
+    clear = utilities.empty_3hourly_forecast()
+    for field, value in clear.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
+
+def set_empty_regional_forecast():
+    log("Setting empty regional forecast...")
     clear = utilities.empty_3hourly_forecast()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
@@ -55,12 +61,10 @@ def set_empty_observation():
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
-def set_five_day_forecast():
+def set_daily_forecast():
     """
-    Sets forecast related Window properties for the given location
-    by making Datapoint API queries for the location id
-    that corresponds to the location number. If the forecast
-    can't be fetched then empty data is assigned.
+    Sets daily forecast related Window properties
+    If the forecast can't be fetched then empty data is assigned.
     :returns: None
     """
     #todo: can remove this and just let the url request fail when location is null
@@ -68,7 +72,7 @@ def set_five_day_forecast():
     location_id = __addon__.getSetting('ForecastLocationID')
     if not (location_id and location_name):
         log("Forecast location is not set")
-        set_empty_forecast()
+        set_empty_daily_forecast()
         return
         #sys.exit(1)
 
@@ -118,6 +122,28 @@ def set_3hourly_forecast():
     except:
         set_empty_3hourly_forecast()
     WEATHER_WINDOW.setProperty('ThreeHourly.IsFetched', 'true')
+
+def set_regional_forecast():
+    location_name = __addon__.getSetting('RegionalLocation')
+    location_id = __addon__.getSetting('RegionalLocationID')
+    if not (location_id and location_name):
+        log("Forecast location is not set")
+        set_empty_regional_forecast()
+        return
+    #Get regional forecast:
+    log("Fetching regional forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
+    params = {'key':API_KEY}
+    url = datapointapi.url(format='txt', resource='wxfcs', group='regionalforecast', object=location_id, params=params)
+    try:
+        page = utilities.retryurlopen(url).decode('latin-1')
+        data = json.loads(page)
+        report = utilities.parse_regional_forecast(data)
+        log("Setting Window properties...")
+        for field, value in report.iteritems():
+            WEATHER_WINDOW.setProperty(field, value)
+    except:
+        set_empty_regional_forecast()
+    WEATHER_WINDOW.setProperty('Regional.IsFetched', 'true')
 
 def set_observation():
     location_name = __addon__.getSetting('ObservationLocation')
@@ -288,8 +314,10 @@ else:
         auto_location('ForecastLocation')
     if FORCEAUTOLOCATION or (AUTOLOCATION and not __addon__.getSetting('ObservationLocation')):
         auto_location('ObservationLocation')
-    set_five_day_forecast()
+
+    set_daily_forecast()
     set_3hourly_forecast()
+    set_regional_forecast()
     set_observation()
 
 WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))

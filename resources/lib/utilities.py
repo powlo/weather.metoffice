@@ -213,7 +213,35 @@ def parse_json_observation(data):
 
     return observation
 
-def empty_forecast():
+def parse_regional_forecast(data):
+    forecast = dict()
+    count = 0
+    rf = data['RegionalFcst']
+    forecast['Regional.issuedAt'] = rf['issuedAt']
+    for period in rf['FcstPeriods']['Period']:
+        #have to check type because json can return list or dict here
+        if isinstance(period['Paragraph'],list):
+            for paragraph in period['Paragraph']:
+                forecast['Regional.Period%s.Title' % count] = paragraph['title'].rstrip(':')
+                forecast['Regional.Period%s.Content' % count] = paragraph['$']
+                count+=1
+        else:
+            forecast['Regional.Period%s.Title' % count] = period['Paragraph']['title'].rstrip(':')
+            forecast['Regional.Period%s.Content' % count] = period['Paragraph']['$']
+            count+=1
+    return forecast
+        
+    dv = data['SiteRep']['DV']
+    #test on dv as beginnings of universal parser
+    if dv['type'] == 'Forecast':
+        for p, period in enumerate(dv['Location']['Period']):
+            for rep in period:
+                rep_value = rep['value']
+                weather_type = rep.get('W', 'NA')
+                for key, value in rep.iteritems():
+                    forecast['Daily%s.%s.%s' % (p, rep_value, key)] = value
+
+def empty_daily_forecast():
     d = dict()
     for count in range (MAX_DAYS):
         d['Day%i.Title' % count] = 'N/A'
@@ -238,6 +266,15 @@ def empty_3hourly_forecast():
             d['Day%s.Time%s.MaxUV' % (day,minute)] = 'N/A'
             d['Day%s.Time%s.WeatherType' % (day,minute)] = 'na'
             d['Day%s.Time%s.Precipitation' % (day,minute)] = 'N/A'
+    return d
+
+#Not sure what the point is in setting empty values
+#should be checked in skin surely.
+def empty_regional_forecast():
+    d = dict()
+    for period in range(6):
+        d['Regional.Period%s.Title' % period] = ''
+        d['Regional.Period%s.Content' % period] = ''
     return d
 
 def empty_observation():
