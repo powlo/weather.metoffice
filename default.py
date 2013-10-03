@@ -89,7 +89,7 @@ def set_daily_forecast():
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
     except:
-        set_empty_forecast()
+        set_empty_daily_forecast()
     WEATHER_WINDOW.setProperty('Forecast.IsFetched', 'true')
 
 def set_3hourly_forecast():
@@ -121,7 +121,7 @@ def set_3hourly_forecast():
             WEATHER_WINDOW.setProperty(field, value)
     except:
         set_empty_3hourly_forecast()
-    WEATHER_WINDOW.setProperty('ThreeHourly.IsFetched', 'true')
+    WEATHER_WINDOW.setProperty('3Hour.IsFetched', 'true')
 
 def set_regional_forecast():
     location_name = __addon__.getSetting('RegionalLocation')

@@ -5,7 +5,7 @@ import urllib2
 import json
 
 MAX_DAYS = 5
-MAX_MINUTES = 8
+MAX_INTERVALS = 8
 
 #Translate Datapoint Codes into XBMC codes
 WEATHER_CODES = {
@@ -76,6 +76,12 @@ LONG_REGIONAL_NAMES = {'os': 'Orkney and Shetland',
 #Calculate noon
 #http://en.wikipedia.org/wiki/Equation_of_time#Alternative_calculation
 
+def day_name(date):
+    return datetime.fromtimestamp(time.mktime(time.strptime(date, '%Y-%m-%dZ'))).strftime('%A')
+
+def minutes_as_time(minutes):
+    return time.strftime('%H:%M', time.gmtime(minutes*60))
+
 def parse_json_default_forecast(data):
     """
     Takes raw api data and converts into something recognisable to xbmc
@@ -101,7 +107,7 @@ def parse_json_default_forecast(data):
     forecast = dict()
     for count, day in enumerate(data['SiteRep']['DV']['Location']['Period']):
         weather_type = day['Rep'][0]['W']
-        forecast['Day%s.Title' % count] = datetime.fromtimestamp(time.mktime(time.strptime(day['value'], '%Y-%m-%dZ'))).strftime('%A')
+        forecast['Day%s.Title' % count] = day_name(day.get('value'))
         forecast['Day%s.HighTemp' % count] = day['Rep'][0]['Dm']
         forecast['Day%s.LowTemp' % count] = day['Rep'][1]['Nm']
         forecast['Day%s.Outlook' % count] = WEATHER_CODES[weather_type][1]
@@ -148,7 +154,7 @@ def parse_json_daily_forecast(data):
                 #extra xbmc targeted info:
                 forecast['Daily%s.%s.Outlook' % (p, rep_value)] = WEATHER_CODES.get(weather_type)[1]
                 forecast['Daily%s.%s.OutlookIcon' % (p, rep_value)] = "%s.png" % WEATHER_CODES.get(weather_type)[0]
-            forecast['Daily%s.DayOfWeek' % p] = datetime.fromtimestamp(time.mktime(time.strptime(period['value'], '%Y-%m-%dZ'))).strftime('%A')
+            forecast['Daily%s.DayOfWeek' % p] = day_name(period.get('value'))
     return forecast
 
 
@@ -171,19 +177,22 @@ def parse_json_3hourly_forecast(data):
     use these facts to automate json handling
     """
     forecast = dict()
-    for day, period in enumerate(data['SiteRep']['DV']['Location']['Period']):
-        for minute, report in enumerate(period['Rep']):
-            forecast['Day%s.Time%s.FeelsTemp' % (day, minute)] = report.get('F')
-            forecast['Day%s.Time%s.WindGust' % (day, minute)] = report.get('G')
-            forecast['Day%s.Time%s.Humidity' % (day, minute)] = report.get('H')
-            forecast['Day%s.Time%s.Temp' % (day, minute)] = report.get('T')
-            forecast['Day%s.Time%s.Visibility' % (day, minute)] = report.get('T')
-            forecast['Day%s.Time%s.WindDirection' % (day, minute)] = report.get('D')
-            forecast['Day%s.Time%s.WindSpeed' % (day, minute)] = report.get('S')
-            forecast['Day%s.Time%s.MaxUV' % (day, minute)] = report.get('U')
-            forecast['Day%s.Time%s.WeatherType' % (day, minute)] = report.get('W')
-            forecast['Day%s.Time%s.Precipitation' % (day, minute)] = report.get('Pp')
-
+    interval = 0
+    for period in data['SiteRep']['DV']['Location']['Period']:
+        for report in period['Rep']:
+            forecast['3Hour%s.Day' % interval] = day_name(period.get('value'))
+            forecast['3Hour%s.Time' % interval] = minutes_as_time(int(report.get('$')))
+            forecast['3Hour%s.FeelsTemp' % interval] = report.get('F')
+            forecast['3Hour%s.WindGust' % interval] = report.get('G')
+            forecast['3Hour%s.Humidity' % interval] = report.get('H')
+            forecast['3Hour%s.Temp' % interval] = report.get('T')
+            forecast['3Hour%s.Visibility' % interval] = report.get('T')
+            forecast['3Hour%s.WindDirection' % interval] = report.get('D')
+            forecast['3Hour%s.WindSpeed' % interval] = report.get('S')
+            forecast['3Hour%s.MaxUV' % interval] = report.get('U')
+            forecast['3Hour%s.OutlookIcon' % interval] = '%s.png' % WEATHER_CODES[report.get('W', 'NA')][0]
+            forecast['3Hour%s.Precipitation' % interval] = report.get('Pp')
+            interval += 1
     return forecast
 
 
@@ -208,8 +217,8 @@ def parse_json_observation(data):
     observation['Current.Wind'] = latest_obs.get('S', 'n/a')
     observation['Current.WindDirection'] = latest_obs.get('D', 'n/a')
     observation['Current.WindGust'] = latest_obs.get('G', 'n/a')
-    observation['Current.OutlookIcon'] = '%s.png' % WEATHER_CODES[latest_obs.get('W', 'NA')][0]  
-    observation['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','NA')][0]  
+    observation['Current.OutlookIcon'] = '%s.png' % WEATHER_CODES[latest_obs.get('W', 'NA')][0]
+    observation['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','NA')][0]
 
     return observation
 
@@ -222,24 +231,14 @@ def parse_regional_forecast(data):
         #have to check type because json can return list or dict here
         if isinstance(period['Paragraph'],list):
             for paragraph in period['Paragraph']:
-                forecast['Regional.Period%s.Title' % count] = paragraph['title'].rstrip(':')
+                forecast['Regional.Period%s.Title' % count] = paragraph['title'].rstrip(':').lstrip('UK Outlook for')
                 forecast['Regional.Period%s.Content' % count] = paragraph['$']
                 count+=1
         else:
-            forecast['Regional.Period%s.Title' % count] = period['Paragraph']['title'].rstrip(':')
+            forecast['Regional.Period%s.Title' % count] = period['Paragraph']['title'].rstrip(':').lstrip('UK Outlook for')
             forecast['Regional.Period%s.Content' % count] = period['Paragraph']['$']
             count+=1
     return forecast
-        
-    dv = data['SiteRep']['DV']
-    #test on dv as beginnings of universal parser
-    if dv['type'] == 'Forecast':
-        for p, period in enumerate(dv['Location']['Period']):
-            for rep in period:
-                rep_value = rep['value']
-                weather_type = rep.get('W', 'NA')
-                for key, value in rep.iteritems():
-                    forecast['Daily%s.%s.%s' % (p, rep_value, key)] = value
 
 def empty_daily_forecast():
     d = dict()
@@ -255,17 +254,17 @@ def empty_daily_forecast():
 def empty_3hourly_forecast():
     d = dict()
     for day in range (MAX_DAYS):
-        for minute in range (MAX_MINUTES):
-            d['Day%s.Time%s.FeelsTemp' % (day,minute)] = 'N/A'
-            d['Day%s.Time%s.WindGust' % (day,minute)] = 'N/A'
-            d['Day%s.Time%s.Humidity' % (day,minute)] = 'N/A'
-            d['Day%s.Time%s.Temp' % (day,minute)] = 'N/A'
-            d['Day%s.Time%s.Visibility' % (day,minute)] = 'N/A'
-            d['Day%s.Time%s.WindDirection' % (day,minute)] = 'N/A'
-            d['Day%s.Time%s.WindSpeed' % (day,minute)] = 'N/A'
-            d['Day%s.Time%s.MaxUV' % (day,minute)] = 'N/A'
-            d['Day%s.Time%s.WeatherType' % (day,minute)] = 'na'
-            d['Day%s.Time%s.Precipitation' % (day,minute)] = 'N/A'
+        for interval in range (MAX_INTERVALS):
+            d['3Hour%s.FeelsTemp' % interval*day] = 'N/A'
+            d['3Hour%s.WindGust' % interval*day] = 'N/A'
+            d['3Hour%s.Humidity' % interval*day] = 'N/A'
+            d['3Hour%s.Temp' % interval*day] = 'N/A'
+            d['3Hour%s.Visibility' % interval*day] = 'N/A'
+            d['3Hour%s.WindDirection' % interval*day] = 'N/A'
+            d['3Hour%s.WindSpeed' % interval*day] = 'N/A'
+            d['3Hour%s.MaxUV' % interval*day] = 'N/A'
+            d['3Hour%s.OutlookIcon' % interval*day] = 'na.png'
+            d['3Hour%s.Precipitation' % interval*day] = 'N/A'
     return d
 
 #Not sure what the point is in setting empty values
