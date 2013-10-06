@@ -3,6 +3,7 @@ import time
 import math
 import urllib2
 import json
+import xbmc
 
 MAX_DAYS = 5
 MAX_INTERVALS = 8
@@ -43,6 +44,17 @@ WEATHER_CODES = {
     '30': ('17', 'Thunder')
 }
 
+WEATHER_ICON = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
+
+VISIBILITY_CODES = {
+    'UN': 'Unknown',
+    'VP': 'Very Poor',
+    'PO': 'Poor',
+    'MO': 'Moderate',
+    'GO': 'Good',
+    'VG': 'Very Good',
+    'EX': 'Excellent'
+}
 #This list must appear in the same order as it appears in 
 #the settings.xml in order for the indexes to align.
 GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitude':'lon'},
@@ -182,15 +194,16 @@ def parse_json_3hourly_forecast(data):
         for report in period['Rep']:
             forecast['3Hour%s.Day' % interval] = day_name(period.get('value'))
             forecast['3Hour%s.Time' % interval] = minutes_as_time(int(report.get('$')))
+            forecast['3Hour%s.Temp' % interval] = report.get('T')
             forecast['3Hour%s.FeelsTemp' % interval] = report.get('F')
             forecast['3Hour%s.WindGust' % interval] = report.get('G')
             forecast['3Hour%s.Humidity' % interval] = report.get('H')
-            forecast['3Hour%s.Temp' % interval] = report.get('T')
-            forecast['3Hour%s.Visibility' % interval] = report.get('T')
+            forecast['3Hour%s.Visibility' % interval] = VISIBILITY_CODES.get(report.get('V','UN'))
             forecast['3Hour%s.WindDirection' % interval] = report.get('D')
             forecast['3Hour%s.WindSpeed' % interval] = report.get('S')
             forecast['3Hour%s.MaxUV' % interval] = report.get('U')
-            forecast['3Hour%s.OutlookIcon' % interval] = '%s.png' % WEATHER_CODES[report.get('W', 'NA')][0]
+            forecast['3Hour%s.OutlookIcon' % interval] = WEATHER_ICON % WEATHER_CODES[report.get('W', 'NA')][0]
+            forecast['3Hour%s.Outlook' % interval] = WEATHER_CODES[report.get('W', 'NA')][1]
             forecast['3Hour%s.Precipitation' % interval] = report.get('Pp')
             interval += 1
     return forecast
