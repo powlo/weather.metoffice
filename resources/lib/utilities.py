@@ -81,39 +81,12 @@ LONG_REGIONAL_NAMES = {'os': 'Orkney and Shetland',
                        'sw': 'Southwest England',
                        'wl': 'Wales',
                        'uk': 'United Kingdom'}
-#calculate sunrise/sunset:
-# H = | (1/15)*arccos[-tan(L)*tan(23.44*sin(360(D+284)/365))] |.
-# http://www.had2know.com/society/sunrise-sunset-time-calculator-formula.html
-
-#Calculate noon
-#http://en.wikipedia.org/wiki/Equation_of_time#Alternative_calculation
-
-def day_name(date):
-    return datetime.fromtimestamp(time.mktime(time.strptime(date, '%Y-%m-%dZ'))).strftime('%A')
-
-def minutes_as_time(minutes):
-    return time.strftime('%H:%M', time.gmtime(minutes*60))
 
 def parse_json_default_forecast(data):
     """
-    Takes raw api data and converts into something recognisable to xbmc
-    
-    Met Office Daily Forecast Data:
-    <Param name="FDm" units="C">Feels Like Day Maximum Temperature</Param>
-    <Param name="Dm" units="C">Day Maximum Temperature</Param>
-    <Param name="FNm" units="C">Feels Like Night Minimum Temperature</Param>
-    <Param name="Nm" units="C">Night Minimum Temperature</Param>
-    <Param name="Gn" units="mph">Wind Gust Noon</Param>
-    <Param name="Gm" units="mph">Wind Gust Midnight</Param>
-    <Param name="Hn" units="%">Screen Relative Humidity Noon</Param>
-    <Param name="Hm" units="%">Screen Relative Humidity Midnight</Param>
-    <Param name="V" units="">Visibility</Param>
-    <Param name="D" units="compass">Wind Direction</Param>
-    <Param name="S" units="mph">Wind Speed</Param>
-    <Param name="U" units="">Max UV Index</Param>
-    <Param name="W" units="">Weather Type</Param>
-    <Param name="PPd" units="%">Precipitation Probability Day</Param>
-    <Param name="PPn" units="%">Precipitation Probability Night</Param>
+    Takes raw datapoint api data and generates a dictionary of
+    weather window properties for a 5 day forecast that can be
+    recognised by a standard skin.
     """
     #todo: set night values
     forecast = dict()
@@ -133,24 +106,10 @@ def parse_json_default_forecast(data):
 
 def parse_json_daily_forecast(data):
     """
-    Takes raw api data and converts into something recognisable to xbmc
-    
-    Met Office Daily Forecast Data:
-    <Param name="FDm" units="C">Feels Like Day Maximum Temperature</Param>
-    <Param name="Dm" units="C">Day Maximum Temperature</Param>
-    <Param name="FNm" units="C">Feels Like Night Minimum Temperature</Param>
-    <Param name="Nm" units="C">Night Minimum Temperature</Param>
-    <Param name="Gn" units="mph">Wind Gust Noon</Param>
-    <Param name="Gm" units="mph">Wind Gust Midnight</Param>
-    <Param name="Hn" units="%">Screen Relative Humidity Noon</Param>
-    <Param name="Hm" units="%">Screen Relative Humidity Midnight</Param>
-    <Param name="V" units="">Visibility</Param>
-    <Param name="D" units="compass">Wind Direction</Param>
-    <Param name="S" units="mph">Wind Speed</Param>
-    <Param name="U" units="">Max UV Index</Param>
-    <Param name="W" units="">Weather Type</Param>
-    <Param name="PPd" units="%">Precipitation Probability Day</Param>
-    <Param name="PPn" units="%">Precipitation Probability Night</Param>
+    Takes raw datapoint api data and generates a dictionary of
+    weather window properties for a daily 5 day forecast. In
+    order for these properties to be displayed a customised
+    version of the skin will be required.
     """
     forecast = dict()
     dv = data['SiteRep']['DV']
@@ -172,16 +131,12 @@ def parse_json_daily_forecast(data):
 
 def parse_json_3hourly_forecast(data):
     """
-    <Param name="F" units="C">Feels Like Temperature</Param>
-    <Param name="G" units="mph">Wind Gust</Param>
-    <Param name="H" units="%">Screen Relative Humidity</Param>
-    <Param name="T" units="C">Temperature</Param><Param name="V" units="">Visibility</Param>
-    <Param name="D" units="compass">Wind Direction</Param>
-    <Param name="S" units="mph">Wind Speed</Param>
-    <Param name="U" units="">Max UV Index</Param>
-    <Param name="W" units="">Weather Type</Param>
-    <Param name="Pp" units="%">Precipitation Probability</Param>
+    Takes raw datapoint api data and generates a dictionary of
+    weather window properties for a 3 hourly 5 day forecast. In
+    order for these properties to be displayed a customised
+    version of the skin will be required.
     """
+
     """
     NB/TODO: If a report contains the value "Day", then we set day values
     if it contains night then we set night values
@@ -211,14 +166,10 @@ def parse_json_3hourly_forecast(data):
 
 def parse_json_observation(data):
     """
-    Observations return the following data:
-    <Param name="G" units="mph">Wind Gust</Param>
-    <Param name="T" units="C">Temperature</Param>
-    <Param name="V" units="m">Visibility</Param>
-    <Param name="D" units="compass">Wind Direction</Param>
-    <Param name="S" units="mph">Wind Speed</Param>
-    <Param name="W" units="">Weather Type</Param>
-    <Param name="P" units="hpa">Pressure</Param>    
+    Takes raw datapoint api data and generates a dictionary of
+    weather window properties for the "Current" observation. (In
+    order for these properties to be displayed a customised
+    version of the skin will be required.)
     """
     latest_obs = data['SiteRep']['DV']['Location']['Period'][-1]['Rep'][-1]
     observation = dict()
@@ -236,6 +187,13 @@ def parse_json_observation(data):
     return observation
 
 def parse_regional_forecast(data):
+    """
+    Takes raw datapoint api data and generates a dictionary of
+    weather window properties for a regional text forecast. (In
+    order for these properties to be displayed a customised
+    version of the skin will be required.)
+    """
+
     forecast = dict()
     count = 0
     rf = data['RegionalFcst']
@@ -254,6 +212,9 @@ def parse_regional_forecast(data):
     return forecast
 
 def empty_daily_forecast():
+    """
+    Sets default Window Property values to null.
+    """
     d = dict()
     for count in range (MAX_DAYS):
         d['Day%i.Title' % count] = 'N/A'
@@ -265,6 +226,9 @@ def empty_daily_forecast():
     return d
 
 def empty_3hourly_forecast():
+    """
+    Sets 3hourly forecast Window Property values to null.
+    """
     d = dict()
     for day in range (MAX_DAYS):
         for interval in range (MAX_INTERVALS):
@@ -283,6 +247,9 @@ def empty_3hourly_forecast():
 #Not sure what the point is in setting empty values
 #should be checked in skin surely.
 def empty_regional_forecast():
+    """
+    Sets regional text forecast Window Property values to null.
+    """
     d = dict()
     for period in range(6):
         d['Regional.Period%s.Title' % period] = ''
@@ -290,6 +257,9 @@ def empty_regional_forecast():
     return d
 
 def empty_observation():
+    """
+    Sets "Current" observation Window Property values to null.
+    """
     d = dict()
     d['Current.Condition'] = 'N/A'
     d['Current.Temperature'] = '0'
@@ -321,6 +291,10 @@ def clean_sitelist(sitelist):
     return new_sites
 
 def filter_sitelist(text, sitelist):
+    """
+    Takes a list of strings and returns only
+    those entries which contain a given string
+    """
     filteredsitelist = list()
     for x in sitelist:
         if x['name'].lower().find(text.lower()) != -1:
@@ -328,6 +302,11 @@ def filter_sitelist(text, sitelist):
     return filteredsitelist
 
 def haversine_distance(lat1, lon1, lat2, lon2):
+    """
+    Calculate the distance between two coords
+    using the haversine formula
+    http://en.wikipedia.org/wiki/Haversine_formula
+    """
     EARTH_RADIUS = 6371
     lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
     dlat = lat2-lat1
@@ -339,6 +318,9 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     return EARTH_RADIUS * c
 
 def retryurlopen(url, retry=3):
+    """
+    A helper function to retry a url a number of times
+    """
     while True:
         try:
             return urllib2.urlopen(url).read()
@@ -349,4 +331,21 @@ def retryurlopen(url, retry=3):
                 raise
 
 def dewpoint_temp(temp, humidity):
+    """
+    Approximate dewpoint using simple approximation
+    http://en.wikipedia.org/wiki/Dew_point#Simple_approximation
+    """
     return str(int(temp) - ((100 - int(humidity))/5))
+
+def day_name(date):
+    """
+    Takes a date and returns the day of the week as a string
+    """
+    return datetime.fromtimestamp(time.mktime(time.strptime(date, '%Y-%m-%dZ'))).strftime('%A')
+
+def minutes_as_time(minutes):
+    """
+    Takes an integer number of minutes and returns it
+    as a time, starting at midnight.
+    """
+    return time.strftime('%H:%M', time.gmtime(minutes*60))
