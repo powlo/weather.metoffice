@@ -96,12 +96,11 @@ def parse_json_default_forecast(data):
         forecast['Day%s.HighTemp' % count] = day['Rep'][0]['Dm']
         forecast['Day%s.LowTemp' % count] = day['Rep'][1]['Nm']
         forecast['Day%s.Outlook' % count] = WEATHER_CODES[weather_type][1]
-        forecast['Day%s.OutlookIcon' % count] = "%s.png" % WEATHER_CODES[weather_type][0]
+        forecast['Day%s.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES[weather_type][0]
         
     #Add empty days for those not supported by Datapoint
     forecast['Day5.Title'] = ''
     forecast['Day6.Title'] = ''
-
     return forecast
 
 def parse_json_daily_forecast(data):
@@ -124,7 +123,7 @@ def parse_json_daily_forecast(data):
 
                 #extra xbmc targeted info:
                 forecast['Daily%s.%s.Outlook' % (p, rep_value)] = WEATHER_CODES.get(weather_type)[1]
-                forecast['Daily%s.%s.OutlookIcon' % (p, rep_value)] = "%s.png" % WEATHER_CODES.get(weather_type)[0]
+                forecast['Daily%s.%s.OutlookIcon' % (p, rep_value)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
             forecast['Daily%s.DayOfWeek' % p] = day_name(period.get('value'))
     return forecast
 
