@@ -5,7 +5,7 @@ import os
 import time
 import sys
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from urllib2 import HTTPError, URLError
 from operator import itemgetter
 
@@ -24,6 +24,9 @@ sys.path.append(__resource__)
 #Need to think about whether this fudging is a good thing
 import utilities
 import datapointapi
+
+TIMESTAMP_FORMAT = '%d/%m/%y %H:%M:%S'
+REGIONAL_FORECAST_INTERVAL = timedelta(hours=1)
 
 def log(txt):
     """
@@ -124,10 +127,21 @@ def set_3hourly_forecast():
     WEATHER_WINDOW.setProperty('3Hour.IsFetched', 'true')
 
 def set_regional_forecast():
+    #Look at the time the last regional forecast was fetched
+    #and if fetched over a given period ago then refetch.
+    WEATHER_WINDOW.setProperty('Weather.CurrentView', 'regional')
+    if WEATHER_WINDOW.getProperty('Regional.TimeStamp'):
+        timestamp_string = WEATHER_WINDOW.getProperty('Regional.TimeStamp')
+        timestamp = datetime.fromtimestamp(time.mktime(time.strptime(timestamp_string, TIMESTAMP_FORMAT)))
+        interval = datetime.now() - timestamp
+        if interval < REGIONAL_FORECAST_INTERVAL:
+            log("Last update was %d minutes ago. No need to fetch data." % (interval.seconds/60))
+            return
+
     location_name = __addon__.getSetting('RegionalLocation')
     location_id = __addon__.getSetting('RegionalLocationID')
     if not (location_id and location_name):
-        log("Forecast location is not set")
+        log("Regional Forecast location is not set")
         set_empty_regional_forecast()
         return
     #Get regional forecast:
@@ -143,7 +157,7 @@ def set_regional_forecast():
             WEATHER_WINDOW.setProperty(field, value)
     except:
         set_empty_regional_forecast()
-    WEATHER_WINDOW.setProperty('Regional.IsFetched', 'true')
+    WEATHER_WINDOW.setProperty('Regional.TimeStamp', datetime.now().strftime(TIMESTAMP_FORMAT))
 
 def set_observation():
     location_name = __addon__.getSetting('ObservationLocation')
@@ -317,7 +331,10 @@ else:
 
     set_daily_forecast()
     set_3hourly_forecast()
-    set_regional_forecast()
+
+    if sys.argv[1] == "RegionalForecast":
+        set_regional_forecast()
+
     set_observation()
 
 WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
