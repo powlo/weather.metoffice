@@ -103,7 +103,7 @@ def parse_json_default_forecast(data):
     forecast['Day6.Title'] = ''
     return forecast
 
-def parse_json_daily_forecast(data):
+def parse_json_forecast(data):
     """
     Takes raw datapoint api data and generates a dictionary of
     weather window properties for a daily 5 day forecast. In
@@ -115,18 +115,25 @@ def parse_json_daily_forecast(data):
     #test on dv as beginnings of universal parser
     if dv['type'] == 'Forecast':
         for p, period in enumerate(dv['Location']['Period']):
-            for rep in period:
-                rep_value = rep['value']
-                weather_type = rep.get('W', 'NA')
+            for rep in period['Rep']:
+                dollar = rep.pop('$')
+                tim = 'None'
+                if dollar != 'Day' and dollar != 'Night':
+                    tim = minutes_as_time(int(dollar))
+                    dollar = 'Hour%d' % (int(dollar)/60)
                 for key, value in rep.iteritems():
-                    forecast['Daily%s.%s.%s' % (p, rep_value, key)] = value
+                    if key == 'V':
+                        value = VISIBILITY_CODES.get(value)
+                    forecast['Forecast.Day%s.%s.%s' % (p, dollar, key)] = value
 
                 #extra xbmc targeted info:
-                forecast['Daily%s.%s.Outlook' % (p, rep_value)] = WEATHER_CODES.get(weather_type)[1]
-                forecast['Daily%s.%s.OutlookIcon' % (p, rep_value)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
-            forecast['Daily%s.DayOfWeek' % p] = day_name(period.get('value'))
+                weather_type = rep.get('W', 'NA')
+                forecast['Forecast.Day%s.%s.Outlook' % (p, dollar)] = WEATHER_CODES.get(weather_type)[1]
+                forecast['Forecast.Day%s.%s.OutlookIcon' % (p, dollar)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
+                forecast['Forecast.Day%s.%s.Title' % (p, dollar)] = day_name(period.get('value'))
+                forecast['Forecast.Day%s.%s.Time' % (p, dollar)] = tim
+                forecast['Forecast.Day%s.%s.Date' % (p, dollar)] = period.get('value')
     return forecast
-
 
 def parse_json_3hourly_forecast(data):
     """
@@ -348,3 +355,15 @@ def minutes_as_time(minutes):
     as a time, starting at midnight.
     """
     return time.strftime('%H:%M', time.gmtime(minutes*60))
+
+def log(addonid, txt, debug):
+    """
+    Enters a message into xbmc's log file
+    :param txt: Message to be logged. Eg, 'Downloading data'
+    :type txt: str
+    """
+    if debug:
+        if isinstance (txt,str):
+            txt = txt.decode("utf-8")
+        message = u'%s: %s' % (addonid, txt)
+        xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)

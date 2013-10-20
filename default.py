@@ -28,38 +28,26 @@ import datapointapi
 TIMESTAMP_FORMAT = '%d/%m/%y %H:%M:%S'
 REGIONAL_FORECAST_INTERVAL = timedelta(hours=1)
 
-def log(txt):
-    """
-    Enters a message into xbmc's log file
-    :param txt: Message to be logged. Eg, 'Downloading data'
-    :type txt: str
-    """
-    if DEBUG:
-        if isinstance (txt,str):
-            txt = txt.decode("utf-8")
-        message = u'%s: %s' % (__addonid__, txt)
-        xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)
-
 def set_empty_daily_forecast():
-    log("Setting empty daily forecast...")
+    utilities.log(__addonid__, "Setting empty daily forecast...", DEBUG)
     clear = utilities.empty_daily_forecast()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
 def set_empty_3hourly_forecast():
-    log("Setting empty 3 hourly forecast...")
+    utilities.log(__addonid__, "Setting empty 3 hourly forecast...", DEBUG)
     clear = utilities.empty_3hourly_forecast()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
 def set_empty_regional_forecast():
-    log("Setting empty regional forecast...")
+    utilities.log(__addonid__, "Setting empty regional forecast...", DEBUG)
     clear = utilities.empty_3hourly_forecast()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
     
 def set_empty_observation():
-    log("Setting empty observation...")
+    utilities.log(__addonid__, "Setting empty observation...", DEBUG)
     clear = utilities.empty_observation()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
@@ -74,21 +62,21 @@ def set_daily_forecast():
     location_name = __addon__.getSetting('ForecastLocation')
     location_id = __addon__.getSetting('ForecastLocationID')
     if not (location_id and location_name):
-        log("Forecast location is not set")
+        utilities.log(__addonid__, "Forecast location is not set", DEBUG)
         set_empty_daily_forecast()
         return
         #sys.exit(1)
 
     #Get five day forecast:
     #todo: be more specific with the exception
-    log("Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
+    utilities.log(__addonid__, "Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id), DEBUG)
     params = {'key':API_KEY, 'res':'daily'}
     url = datapointapi.url(resource='wxfcs', object=location_id, params=params)
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
-        report = utilities.parse_json_default_forecast(data)
-        log("Setting Window properties...")
+        report = utilities.parse_json_forecast(data)
+        utilities.log(__addonid__, "Setting Window properties...", DEBUG)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
     except:
@@ -107,22 +95,22 @@ def set_3hourly_forecast():
     location_name = __addon__.getSetting('ForecastLocation')
     location_id = __addon__.getSetting('ForecastLocationID')
     if not (location_id and location_name):
-        log("Forecast location is not set")
+        utilities.log(__addonid__, "Forecast location is not set", DEBUG)
         set_empty_3hourly_forecast()
         return
 
     #Get three hour forecast:
-    log("Fetching 3 hourly forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
+    utilities.log(__addonid__, "Fetching 3 hourly forecast for '%s (%s)' from the Met Office..." % (location_name, location_id), DEBUG)
     params = {'key':API_KEY, 'res':'3hourly'}
     url = datapointapi.url(resource='wxfcs', object=location_id, params=params)
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
-        report = utilities.parse_json_3hourly_forecast(data)
-        log("Setting Window properties...")
+        report = utilities.parse_json_forecast(data)
+        utilities.log(__addonid__, "Setting Window properties...", DEBUG)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
-    except:
+    except Exception as e:
         set_empty_3hourly_forecast()
     WEATHER_WINDOW.setProperty('3Hour.IsFetched', 'true')
 
@@ -135,24 +123,24 @@ def set_regional_forecast():
         timestamp = datetime.fromtimestamp(time.mktime(time.strptime(timestamp_string, TIMESTAMP_FORMAT)))
         interval = datetime.now() - timestamp
         if interval < REGIONAL_FORECAST_INTERVAL:
-            log("Last update was %d minutes ago. No need to fetch data." % (interval.seconds/60))
+            utilities.log(__addonid__, "Last update was %d minutes ago. No need to fetch data." % (interval.seconds/60), DEBUG)
             return
 
     location_name = __addon__.getSetting('RegionalLocation')
     location_id = __addon__.getSetting('RegionalLocationID')
     if not (location_id and location_name):
-        log("Regional Forecast location is not set")
+        utilities.log(__addonid__, "Regional Forecast location is not set", DEBUG)
         set_empty_regional_forecast()
         return
     #Get regional forecast:
-    log("Fetching regional forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
+    utilities.log(__addonid__, "Fetching regional forecast for '%s (%s)' from the Met Office..." % (location_name, location_id), DEBUG)
     params = {'key':API_KEY}
     url = datapointapi.url(format='txt', resource='wxfcs', group='regionalforecast', object=location_id, params=params)
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
         report = utilities.parse_regional_forecast(data)
-        log("Setting Window properties...")
+        utilities.log(__addonid__, "Setting Window properties...", DEBUG)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
     except:
@@ -163,17 +151,17 @@ def set_observation():
     location_name = __addon__.getSetting('ObservationLocation')
     location_id = __addon__.getSetting('ObservationLocationID')
     if not (location_id and location_name):
-        log("Observation location is not set")
+        utilities.log(__addonid__, "Observation location is not set", DEBUG)
         set_empty_observation()
         return
 
-    log("Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id))
+    utilities.log(__addonid__, "Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id), DEBUG)
     params = {'key':API_KEY, 'res':'hourly'}
     url = datapointapi.url(object=location_id, params=params)
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
-        log("Setting Window properties...")
+        utilities.log(__addonid__, "Setting Window properties...", DEBUG)
         report = utilities.parse_json_observation(data)
         for field, value in report.iteritems():
             if value:
@@ -222,16 +210,16 @@ def get_sitelist(location):
         page = utilities.retryurlopen(url).decode('latin-1')
     except (HTTPError, URLError) as e:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-        log("Is your API Key correct?")
-        log(str(e))
+        utilities.log(__addonid__, "Is your API Key correct?", DEBUG)
+        utilities.log(__addonid__, str(e), DEBUG)
         sys.exit(1)
     try:
         data = json.loads(page)
     except ValueError as e:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-        log("There was a problem with the json data.")
-        log(str(e))
-        log(data)
+        utilities.log(__addonid__, "There was a problem with the json data.", DEBUG)
+        utilities.log(__addonid__, str(e), DEBUG)
+        utilities.log(__addonid__, data, DEBUG)
         sys.exit(1)
         
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
@@ -250,19 +238,19 @@ def get_sitelist(location):
     return sitelist
 
 def auto_location(location):
-    log("Auto-assigning '%s'..." % location)
+    utilities.log(__addonid__, "Auto-assigning '%s'..." % location, DEBUG)
     sitelist = get_sitelist(location)
     try:
         sitelist.sort(key=itemgetter('distance'))
     except KeyError:
         #if geoip service can't add distance then we can't autolocate
-        log("Can't autolocate. Returned sitelist doesn't have 'distance' key.")
+        utilities.log(__addonid__, "Can't autolocate. Returned sitelist doesn't have 'distance' key.", DEBUG)
         return
     first = sitelist[0]
     __addon__.setSetting(location, first['name'])
     __addon__.setSetting('%sID' % location, first['id'])
 
-    log("Location set to '%s'" % first['name'])
+    utilities.log(__addonid__, "Location set to '%s'" % first['name'], DEBUG)
 
 def set_location(location):
     """
@@ -274,9 +262,9 @@ def set_location(location):
     :returns: None
     """  
     assert(location in datapointapi.SITELIST_TYPES)
-    log("Setting '%s' ..." % location)
+    utilities.log(__addonid__, "Setting '%s' ..." % location, DEBUG)
     text = get_keyboard_text()
-    dialog = xbmcgui.Dialog()
+    dialog = xbmcgui.Diautilities.log()
     sitelist = get_sitelist(location)
 
     if location == 'RegionalLocation':
@@ -301,7 +289,7 @@ def set_location(location):
             __addon__.setSetting("%sID" % location, filtered_sites[selected]['id'])
     else:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
-        log("No locations found containing '%s'" % text)
+        utilities.log(__addonid__, "No locations found containing '%s'" % text, DEBUG)
 
 #MAIN CODE
 WEATHER_WINDOW_ID = 12600
@@ -312,13 +300,13 @@ API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
 FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
 
-log('Startup...')
+utilities.log(__addonid__, 'Startup...', DEBUG)
 WEATHER_WINDOW.setProperty('WeatherProvider', __addonname__)
 
 if not API_KEY:
-    dialog = xbmcgui.Dialog()
+    dialog = xbmcgui.Diautilities.log()
     dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
-    log('Error, No API Key')
+    utilities.log(__addonid__, 'Error, No API Key', DEBUG)
     sys.exit(1)
 
 if sys.argv[1] == ('SetLocation'):
@@ -340,4 +328,4 @@ else:
 WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
 WEATHER_WINDOW.setProperty('Locations', '1')
 
-log('Done!')
+utilities.log(__addonid__, 'Done!', DEBUG)
