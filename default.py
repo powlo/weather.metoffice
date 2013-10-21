@@ -139,7 +139,7 @@ def set_regional_forecast():
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
-        report = utilities.parse_regional_forecast(data)
+        report = utilities.parse_json_forecast(data)
         utilities.log(__addonid__, "Setting Window properties...", DEBUG)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)

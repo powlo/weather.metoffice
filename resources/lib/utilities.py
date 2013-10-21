@@ -106,69 +106,51 @@ def parse_json_default_forecast(data):
 def parse_json_forecast(data):
     """
     Takes raw datapoint api data and generates a dictionary of
-    weather window properties for a daily 5 day forecast. In
+    XBMC weather window properties for a given forecast. In
     order for these properties to be displayed a customised
     version of the skin will be required.
     """
     forecast = dict()
-    dv = data['SiteRep']['DV']
-    #test on dv as beginnings of universal parser
-    if dv['type'] == 'Forecast':
-        for p, period in enumerate(dv['Location']['Period']):
-            for rep in period['Rep']:
-                dollar = rep.pop('$')
-                tim = 'None'
-                if dollar != 'Day' and dollar != 'Night':
-                    tim = minutes_as_time(int(dollar))
-                    dollar = 'Hour%d' % (int(dollar)/60)
-                for key, value in rep.iteritems():
-                    if key == 'V':
-                        value = VISIBILITY_CODES.get(value)
-                    forecast['Forecast.Day%s.%s.%s' % (p, dollar, key)] = value
-
-                #extra xbmc targeted info:
-                weather_type = rep.get('W', 'NA')
-                forecast['Forecast.Day%s.%s.Outlook' % (p, dollar)] = WEATHER_CODES.get(weather_type)[1]
-                forecast['Forecast.Day%s.%s.OutlookIcon' % (p, dollar)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
-                forecast['Forecast.Day%s.%s.Title' % (p, dollar)] = day_name(period.get('value'))
-                forecast['Forecast.Day%s.%s.Time' % (p, dollar)] = tim
-                forecast['Forecast.Day%s.%s.Date' % (p, dollar)] = period.get('value')
+    if data.get('SiteRep') and data['SiteRep'].get('DV'):
+        dv = data['SiteRep']['DV']
+        if dv['type'] == 'Forecast':
+            #Parse Daily or 3Hourly Forecast
+            for p, period in enumerate(dv['Location']['Period']):
+                for rep in period['Rep']:
+                    dollar = rep.pop('$')
+                    tim = 'None'
+                    if dollar != 'Day' and dollar != 'Night':
+                        tim = minutes_as_time(int(dollar))
+                        dollar = 'Hour%d' % (int(dollar)/60)
+                    for key, value in rep.iteritems():
+                        if key == 'V':
+                            value = VISIBILITY_CODES.get(value)
+                        forecast['Forecast.Day%s.%s.%s' % (p, dollar, key)] = value
+    
+                    #extra xbmc targeted info:
+                    weather_type = rep.get('W', 'NA')
+                    forecast['Forecast.Day%s.%s.Outlook' % (p, dollar)] = WEATHER_CODES.get(weather_type)[1]
+                    forecast['Forecast.Day%s.%s.OutlookIcon' % (p, dollar)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
+                    forecast['Forecast.Day%s.%s.Title' % (p, dollar)] = day_name(period.get('value'))
+                    forecast['Forecast.Day%s.%s.Time' % (p, dollar)] = tim
+                    forecast['Forecast.Day%s.%s.Date' % (p, dollar)] = period.get('value')
+        else:
+            #Parse observations
+            pass
+    elif data.get('RegionalFcst'):
+        #Parse Regional Text Forecast
+        rf = data['RegionalFcst']
+        forecast['Regional.issuedAt'] = rf['issuedAt']
+        for period in rf['FcstPeriods']['Period']:
+            #have to check type because json can return list or dict here
+            if isinstance(period['Paragraph'],list):
+                for p, paragraph in enumerate(period['Paragraph']):
+                    forecast['Regional.%s.Paragraph%s.Title' % (period.get('id'), p)] = paragraph['title'].rstrip(':').lstrip('UK Outlook for')
+                    forecast['Regional.%s.Paragraph%s.Content' % (period.get('id'), p)] = paragraph['$']
+            else:
+                forecast['Regional.%s.Paragraph0.Title' % period.get('id')] = period['Paragraph']['title'].rstrip(':').lstrip('UK Outlook for')
+                forecast['Regional.%s.Paragraph0.Content' % period.get('id')] = period['Paragraph']['$']
     return forecast
-
-def parse_json_3hourly_forecast(data):
-    """
-    Takes raw datapoint api data and generates a dictionary of
-    weather window properties for a 3 hourly 5 day forecast. In
-    order for these properties to be displayed a customised
-    version of the skin will be required.
-    """
-
-    """
-    NB/TODO: If a report contains the value "Day", then we set day values
-    if it contains night then we set night values
-    if it contains a number then we set hourly values
-    use these facts to automate json handling
-    """
-    forecast = dict()
-    interval = 0
-    for period in data['SiteRep']['DV']['Location']['Period']:
-        for report in period['Rep']:
-            forecast['3Hour%s.Day' % interval] = day_name(period.get('value'))
-            forecast['3Hour%s.Time' % interval] = minutes_as_time(int(report.get('$')))
-            forecast['3Hour%s.Temp' % interval] = report.get('T')
-            forecast['3Hour%s.FeelsTemp' % interval] = report.get('F')
-            forecast['3Hour%s.WindGust' % interval] = report.get('G')
-            forecast['3Hour%s.Humidity' % interval] = report.get('H')
-            forecast['3Hour%s.Visibility' % interval] = VISIBILITY_CODES.get(report.get('V','UN'))
-            forecast['3Hour%s.WindDirection' % interval] = report.get('D')
-            forecast['3Hour%s.WindSpeed' % interval] = report.get('S')
-            forecast['3Hour%s.MaxUV' % interval] = report.get('U')
-            forecast['3Hour%s.OutlookIcon' % interval] = WEATHER_ICON % WEATHER_CODES[report.get('W', 'NA')][0]
-            forecast['3Hour%s.Outlook' % interval] = WEATHER_CODES[report.get('W', 'NA')][1]
-            forecast['3Hour%s.Precipitation' % interval] = report.get('Pp')
-            interval += 1
-    return forecast
-
 
 def parse_json_observation(data):
     """
@@ -191,31 +173,6 @@ def parse_json_observation(data):
     observation['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','NA')][0]
 
     return observation
-
-def parse_regional_forecast(data):
-    """
-    Takes raw datapoint api data and generates a dictionary of
-    weather window properties for a regional text forecast. (In
-    order for these properties to be displayed a customised
-    version of the skin will be required.)
-    """
-
-    forecast = dict()
-    count = 0
-    rf = data['RegionalFcst']
-    forecast['Regional.issuedAt'] = rf['issuedAt']
-    for period in rf['FcstPeriods']['Period']:
-        #have to check type because json can return list or dict here
-        if isinstance(period['Paragraph'],list):
-            for paragraph in period['Paragraph']:
-                forecast['Regional.Period%s.Title' % count] = paragraph['title'].rstrip(':').lstrip('UK Outlook for')
-                forecast['Regional.Period%s.Content' % count] = paragraph['$']
-                count+=1
-        else:
-            forecast['Regional.Period%s.Title' % count] = period['Paragraph']['title'].rstrip(':').lstrip('UK Outlook for')
-            forecast['Regional.Period%s.Content' % count] = period['Paragraph']['$']
-            count+=1
-    return forecast
 
 def empty_daily_forecast():
     """
