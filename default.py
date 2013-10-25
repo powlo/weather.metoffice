@@ -75,7 +75,7 @@ def set_daily_forecast():
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
-        report = utilities.parse_json_forecast(data)
+        report = utilities.parse_json_report(data)
         utilities.log(__addonid__, "Setting Window properties...", DEBUG)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
@@ -106,7 +106,7 @@ def set_3hourly_forecast():
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
-        report = utilities.parse_json_forecast(data)
+        report = utilities.parse_json_report(data)
         utilities.log(__addonid__, "Setting Window properties...", DEBUG)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
@@ -139,7 +139,7 @@ def set_regional_forecast():
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
-        report = utilities.parse_json_forecast(data)
+        report = utilities.parse_json_report(data)
         utilities.log(__addonid__, "Setting Window properties...", DEBUG)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
@@ -162,7 +162,7 @@ def set_observation():
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
         utilities.log(__addonid__, "Setting Window properties...", DEBUG)
-        report = utilities.parse_json_observation(data)
+        report = utilities.parse_json_report(data)
         for field, value in report.iteritems():
             if value:
                 WEATHER_WINDOW.setProperty(field, value)
