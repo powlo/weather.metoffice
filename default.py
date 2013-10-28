@@ -114,27 +114,42 @@ def set_3hourly_forecast():
         set_empty_3hourly_forecast()
     WEATHER_WINDOW.setProperty('3Hour.IsFetched', 'true')
 
-def set_regional_forecast():
+def set_properties(panel):
     #Look at the time the last regional forecast was fetched
     #and if fetched over a given period ago then refetch.
-    if WEATHER_WINDOW.getProperty('Regional.TimeStamp'):
-        timestamp_string = WEATHER_WINDOW.getProperty('Regional.TimeStamp')
+    config = {
+        'RegionalForecast' : {
+            'name' : 'Regional Forecast',
+            'interval' : timedelta(hours=1),
+            'location_name' : 'RegionalLocation',
+            'location_id' : 'RegionalLocationID',
+            'format' : 'txt',
+            'resource' : 'wxfcs',
+            'group' : 'regionalforecast'}
+    }
+    panel_config = config.get(panel)
+    if WEATHER_WINDOW.getProperty('%s.TimeStamp' % panel):
+        timestamp_string = WEATHER_WINDOW.getProperty('%s.TimeStamp' % panel)
         timestamp = datetime.fromtimestamp(time.mktime(time.strptime(timestamp_string, TIMESTAMP_FORMAT)))
         interval = datetime.now() - timestamp
-        if interval < REGIONAL_FORECAST_INTERVAL:
+        if interval < panel_config['interval']:
             utilities.log(__addonid__, "Last update was %d minutes ago. No need to fetch data." % (interval.seconds/60), DEBUG)
             return
-
-    location_name = __addon__.getSetting('RegionalLocation')
-    location_id = __addon__.getSetting('RegionalLocationID')
+    
+    panel_name = panel_config.get('name')
+    location_name = __addon__.getSetting(panel_config.get('location_name'))
+    location_id = __addon__.getSetting(panel_config.get('location_id'))
     if not (location_id and location_name):
-        utilities.log(__addonid__, "Regional Forecast location is not set", DEBUG)
-        set_empty_regional_forecast()
+        utilities.log(__addonid__, "%s location is not set" % panel_config.get('name'), DEBUG)
+        #set_empty_regional_forecast()
         return
-    #Get regional forecast:
-    utilities.log(__addonid__, "Fetching regional forecast for '%s (%s)' from the Met Office..." % (location_name, location_id), DEBUG)
+    #Fetch data from Met Office:
+    utilities.log(__addonid__, "Fetching %s for '%s (%s)' from the Met Office..." % (panel_name, location_name, location_id), DEBUG)
     params = {'key':API_KEY}
-    url = datapointapi.url(format='txt', resource='wxfcs', group='regionalforecast', object=location_id, params=params)
+    format = panel_config.get('format')
+    resource = panel_config.get('resource')
+    group = panel_config.get('group')
+    url = datapointapi.url(format=format, resource=resource, group=group, object=location_id, params=params)
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
@@ -143,8 +158,9 @@ def set_regional_forecast():
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
     except:
-        set_empty_regional_forecast()
-    WEATHER_WINDOW.setProperty('Regional.TimeStamp', datetime.now().strftime(TIMESTAMP_FORMAT))
+        pass
+        #set_empty_regional_forecast()
+    WEATHER_WINDOW.setProperty('%s.TimeStamp' % panel, datetime.now().strftime(TIMESTAMP_FORMAT))
 
 def set_observation():
     location_name = __addon__.getSetting('ObservationLocation')
@@ -318,9 +334,8 @@ else:
 
     set_daily_forecast()
     set_3hourly_forecast()
-
     if sys.argv[1] == "RegionalForecast":
-        set_regional_forecast()
+        set_properties(sys.argv[1])
 
     set_observation()
 
