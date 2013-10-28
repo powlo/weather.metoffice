@@ -117,7 +117,6 @@ def set_3hourly_forecast():
 def set_regional_forecast():
     #Look at the time the last regional forecast was fetched
     #and if fetched over a given period ago then refetch.
-    WEATHER_WINDOW.setProperty('Weather.CurrentView', 'regional')
     if WEATHER_WINDOW.getProperty('Regional.TimeStamp'):
         timestamp_string = WEATHER_WINDOW.getProperty('Regional.TimeStamp')
         timestamp = datetime.fromtimestamp(time.mktime(time.strptime(timestamp_string, TIMESTAMP_FORMAT)))
