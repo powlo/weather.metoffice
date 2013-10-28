@@ -113,28 +113,43 @@ def parse_json_report(data):
     forecast = dict()
     if data.get('SiteRep') and data['SiteRep'].get('DV'):
         dv = data['SiteRep']['DV']
-        typ = dv['type']
-        for p, period in enumerate(dv['Location']['Period']):
-            for rep in period['Rep']:
-                dollar = rep.pop('$')
-                tim = 'None'
-                if dollar != 'Day' and dollar != 'Night':
-                    tim = minutes_as_time(int(dollar))
-                    dollar = 'Hour%d' % (int(dollar)/60)
-                for key, value in rep.iteritems():
-                    if key == 'V':
-                        try:
-                            value = VISIBILITY_CODES[value]
-                        except KeyError:
-                            pass
-                    forecast['%s.Day%s.%s.%s' % (typ, p, dollar, key)] = value
-                #extra xbmc targeted info:
-                weather_type = rep.get('W', 'NA')
-                forecast['%s.Day%s.%s.Outlook' % (typ, p, dollar)] = WEATHER_CODES.get(weather_type)[1]
-                forecast['%s.Day%s.%s.OutlookIcon' % (typ, p, dollar)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
-                forecast['%s.Day%s.%s.Title' % (typ, p, dollar)] = day_name(period.get('value'))
-                forecast['%s.Day%s.%s.Time' % (typ, p, dollar)] = tim
-                forecast['%s.Day%s.%s.Date' % (typ, p, dollar)] = period.get('value')
+        if dv.get('type') == 'Forecast':
+            #Parse Daily or 3Hourly Forecast
+            for p, period in enumerate(dv['Location']['Period']):
+                for rep in period['Rep']:
+                    dollar = rep.pop('$')
+                    tim = 'None'
+                    if dollar != 'Day' and dollar != 'Night':
+                        tim = minutes_as_time(int(dollar))
+                        dollar = 'Hour%d' % (int(dollar)/60)
+                    for key, value in rep.iteritems():
+                        if key == 'V':
+                            try:
+                                value = VISIBILITY_CODES[value]
+                            except KeyError:
+                                pass
+                        forecast['Forecast.Day%s.%s.%s' % (p, dollar, key)] = value
+                    #extra xbmc targeted info:
+                    weather_type = rep.get('W', 'NA')
+                    forecast['Forecast.Day%s.%s.Outlook' % (p, dollar)] = WEATHER_CODES.get(weather_type)[1]
+                    forecast['Forecast.Day%s.%s.OutlookIcon' % (p, dollar)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
+                    forecast['Forecast.Day%s.%s.Title' % (p, dollar)] = day_name(period.get('value'))
+                    forecast['Forecast.Day%s.%s.Time' % (p, dollar)] = tim
+                    forecast['Forecast.Day%s.%s.Date' % (p, dollar)] = period.get('value')
+        else:
+            #assume observation
+            latest_obs = dv['Location']['Period'][-1]['Rep'][-1]
+            forecast['Current.Location'] = dv['Location']['name']
+            forecast['Current.Condition'] = WEATHER_CODES[latest_obs.get('W', 'NA')][1]
+            forecast['Current.Visibility'] = latest_obs.get('V', 'n/a')
+            forecast['Current.Pressure'] = latest_obs.get('P', 'n/a')
+            forecast['Current.Temperature'] = latest_obs.get('T', 'n/a')
+            forecast['Current.Wind'] = latest_obs.get('S', 'n/a')
+            forecast['Current.WindDirection'] = latest_obs.get('D', 'n/a')
+            forecast['Current.WindGust'] = latest_obs.get('G', 'n/a')
+            forecast['Current.OutlookIcon'] = '%s.png' % WEATHER_CODES[latest_obs.get('W', 'NA')][0]
+            forecast['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','NA')][0]
+
     elif data.get('RegionalFcst'):
         #Parse Regional Text Forecast
         rf = data['RegionalFcst']
