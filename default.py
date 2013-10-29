@@ -202,7 +202,7 @@ def get_keyboard_text():
     keyboard.doModal()
     return keyboard.isConfirmed() and keyboard.getText()
 
-def get_coords_from_ip():  
+def get_coords_from_ip():
     provider = int(__addon__.getSetting('GeoIPProvider'))
     url = utilities.GEOIP_PROVIDERS[provider]['url']
     page = utilities.retryurlopen(url)
@@ -242,8 +242,9 @@ def get_sitelist(location):
     if __addon__.getSetting('GeoLocation') == 'true':
         try:
             (latitude, longitude) = get_coords_from_ip()
-        except TypeError:
+        except (TypeError, ValueError):
             #TypeError occurs when lat or long are null and cant be converted to float
+            #ValueError occurs when json attempts to read empty page eg if geoip provider closes
             return sitelist
         for site in sitelist:
             try:
@@ -279,7 +280,7 @@ def set_location(location):
     assert(location in datapointapi.SITELIST_TYPES)
     utilities.log(__addonid__, "Setting '%s' ..." % location, DEBUG)
     text = get_keyboard_text()
-    dialog = xbmcgui.Diautilities.log()
+    dialog = xbmcgui.Dialog()
     sitelist = get_sitelist(location)
 
     if location == 'RegionalLocation':

@@ -18,7 +18,7 @@
 			type="enum"
 			values="www.ip-api.com|www.freegeoip.net|www.telize.com|www.hostip.info|www.geoiplookup.net"
 			enable="eq(-2,true)"
-			default="4"/>
+			default="2"/>
         <setting type="sep"/>
 		<setting id="Debug" label="Debug Mode" type="bool" default="false"/>
 	</category>
