@@ -202,15 +202,6 @@ def get_keyboard_text():
     keyboard.doModal()
     return keyboard.isConfirmed() and keyboard.getText()
 
-def get_coords_from_ip():
-    provider = int(__addon__.getSetting('GeoIPProvider'))
-    url = utilities.GEOIP_PROVIDERS[provider]['url']
-    page = utilities.retryurlopen(url)
-    data = json.loads(page)
-    latitude = utilities.GEOIP_PROVIDERS[provider]['latitude']
-    longitude = utilities.GEOIP_PROVIDERS[provider]['longitude']
-    return (float(data[latitude]), float(data[longitude]))
-
 def get_sitelist(location):
     url_params = {
         'ForecastLocation' : {'resource' : 'wxfcs'},
@@ -239,19 +230,29 @@ def get_sitelist(location):
         
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     sitelist = data['Locations']['Location']
-    if __addon__.getSetting('GeoLocation') == 'true':
-        try:
-            (latitude, longitude) = get_coords_from_ip()
-        except (TypeError, ValueError):
-            #TypeError occurs when lat or long are null and cant be converted to float
-            #ValueError occurs when json attempts to read empty page eg if geoip provider closes
-            return sitelist
-        for site in sitelist:
+    try:
+        if __addon__.getSetting('GeoLocation') == 'true':
+            provider = int(__addon__.getSetting('GeoIPProvider'))
+            url = utilities.GEOIP_PROVIDERS[provider]['url']
+            page = utilities.retryurlopen(url)
             try:
-                site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
-            except KeyError:
-                pass
-    return sitelist
+                geoip = json.loads(page)
+            except ValueError:
+            #ValueError occurs when json attempts to read empty page eg if geoip provider closes
+                utilities.log(__addonid__, "Couldn't parse json data from %s" % url, DEBUG)
+            latitude = utilities.GEOIP_PROVIDERS[provider]['latitude']
+            longitude = utilities.GEOIP_PROVIDERS[provider]['longitude']
+            try:
+                (latitude, longitude) = (float(geoip[latitude]), float(geoip[longitude]))
+            except TypeError:
+                utilities.log(__addonid__, "Couldn't get lat,long data from %s" % url, DEBUG)
+            for site in sitelist:
+                try:
+                    site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
+                except KeyError:
+                    utilities.log(__addonid__, "Site '%s' does not have latitude, longitude info" % site['name'], DEBUG)
+    finally:
+        return sitelist
 
 def auto_location(location):
     utilities.log(__addonid__, "Auto-assigning '%s'..." % location, DEBUG)
