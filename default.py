@@ -123,9 +123,23 @@ def set_properties(panel):
             'interval' : timedelta(hours=1),
             'location_name' : 'RegionalLocation',
             'location_id' : 'RegionalLocationID',
-            'format' : 'txt',
-            'resource' : 'wxfcs',
-            'group' : 'regionalforecast'}
+            'api_args' : {
+                'format' : 'txt',
+                'resource' : 'wxfcs',
+                'group' : 'regionalforecast',
+                'object' : __addon__.getSetting('RegionalLocationID')
+            },
+        },
+        'HourlyObservation' : {
+            'name' : 'Hourly Observation',
+            'interval' : timedelta(hours=1),
+            'location_name' : 'ObservationLocation',
+            'location_id' : 'ObservationLocationID',
+            'api_args' : {
+                'params' : {'res' : 'hourly'},
+                'object' : __addon__.getSetting('ObservationLocationID')
+            }
+        },
     }
     panel_config = config.get(panel)
     if WEATHER_WINDOW.getProperty('%s.TimeStamp' % panel):
@@ -145,11 +159,13 @@ def set_properties(panel):
         return
     #Fetch data from Met Office:
     utilities.log(__addonid__, "Fetching %s for '%s (%s)' from the Met Office..." % (panel_name, location_name, location_id), DEBUG)
-    params = {'key':API_KEY}
-    format = panel_config.get('format')
-    resource = panel_config.get('resource')
-    group = panel_config.get('group')
-    url = datapointapi.url(format=format, resource=resource, group=group, object=location_id, params=params)
+    api_args = panel_config.get('api_args', {})
+    try:
+        api_args.get('params').update({'key': API_KEY})
+    except AttributeError:
+        api_args['params'] = {'key': API_KEY}
+
+    url = datapointapi.url(**api_args)
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
@@ -321,7 +337,7 @@ utilities.log(__addonid__, 'Startup...', DEBUG)
 WEATHER_WINDOW.setProperty('WeatherProvider', __addonname__)
 
 if not API_KEY:
-    dialog = xbmcgui.Diautilities.log()
+    dialog = xbmcgui.Dialog()
     dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
     utilities.log(__addonid__, 'Error, No API Key', DEBUG)
     sys.exit(1)
@@ -336,10 +352,12 @@ else:
 
     set_daily_forecast()
     set_3hourly_forecast()
-    if sys.argv[1] == "RegionalForecast":
-        set_properties(sys.argv[1])
 
-    set_observation()
+    if sys.argv[1].isdigit():
+        sys.argv[1] = 'HourlyObservation'
+
+    if sys.argv[1] == "RegionalForecast" or sys.argv[1] == "HourlyObservation":
+        set_properties(sys.argv[1])
 
 WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
 WEATHER_WINDOW.setProperty('Locations', '1')
