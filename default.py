@@ -129,20 +129,21 @@ def set_properties(panel):
         api_args.get('params').update({'key': API_KEY})
     except AttributeError:
         api_args['params'] = {'key': API_KEY}
-
+    
     url = datapointapi.url(**api_args)
+    utilities.log(__addonid__, "URL: %s " % url, DEBUG)
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
-        report = utilities.parse_json_report(data)
-        utilities.log(__addonid__, "Setting Window properties...", DEBUG)
-        for field, value in report.iteritems():
-            WEATHER_WINDOW.setProperty(field, value)
-    except:
-        pass
+    except (URLError, ValueError) as e:
+        utilities.log(__addonid__, str(e), DEBUG)
+        return
+    report = utilities.parse_json_report(data)
+    for field, value in report.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
         #set_empty_regional_forecast()
     WEATHER_WINDOW.setProperty('%s.TimeStamp' % panel, datetime.now().strftime(TIMESTAMP_FORMAT))
-
+    
 def get_keyboard_text():
     """
     Gets keyboard text from XBMC
@@ -266,9 +267,6 @@ API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
 FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
 
-utilities.log(__addonid__, 'Startup...', DEBUG)
-WEATHER_WINDOW.setProperty('WeatherProvider', __addonname__)
-
 if not API_KEY:
     dialog = xbmcgui.Dialog()
     dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
@@ -297,7 +295,6 @@ elif sys.argv[1] == ('SetLocation'):
 else:
     set_properties(sys.argv[1])
 
+WEATHER_WINDOW.setProperty('WeatherProvider', __addonname__)
 WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
 WEATHER_WINDOW.setProperty('Locations', '1')
-
-utilities.log(__addonid__, 'Done!', DEBUG)
