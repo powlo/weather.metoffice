@@ -52,72 +52,32 @@ def set_empty_observation():
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
-def set_daily_forecast():
-    """
-    Sets daily forecast related Window properties
-    If the forecast can't be fetched then empty data is assigned.
-    :returns: None
-    """
-    #todo: can remove this and just let the url request fail when location is null
-    location_name = __addon__.getSetting('ForecastLocation')
-    location_id = __addon__.getSetting('ForecastLocationID')
-    if not (location_id and location_name):
-        utilities.log(__addonid__, "Forecast location is not set", DEBUG)
-        set_empty_daily_forecast()
-        return
-        #sys.exit(1)
-
-    #Get five day forecast:
-    #todo: be more specific with the exception
-    utilities.log(__addonid__, "Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id), DEBUG)
-    params = {'key':API_KEY, 'res':'daily'}
-    url = datapointapi.url(resource='wxfcs', object=location_id, params=params)
-    try:
-        page = utilities.retryurlopen(url).decode('latin-1')
-        data = json.loads(page)
-        report = utilities.parse_json_report(data)
-        utilities.log(__addonid__, "Setting Window properties...", DEBUG)
-        for field, value in report.iteritems():
-            WEATHER_WINDOW.setProperty(field, value)
-    except:
-        set_empty_daily_forecast()
-    WEATHER_WINDOW.setProperty('Forecast.IsFetched', 'true')
-
-def set_3hourly_forecast():
-    """
-    Sets forecast related Window properties for the given location
-    by making Datapoint API queries for the location id
-    that corresponds to the location number. If the forecast
-    can't be fetched then empty data is assigned.
-    :returns: None
-    """
-    #todo: can remove this and just let the url request fail when location is null
-    location_name = __addon__.getSetting('ForecastLocation')
-    location_id = __addon__.getSetting('ForecastLocationID')
-    if not (location_id and location_name):
-        utilities.log(__addonid__, "Forecast location is not set", DEBUG)
-        set_empty_3hourly_forecast()
-        return
-
-    #Get three hour forecast:
-    utilities.log(__addonid__, "Fetching 3 hourly forecast for '%s (%s)' from the Met Office..." % (location_name, location_id), DEBUG)
-    params = {'key':API_KEY, 'res':'3hourly'}
-    url = datapointapi.url(resource='wxfcs', object=location_id, params=params)
-    try:
-        page = utilities.retryurlopen(url).decode('latin-1')
-        data = json.loads(page)
-        report = utilities.parse_json_report(data)
-        utilities.log(__addonid__, "Setting Window properties...", DEBUG)
-        for field, value in report.iteritems():
-            WEATHER_WINDOW.setProperty(field, value)
-    except Exception as e:
-        set_empty_3hourly_forecast()
-    WEATHER_WINDOW.setProperty('3Hour.IsFetched', 'true')
-
 def set_properties(panel):
     #Look at the time the last regional forecast was fetched
     #and if fetched over a given period ago then refetch.
     config = {
+        'DailyForecast' : {
+            'name' : 'Daily Forecast',
+            'interval' : timedelta(hours=1),
+            'location_name' : 'ForecastLocation',
+            'location_id' : 'ForecastLocationID',
+            'api_args' : {
+                'resource' : 'wxfcs',
+                'params' : {'res' : 'daily'},
+                'object' : __addon__.getSetting('ForecastLocationID')
+            }
+        },
+        '3HourForecast' : {
+            'name' : '3Hour Forecast',
+            'interval' : timedelta(hours=1),
+            'location_name' : 'ForecastLocation',
+            'location_id' : 'ForecastLocationID',
+            'api_args' : {
+                'resource' : 'wxfcs',
+                'params' : {'res' : '3hourly'},
+                'object' : __addon__.getSetting('ForecastLocationID')
+            }
+        },
         'RegionalForecast' : {
             'name' : 'Regional Forecast',
             'interval' : timedelta(hours=1),
@@ -141,16 +101,20 @@ def set_properties(panel):
             }
         },
     }
-    panel_config = config.get(panel)
-    if WEATHER_WINDOW.getProperty('%s.TimeStamp' % panel):
+    try:
+        panel_config = config[panel]
+    except KeyError:
+        utilities.log(__addonid__, "Unknown panel '%s'" % panel, DEBUG)
+        return
+
+    if False:
         timestamp_string = WEATHER_WINDOW.getProperty('%s.TimeStamp' % panel)
         timestamp = datetime.fromtimestamp(time.mktime(time.strptime(timestamp_string, TIMESTAMP_FORMAT)))
         interval = datetime.now() - timestamp
         if interval < panel_config['interval']:
             utilities.log(__addonid__, "Last update was %d minutes ago. No need to fetch data." % (interval.seconds/60), DEBUG)
             return
-    
-    panel_name = panel_config.get('name')
+
     location_name = __addon__.getSetting(panel_config.get('location_name'))
     location_id = __addon__.getSetting(panel_config.get('location_id'))
     if not (location_id and location_name):
@@ -158,6 +122,7 @@ def set_properties(panel):
         #set_empty_regional_forecast()
         return
     #Fetch data from Met Office:
+    panel_name = panel_config.get('name')
     utilities.log(__addonid__, "Fetching %s for '%s (%s)' from the Met Office..." % (panel_name, location_name, location_id), DEBUG)
     api_args = panel_config.get('api_args', {})
     try:
@@ -177,38 +142,6 @@ def set_properties(panel):
         pass
         #set_empty_regional_forecast()
     WEATHER_WINDOW.setProperty('%s.TimeStamp' % panel, datetime.now().strftime(TIMESTAMP_FORMAT))
-
-def set_observation():
-    location_name = __addon__.getSetting('ObservationLocation')
-    location_id = __addon__.getSetting('ObservationLocationID')
-    if not (location_id and location_name):
-        utilities.log(__addonid__, "Observation location is not set", DEBUG)
-        set_empty_observation()
-        return
-
-    utilities.log(__addonid__, "Fetching forecast for '%s (%s)' from the Met Office..." % (location_name, location_id), DEBUG)
-    params = {'key':API_KEY, 'res':'hourly'}
-    url = datapointapi.url(object=location_id, params=params)
-    try:
-        page = utilities.retryurlopen(url).decode('latin-1')
-        data = json.loads(page)
-        utilities.log(__addonid__, "Setting Window properties...", DEBUG)
-        report = utilities.parse_json_report(data)
-        for field, value in report.iteritems():
-            if value:
-                WEATHER_WINDOW.setProperty(field, value)
-    except:
-        set_empty_observation()
-    WEATHER_WINDOW.setProperty('Current.IsFetched', 'true')
-
-    #Get observations:
-    #data = weather.get_observations(OBSERVATION_ID)
-    #observation = utilities.parse_json_observations(data)
-    #for field, value in observation.iteritems():
-    #    WEATHER_WINDOW.setProperty(field, value)
-    #what does setting "isfetched" achieve?
-    #WEATHER_WINDOW.setProperty('Location%s' % num, location_name)
-    #'Forecast.IsFetched' and 'Current.IsFetched' seem to have no effect
 
 def get_keyboard_text():
     """
@@ -342,22 +275,27 @@ if not API_KEY:
     utilities.log(__addonid__, 'Error, No API Key', DEBUG)
     sys.exit(1)
 
-if sys.argv[1] == ('SetLocation'):
+if sys.argv[1].isdigit():
+    #only autolocate when given a refresh command
+    if FORCEAUTOLOCATION:
+        auto_location('ForecastLocation')
+        auto_location('ObservationLocation')
+    elif AUTOLOCATION:
+        if not __addon__.getSetting('ForecastLocation'):
+            auto_location('ForecastLocation')
+        elif not __addon__.getSetting('ObservationLocation'):
+            auto_location('ObservationLocation')
+
+    #fetch all?
+    #TODO: actually we want to do something smarter: look and see which panels are
+    #visible and only fetch data for them, so we'll pass a list into set_properties?...
+    set_properties('HourlyObservation')
+    set_properties('DailyForecast')
+
+elif sys.argv[1] == ('SetLocation'):
     set_location(sys.argv[2])
 else:
-    if FORCEAUTOLOCATION or (AUTOLOCATION and not __addon__.getSetting('ForecastLocation')):
-        auto_location('ForecastLocation')
-    if FORCEAUTOLOCATION or (AUTOLOCATION and not __addon__.getSetting('ObservationLocation')):
-        auto_location('ObservationLocation')
-
-    set_daily_forecast()
-    set_3hourly_forecast()
-
-    if sys.argv[1].isdigit():
-        sys.argv[1] = 'HourlyObservation'
-
-    if sys.argv[1] == "RegionalForecast" or sys.argv[1] == "HourlyObservation":
-        set_properties(sys.argv[1])
+    set_properties(sys.argv[1])
 
 WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
 WEATHER_WINDOW.setProperty('Locations', '1')
