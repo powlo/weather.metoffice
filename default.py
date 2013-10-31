@@ -284,7 +284,7 @@ if sys.argv[1].isdigit():
     elif AUTOLOCATION:
         if not __addon__.getSetting('ForecastLocation'):
             auto_location('ForecastLocation')
-        elif not __addon__.getSetting('ObservationLocation'):
+        if not __addon__.getSetting('ObservationLocation'):
             auto_location('ObservationLocation')
 
     #fetch all?
