@@ -28,26 +28,29 @@ import datapointapi
 TIMESTAMP_FORMAT = '%d/%m/%y %H:%M:%S'
 REGIONAL_FORECAST_INTERVAL = timedelta(hours=1)
 
+def log(msg, level=xbmc.LOGNOTICE):
+    xbmc.log("%s: %s" %(__addonid__, msg), level)
+
 def set_empty_daily_forecast():
-    utilities.log(__addonid__, "Setting empty daily forecast...", DEBUG)
+    log("Setting empty daily forecast...")
     clear = utilities.empty_daily_forecast()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
 def set_empty_3hourly_forecast():
-    utilities.log(__addonid__, "Setting empty 3 hourly forecast...", DEBUG)
+    log("Setting empty 3 hourly forecast...", DEBUG)
     clear = utilities.empty_3hourly_forecast()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
 def set_empty_regional_forecast():
-    utilities.log(__addonid__, "Setting empty regional forecast...", DEBUG)
+    log("Setting empty regional forecast...", DEBUG)
     clear = utilities.empty_3hourly_forecast()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
     
 def set_empty_observation():
-    utilities.log(__addonid__, "Setting empty observation...", DEBUG)
+    log("Setting empty observation...", DEBUG)
     clear = utilities.empty_observation()
     for field, value in clear.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
@@ -104,7 +107,7 @@ def set_properties(panel):
     try:
         panel_config = config[panel]
     except KeyError:
-        utilities.log(__addonid__, "Unknown panel '%s'" % panel, DEBUG)
+        log("Unknown panel '%s'" % panel, xbmc.LOGERROR)
         return
 
     if False:
@@ -112,18 +115,18 @@ def set_properties(panel):
         timestamp = datetime.fromtimestamp(time.mktime(time.strptime(timestamp_string, TIMESTAMP_FORMAT)))
         interval = datetime.now() - timestamp
         if interval < panel_config['interval']:
-            utilities.log(__addonid__, "Last update was %d minutes ago. No need to fetch data." % (interval.seconds/60), DEBUG)
+            log("Last update was %d minutes ago. No need to fetch data." % (interval.seconds/60))
             return
 
     location_name = __addon__.getSetting(panel_config.get('location_name'))
     location_id = __addon__.getSetting(panel_config.get('location_id'))
     if not (location_id and location_name):
-        utilities.log(__addonid__, "%s location is not set" % panel_config.get('name'), DEBUG)
+        log( "%s location is not set" % panel_config.get('name'), xbmc.LOGERROR)
         #set_empty_regional_forecast()
         return
     #Fetch data from Met Office:
     panel_name = panel_config.get('name')
-    utilities.log(__addonid__, "Fetching %s for '%s (%s)' from the Met Office..." % (panel_name, location_name, location_id), DEBUG)
+    log( "Fetching %s for '%s (%s)' from the Met Office..." % (panel_name, location_name, location_id))
     api_args = panel_config.get('api_args', {})
     try:
         api_args.get('params').update({'key': API_KEY})
@@ -131,12 +134,12 @@ def set_properties(panel):
         api_args['params'] = {'key': API_KEY}
     
     url = datapointapi.url(**api_args)
-    utilities.log(__addonid__, "URL: %s " % url, DEBUG)
+    log("URL: %s " % url)
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
     except (URLError, ValueError) as e:
-        utilities.log(__addonid__, str(e), DEBUG)
+        log(str(e), xbmc.LOGERROR)
         return
     report = utilities.parse_json_report(data)
     for field, value in report.iteritems():
@@ -166,16 +169,16 @@ def get_sitelist(location):
         page = utilities.retryurlopen(url).decode('latin-1')
     except (HTTPError, URLError) as e:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-        utilities.log(__addonid__, "Is your API Key correct?", DEBUG)
-        utilities.log(__addonid__, str(e), DEBUG)
+        log("Is your API Key correct?", xbmc.LOGERROR)
+        log(str(e), xbmc.LOGERROR)
         sys.exit(1)
     try:
         data = json.loads(page)
     except ValueError as e:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-        utilities.log(__addonid__, "There was a problem with the json data.", DEBUG)
-        utilities.log(__addonid__, str(e), DEBUG)
-        utilities.log(__addonid__, data, DEBUG)
+        log( "There was a problem with the json data.", xbmc.LOGERROR)
+        log(str(e), xbmc.LOGERROR)
+        log(data, xbmc.LOGERROR)
         sys.exit(1)
         
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
@@ -189,35 +192,35 @@ def get_sitelist(location):
                 geoip = json.loads(page)
             except ValueError:
             #ValueError occurs when json attempts to read empty page eg if geoip provider closes
-                utilities.log(__addonid__, "Couldn't parse json data from %s" % url, DEBUG)
+                log( "Couldn't parse json data from %s" % url, xbmc.LOGERROR)
             latitude = utilities.GEOIP_PROVIDERS[provider]['latitude']
             longitude = utilities.GEOIP_PROVIDERS[provider]['longitude']
             try:
                 (latitude, longitude) = (float(geoip[latitude]), float(geoip[longitude]))
             except TypeError:
-                utilities.log(__addonid__, "Couldn't get lat,long data from %s" % url, DEBUG)
+                log( "Couldn't get lat,long data from %s" % url, xbmc.LOGERROR)
             for site in sitelist:
                 try:
                     site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
                 except KeyError:
-                    utilities.log(__addonid__, "Site '%s' does not have latitude, longitude info" % site['name'], DEBUG)
+                    log( "Site '%s' does not have latitude, longitude info" % site['name'], xbmc.LOGERROR)
     finally:
         return sitelist
 
 def auto_location(location):
-    utilities.log(__addonid__, "Auto-assigning '%s'..." % location, DEBUG)
+    log( "Auto-assigning '%s'..." % location)
     sitelist = get_sitelist(location)
     try:
         sitelist.sort(key=itemgetter('distance'))
     except KeyError:
         #if geoip service can't add distance then we can't autolocate
-        utilities.log(__addonid__, "Can't autolocate. Returned sitelist doesn't have 'distance' key.", DEBUG)
+        log( "Can't autolocate. Returned sitelist doesn't have 'distance' key.")
         return
     first = sitelist[0]
     __addon__.setSetting(location, first['name'])
     __addon__.setSetting('%sID' % location, first['id'])
 
-    utilities.log(__addonid__, "Location set to '%s'" % first['name'], DEBUG)
+    log( "Location set to '%s'" % first['name'])
 
 def set_location(location):
     """
@@ -229,7 +232,7 @@ def set_location(location):
     :returns: None
     """  
     assert(location in datapointapi.SITELIST_TYPES)
-    utilities.log(__addonid__, "Setting '%s' ..." % location, DEBUG)
+    log( "Setting '%s' ..." % location)
     text = get_keyboard_text()
     dialog = xbmcgui.Dialog()
     sitelist = get_sitelist(location)
@@ -256,7 +259,7 @@ def set_location(location):
             __addon__.setSetting("%sID" % location, filtered_sites[selected]['id'])
     else:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
-        utilities.log(__addonid__, "No locations found containing '%s'" % text, DEBUG)
+        log( "No locations found containing '%s'" % text)
 
 #MAIN CODE
 WEATHER_WINDOW_ID = 12600
@@ -270,7 +273,7 @@ FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' 
 if not API_KEY:
     dialog = xbmcgui.Dialog()
     dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
-    utilities.log(__addonid__, 'Error, No API Key', DEBUG)
+    log( 'Error, No API Key', xbmc.LOGERROR)
     sys.exit(1)
 
 if sys.argv[1].isdigit():

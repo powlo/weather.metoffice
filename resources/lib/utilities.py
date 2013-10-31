@@ -302,15 +302,3 @@ def minutes_as_time(minutes):
     as a time, starting at midnight.
     """
     return time.strftime('%H:%M', time.gmtime(minutes*60))
-
-def log(addonid, txt, debug):
-    """
-    Enters a message into xbmc's log file
-    :param txt: Message to be logged. Eg, 'Downloading data'
-    :type txt: str
-    """
-    if debug:
-        if isinstance (txt,str):
-            txt = txt.decode("utf-8")
-        message = u'%s: %s' % (addonid, txt)
-        xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)
