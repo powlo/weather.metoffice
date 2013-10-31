@@ -146,14 +146,6 @@ def set_properties(panel):
         WEATHER_WINDOW.setProperty(field, value)
         #set_empty_regional_forecast()
     WEATHER_WINDOW.setProperty('%s.TimeStamp' % panel, datetime.now().strftime(TIMESTAMP_FORMAT))
-    
-def get_keyboard_text():
-    """
-    Gets keyboard text from XBMC
-    """
-    keyboard = xbmc.Keyboard()
-    keyboard.doModal()
-    return keyboard.isConfirmed() and keyboard.getText()
 
 def get_sitelist(location):
     url_params = {
@@ -232,8 +224,9 @@ def set_location(location):
     :returns: None
     """  
     assert(location in datapointapi.SITELIST_TYPES)
-    log( "Setting '%s' ..." % location)
-    text = get_keyboard_text()
+    keyboard = xbmc.Keyboard()
+    keyboard.doModal()
+    text= keyboard.isConfirmed() and keyboard.getText()
     dialog = xbmcgui.Dialog()
     sitelist = get_sitelist(location)
 
@@ -245,21 +238,23 @@ def set_location(location):
             site['name'] = utilities.LONG_REGIONAL_NAMES[site['name']]
 
     filtered_sites = utilities.filter_sitelist(text, sitelist)
-    if filtered_sites != []:
-        try:
-            filtered_sites = sorted(filtered_sites,key=itemgetter('distance'))
-            display_list = ["%s (%skm)" % (x['name'], x['distance']) for x in filtered_sites]
-        except KeyError:
-            filtered_sites = sorted(filtered_sites,key=itemgetter('name'))
-            display_list = [x['name'] for x in filtered_sites]
-            
-        selected = dialog.select("Matching Sites", display_list)
-        if selected != -1:
-            __addon__.setSetting(location, filtered_sites[selected]['name'])
-            __addon__.setSetting("%sID" % location, filtered_sites[selected]['id'])
-    else:
+    if filtered_sites == []:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
         log( "No locations found containing '%s'" % text)
+        return
+    
+    try:
+        filtered_sites = sorted(filtered_sites,key=itemgetter('distance'))
+        display_list = ["%s (%skm)" % (x['name'], x['distance']) for x in filtered_sites]
+    except KeyError:
+        filtered_sites = sorted(filtered_sites,key=itemgetter('name'))
+        display_list = [x['name'] for x in filtered_sites]
+        
+    selected = dialog.select("Matching Sites", display_list)
+    if selected != -1:
+        __addon__.setSetting(location, filtered_sites[selected]['name'])
+        __addon__.setSetting("%sID" % location, filtered_sites[selected]['id'])
+        log( "Setting '%s' to '%s (%s)'" % (location, filtered_sites[selected]['name'], filtered_sites[selected]['id']))
 
 #MAIN CODE
 WEATHER_WINDOW_ID = 12600
