@@ -273,7 +273,7 @@ FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' 
 if not API_KEY:
     dialog = xbmcgui.Dialog()
     dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
-    log( 'Error, No API Key', xbmc.LOGERROR)
+    log( 'No API Key', xbmc.LOGERROR)
     sys.exit(1)
 
 if sys.argv[1].isdigit():
