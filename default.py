@@ -147,7 +147,39 @@ def set_properties(panel):
         #set_empty_regional_forecast()
     WEATHER_WINDOW.setProperty('%s.TimeStamp' % panel, datetime.now().strftime(TIMESTAMP_FORMAT))
 
+def geoip_distance(sitelist):
+    if __addon__.getSetting('GeoLocation') != 'true':
+        return sitelist
+    provider = int(__addon__.getSetting('GeoIPProvider'))
+    url = utilities.GEOIP_PROVIDERS[provider]['url']
+    log("Adding distances based on GeoIP data from %s" % url.split('/')[2].lstrip('www.'))
+    log("URL: %s" % url)
+    try:
+        page = utilities.retryurlopen(url)
+        geoip = json.loads(page)
+    except (URLError, ValueError) as e:
+        log( str(e), xbmc.LOGERROR)
+        return sitelist
+    #different geoip providers user different names for latitude, longitude
+    latitude = utilities.GEOIP_PROVIDERS[provider]['latitude']
+    longitude = utilities.GEOIP_PROVIDERS[provider]['longitude']
+    try:
+        (latitude, longitude) = (float(geoip[latitude]), float(geoip[longitude]))
+    except TypeError:
+        #if geoip provider returns None
+        log( "Couldn't get lat,long data from %s" % url, xbmc.LOGERROR)
+        return sitelist
+    newlist = list(sitelist)
+    for site in newlist:
+        try:
+            site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
+        except KeyError:
+            log( "Site '%s' does not have latitude, longitude info" % site['name'], xbmc.LOGERROR)
+            return sitelist
+    return newlist
+
 def get_sitelist(location):
+    log("Getting sitelist for '%s'" % location)
     url_params = {
         'ForecastLocation' : {'resource' : 'wxfcs'},
         'ObservationLocation' : {'resource' : 'wxobs'},
@@ -155,49 +187,23 @@ def get_sitelist(location):
         }
     args = url_params[location]
     args.update({'params':{'key': API_KEY}})
-    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     url = datapointapi.url(**args)
+    log("URL: %s" % url)
+    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
-    except (HTTPError, URLError) as e:
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-        log("Is your API Key correct?", xbmc.LOGERROR)
-        log(str(e), xbmc.LOGERROR)
-        sys.exit(1)
-    try:
         data = json.loads(page)
-    except ValueError as e:
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-        log( "There was a problem with the json data.", xbmc.LOGERROR)
+    except (URLError, ValueError) as e:
         log(str(e), xbmc.LOGERROR)
-        log(data, xbmc.LOGERROR)
-        sys.exit(1)
-        
-    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-    sitelist = data['Locations']['Location']
-    try:
-        if __addon__.getSetting('GeoLocation') == 'true':
-            provider = int(__addon__.getSetting('GeoIPProvider'))
-            url = utilities.GEOIP_PROVIDERS[provider]['url']
-            page = utilities.retryurlopen(url)
-            try:
-                geoip = json.loads(page)
-            except ValueError:
-            #ValueError occurs when json attempts to read empty page eg if geoip provider closes
-                log( "Couldn't parse json data from %s" % url, xbmc.LOGERROR)
-            latitude = utilities.GEOIP_PROVIDERS[provider]['latitude']
-            longitude = utilities.GEOIP_PROVIDERS[provider]['longitude']
-            try:
-                (latitude, longitude) = (float(geoip[latitude]), float(geoip[longitude]))
-            except TypeError:
-                log( "Couldn't get lat,long data from %s" % url, xbmc.LOGERROR)
-            for site in sitelist:
-                try:
-                    site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
-                except KeyError:
-                    log( "Site '%s' does not have latitude, longitude info" % site['name'], xbmc.LOGERROR)
     finally:
-        return sitelist
+        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+
+    try:
+        sitelist = data['Locations']['Location']
+    except NameError:
+        log("Could not fetch sitelist", xbmc.LOGERROR)
+
+    return geoip_distance(sitelist)
 
 def auto_location(location):
     log( "Auto-assigning '%s'..." % location)
