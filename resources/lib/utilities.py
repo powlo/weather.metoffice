@@ -114,6 +114,11 @@ def parse_json_report(data):
     if data.get('SiteRep') and data['SiteRep'].get('DV'):
         dv = data['SiteRep']['DV']
         if dv.get('type') == 'Forecast':
+            #look at how cludgy this is...
+            if dv['Location']['Period'][0]['Rep'][0]['$'] == 'Day':
+                forecast['DailyForecast.IssuedAt'] = dv.get('dataDate')
+            else:
+                forecast['3HourlyForecast.IssuedAt'] = dv.get('dataDate')
             #Parse Daily or 3Hourly Forecast
             for p, period in enumerate(dv['Location']['Period']):
                 for rep in period['Rep']:
@@ -137,6 +142,7 @@ def parse_json_report(data):
                     forecast['Forecast.Day%s.%s.Time' % (p, dollar)] = tim
                     forecast['Forecast.Day%s.%s.Date' % (p, dollar)] = period.get('value')
         else:
+            forecast['HourlyObservation.IssuedAt'] = dv.get('dataDate')
             #assume observation
             latest_obs = dv['Location']['Period'][-1]['Rep'][-1]
             forecast['Current.Location'] = dv['Location']['name']
@@ -153,7 +159,7 @@ def parse_json_report(data):
     elif data.get('RegionalFcst'):
         #Parse Regional Text Forecast
         rf = data['RegionalFcst']
-        forecast['Regional.issuedAt'] = rf['issuedAt']
+        forecast['Regional.IssuedAt'] = rf['issuedAt']
         for period in rf['FcstPeriods']['Period']:
             #have to check type because json can return list or dict here
             if isinstance(period['Paragraph'],list):
@@ -186,16 +192,16 @@ def empty_3hourly_forecast():
     d = dict()
     for day in range (MAX_DAYS):
         for interval in range (MAX_INTERVALS):
-            d['3Hour%s.FeelsTemp' % interval*day] = 'N/A'
-            d['3Hour%s.WindGust' % interval*day] = 'N/A'
-            d['3Hour%s.Humidity' % interval*day] = 'N/A'
-            d['3Hour%s.Temp' % interval*day] = 'N/A'
-            d['3Hour%s.Visibility' % interval*day] = 'N/A'
-            d['3Hour%s.WindDirection' % interval*day] = 'N/A'
-            d['3Hour%s.WindSpeed' % interval*day] = 'N/A'
-            d['3Hour%s.MaxUV' % interval*day] = 'N/A'
-            d['3Hour%s.OutlookIcon' % interval*day] = 'na.png'
-            d['3Hour%s.Precipitation' % interval*day] = 'N/A'
+            d['3hourly%s.FeelsTemp' % interval*day] = 'N/A'
+            d['3hourly%s.WindGust' % interval*day] = 'N/A'
+            d['3hourly%s.Humidity' % interval*day] = 'N/A'
+            d['3hourly%s.Temp' % interval*day] = 'N/A'
+            d['3hourly%s.Visibility' % interval*day] = 'N/A'
+            d['3hourly%s.WindDirection' % interval*day] = 'N/A'
+            d['3hourly%s.WindSpeed' % interval*day] = 'N/A'
+            d['3hourly%s.MaxUV' % interval*day] = 'N/A'
+            d['3hourly%s.OutlookIcon' % interval*day] = 'na.png'
+            d['3hourly%s.Precipitation' % interval*day] = 'N/A'
     return d
 
 #Not sure what the point is in setting empty values

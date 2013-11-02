@@ -24,8 +24,7 @@ sys.path.append(__resource__)
 #Need to think about whether this fudging is a good thing
 import utilities
 import datapointapi
-
-TIMESTAMP_FORMAT = '%d/%m/%y %H:%M:%S'
+ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 REGIONAL_FORECAST_INTERVAL = timedelta(hours=1)
 
 def log(msg, level=xbmc.LOGNOTICE):
@@ -70,8 +69,8 @@ def set_properties(panel):
                 'object' : __addon__.getSetting('ForecastLocationID')
             }
         },
-        '3HourForecast' : {
-            'name' : '3Hour Forecast',
+        '3HourlyForecast' : {
+            'name' : '3Hourly Forecast',
             'interval' : timedelta(hours=1),
             'location_name' : 'ForecastLocation',
             'location_id' : 'ForecastLocationID',
@@ -110,12 +109,13 @@ def set_properties(panel):
         log("Unknown panel '%s'" % panel, xbmc.LOGERROR)
         return
 
-    if False:
-        timestamp_string = WEATHER_WINDOW.getProperty('%s.TimeStamp' % panel)
-        timestamp = datetime.fromtimestamp(time.mktime(time.strptime(timestamp_string, TIMESTAMP_FORMAT)))
-        interval = datetime.now() - timestamp
+    if WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel):
+        issuedat = WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel)
+        issuedat = datetime.fromtimestamp(time.mktime(time.strptime(issuedat, ISSUEDAT_FORMAT)))
+        interval = datetime.now() - issuedat
+
         if interval < panel_config['interval']:
-            log("Last update was %d minutes ago. No need to fetch data." % (interval.seconds/60))
+            log("Last report was issued %s minutes ago. No need to fetch data." % (interval.seconds/60))
             return
 
     location_name = __addon__.getSetting(panel_config.get('location_name'))
@@ -126,7 +126,6 @@ def set_properties(panel):
         return
     #Fetch data from Met Office:
     panel_name = panel_config.get('name')
-    log( "Fetching %s for '%s (%s)' from the Met Office..." % (panel_name, location_name, location_id))
     api_args = panel_config.get('api_args', {})
     try:
         api_args.get('params').update({'key': API_KEY})
@@ -134,18 +133,20 @@ def set_properties(panel):
         api_args['params'] = {'key': API_KEY}
     
     url = datapointapi.url(**api_args)
-    log("URL: %s " % url)
     try:
+        log( "Fetching %s for '%s (%s)' from the Met Office..." % (panel_name, location_name, location_id))
+        log("URL: %s " % url)
         page = utilities.retryurlopen(url).decode('latin-1')
+        log('Converting page to json data...')
         data = json.loads(page)
     except (URLError, ValueError) as e:
         log(str(e), xbmc.LOGERROR)
         return
+    log('Converting json to XBMC properties...')
     report = utilities.parse_json_report(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
         #set_empty_regional_forecast()
-    WEATHER_WINDOW.setProperty('%s.TimeStamp' % panel, datetime.now().strftime(TIMESTAMP_FORMAT))
 
 def geoip_distance(sitelist):
     if __addon__.getSetting('GeoLocation') != 'true':
@@ -163,6 +164,7 @@ def geoip_distance(sitelist):
     #different geoip providers user different names for latitude, longitude
     latitude = utilities.GEOIP_PROVIDERS[provider]['latitude']
     longitude = utilities.GEOIP_PROVIDERS[provider]['longitude']
+
     try:
         (latitude, longitude) = (float(geoip[latitude]), float(geoip[longitude]))
     except TypeError:
@@ -203,6 +205,13 @@ def get_sitelist(location):
     except NameError:
         log("Could not fetch sitelist", xbmc.LOGERROR)
 
+    if location == 'RegionalLocation':
+        #bug in datapoint: sitelist requires cleaning for regional forecast
+        sitelist = utilities.clean_sitelist(sitelist)
+        #long names are more user friendly
+        for site in sitelist:
+            site['name'] = utilities.LONG_REGIONAL_NAMES[site['name']]
+
     return geoip_distance(sitelist)
 
 def auto_location(location):
@@ -235,14 +244,6 @@ def set_location(location):
     text= keyboard.isConfirmed() and keyboard.getText()
     dialog = xbmcgui.Dialog()
     sitelist = get_sitelist(location)
-
-    if location == 'RegionalLocation':
-        #bug in datapoint: sitelist requires cleaning for regional forecast
-        sitelist = utilities.clean_sitelist(sitelist)
-        #long names are more user friendly
-        for site in sitelist:
-            site['name'] = utilities.LONG_REGIONAL_NAMES[site['name']]
-
     filtered_sites = utilities.filter_sitelist(text, sitelist)
     if filtered_sites == []:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
