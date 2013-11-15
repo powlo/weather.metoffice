@@ -1,9 +1,11 @@
 from datetime import datetime
-import time
-import math
-import urllib2
 import json
+import math
+import os
+import time
+import urllib2
 import xbmc
+import xbmcaddon
 
 MAX_DAYS = 5
 MAX_INTERVALS = 8
@@ -44,7 +46,12 @@ WEATHER_CODES = {
     '30': ('17', 'Thunder')
 }
 
+__addon__       = xbmcaddon.Addon()
+__addonpath__   = __addon__.getAddonInfo('path')
+__media__    = os.path.join( __addonpath__, 'resources', 'media' )
+
 WEATHER_ICON = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
+TEMP_ICON = os.path.join(__media__, '%s.png')
 
 VISIBILITY_CODES = {
     'UN': 'Unknown',
@@ -141,6 +148,11 @@ def parse_json_report(data):
                     forecast['Forecast.Day%s.%s.Title' % (p, dollar)] = day_name(period.get('value'))
                     forecast['Forecast.Day%s.%s.Time' % (p, dollar)] = tim
                     forecast['Forecast.Day%s.%s.Date' % (p, dollar)] = period.get('value')
+                    if dollar == 'Day':
+                        forecast['Forecast.Day%s.%s.ActualTempIcon' % (p, dollar)] = TEMP_ICON % rep['Dm']
+                    elif dollar =='Night':
+                        forecast['Forecast.Day%s.%s.ActualTempIcon' % (p, dollar)] = TEMP_ICON % rep['Nm']
+
         else:
             forecast['HourlyObservation.IssuedAt'] = dv.get('dataDate')
             #assume observation
@@ -300,7 +312,7 @@ def day_name(date):
     """
     Takes a date and returns the day of the week as a string
     """
-    return datetime.fromtimestamp(time.mktime(time.strptime(date, '%Y-%m-%dZ'))).strftime('%A')
+    return datetime.fromtimestamp(time.mktime(time.strptime(date, '%Y-%m-%dZ'))).strftime('%a')
 
 def minutes_as_time(minutes):
     """
