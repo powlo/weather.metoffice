@@ -51,7 +51,8 @@ __addonpath__   = __addon__.getAddonInfo('path')
 __media__    = os.path.join( __addonpath__, 'resources', 'media' )
 
 WEATHER_ICON = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
-TEMP_ICON = os.path.join(__media__, '%s.png')
+TEMP_ICON = os.path.join(__media__, 'temp', '%s.png')
+WIND_ICON = os.path.join(__media__, 'wind', 'average', '%s.png')
 
 VISIBILITY_CODES = {
     'UN': 'Unknown',
@@ -144,6 +145,7 @@ def parse_json_report(data):
                     #extra xbmc targeted info:
                     weather_type = rep.get('W', 'NA')
                     forecast['Forecast.Day%s.%s.Outlook' % (p, dollar)] = WEATHER_CODES.get(weather_type)[1]
+                    forecast['Forecast.Day%s.%s.WindIcon' % (p, dollar)] = WIND_ICON % rep.get('D', 'na')
                     forecast['Forecast.Day%s.%s.OutlookIcon' % (p, dollar)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
                     forecast['Forecast.Day%s.%s.Title' % (p, dollar)] = day_name(period.get('value'))
                     forecast['Forecast.Day%s.%s.Time' % (p, dollar)] = tim
