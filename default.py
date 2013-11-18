@@ -17,6 +17,7 @@ __author__      = __addon__.getAddonInfo('author')
 __version__     = __addon__.getAddonInfo('version')
 __addonpath__   = __addon__.getAddonInfo('path')
 __resource__    = os.path.join( __addonpath__, 'resources', 'lib' )
+__media__       = os.path.join( __addonpath__, 'resources', 'media' )
 
 sys.path.append(__resource__)
 
@@ -26,6 +27,7 @@ import utilities
 import datapointapi
 ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 REGIONAL_FORECAST_INTERVAL = timedelta(hours=1)
+ACTUAL_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'actual.png')
 
 def log(msg, level=xbmc.LOGNOTICE):
     xbmc.log("%s: %s" %(__addonid__, msg), level)
@@ -300,6 +302,7 @@ elif sys.argv[1] == ('SetLocation'):
 else:
     set_properties(sys.argv[1])
 
+WEATHER_WINDOW.setProperty('Forecast.ActualTempFrameIcon', ACTUAL_TEMP_FRAME_ICON)
 WEATHER_WINDOW.setProperty('WeatherProvider', __addonname__)
 WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
 WEATHER_WINDOW.setProperty('Locations', '1')
