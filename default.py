@@ -115,9 +115,10 @@ def set_properties(panel):
         issuedat = WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel)
         issuedat = datetime.fromtimestamp(time.mktime(time.strptime(issuedat, ISSUEDAT_FORMAT)))
         interval = datetime.now() - issuedat
+        log("Last %s report was issued %s minutes ago." % (panel_config.get('name'), interval.seconds/60))
 
         if interval < panel_config['interval']:
-            log("Last %s report was issued %s minutes ago. No need to fetch data." % (panel_config.get('name'), interval.seconds/60))
+            log("No need to fetch data.")
             return
 
     location_name = __addon__.getSetting(panel_config.get('location_name'))
