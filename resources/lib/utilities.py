@@ -163,7 +163,7 @@ def parse_json_report(data):
             forecast['Current.Condition'] = WEATHER_CODES[latest_obs.get('W', 'NA')][1]
             forecast['Current.Visibility'] = latest_obs.get('V', 'n/a')
             forecast['Current.Pressure'] = latest_obs.get('P', 'n/a')
-            forecast['Current.Temperature'] = latest_obs.get('T', 'n/a')
+            forecast['Current.Temperature'] = latest_obs.get('T', 'n/a').split('.')[0]
             forecast['Current.Wind'] = latest_obs.get('S', 'n/a')
             forecast['Current.WindDirection'] = latest_obs.get('D', 'n/a')
             forecast['Current.WindGust'] = latest_obs.get('G', 'n/a')
