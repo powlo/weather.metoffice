@@ -117,7 +117,7 @@ def set_properties(panel):
         interval = datetime.now() - issuedat
 
         if interval < panel_config['interval']:
-            log("Last report was issued %s minutes ago. No need to fetch data." % (interval.seconds/60))
+            log("Last %s report was issued %s minutes ago. No need to fetch data." % (panel_config.get('name'), interval.seconds/60))
             return
 
     location_name = __addon__.getSetting(panel_config.get('location_name'))
