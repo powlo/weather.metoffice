@@ -124,9 +124,9 @@ def parse_json_report(data):
         if dv.get('type') == 'Forecast':
             #look at how cludgy this is...
             if dv['Location']['Period'][0]['Rep'][0]['$'] == 'Day':
-                forecast['DailyForecast.IssuedAt'] = dv.get('dataDate')
+                forecast['DailyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
             else:
-                forecast['3HourlyForecast.IssuedAt'] = dv.get('dataDate')
+                forecast['3HourlyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
             #Parse Daily or 3Hourly Forecast
             for p, period in enumerate(dv['Location']['Period']):
                 for rep in period['Rep']:
@@ -156,7 +156,7 @@ def parse_json_report(data):
                         forecast['Forecast.Day%s.%s.ActualTempIcon' % (p, dollar)] = TEMP_ICON % rep['Nm']
 
         else:
-            forecast['HourlyObservation.IssuedAt'] = dv.get('dataDate')
+            forecast['HourlyObservation.IssuedAt'] = dv.get('dataDate').rstrip('Z')
             #assume observation
             latest_obs = dv['Location']['Period'][-1]['Rep'][-1]
             forecast['Current.Location'] = dv['Location']['name']
@@ -173,7 +173,7 @@ def parse_json_report(data):
     elif data.get('RegionalFcst'):
         #Parse Regional Text Forecast
         rf = data['RegionalFcst']
-        forecast['Regional.IssuedAt'] = rf['issuedAt']
+        forecast['RegionalForecast.IssuedAt'] = rf['issuedAt'].rstrip('Z')
         for period in rf['FcstPeriods']['Period']:
             #have to check type because json can return list or dict here
             if isinstance(period['Paragraph'],list):

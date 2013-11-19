@@ -25,7 +25,7 @@ sys.path.append(__resource__)
 #Need to think about whether this fudging is a good thing
 import utilities
 import datapointapi
-ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
+ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%S'
 REGIONAL_FORECAST_INTERVAL = timedelta(hours=1)
 ACTUAL_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'actual.png')
 
@@ -113,10 +113,12 @@ def set_properties(panel):
 
     if WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel):
         issuedat = WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel)
-        issuedat = datetime.fromtimestamp(time.mktime(time.strptime(issuedat, ISSUEDAT_FORMAT)))
+        try:
+            issuedat = datetime.fromtimestamp(time.mktime(time.strptime(issuedat, ISSUEDAT_FORMAT)))
+        except ValueError:
+            issuedat = datetime.now() - panel_config['interval']
         interval = datetime.now() - issuedat
         log("Last %s report was issued %s minutes ago." % (panel_config.get('name'), interval.seconds/60))
-
         if interval < panel_config['interval']:
             log("No need to fetch data.")
             return
