@@ -28,6 +28,7 @@ import datapointapi
 ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%S'
 REGIONAL_FORECAST_INTERVAL = timedelta(hours=1)
 ACTUAL_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'actual.png')
+FEELSLIKE_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'feelslike.png')
 
 def log(msg, level=xbmc.LOGNOTICE):
     xbmc.log("%s: %s" %(__addonid__, msg), level)
@@ -306,6 +307,7 @@ else:
     set_properties(sys.argv[1])
 
 WEATHER_WINDOW.setProperty('Forecast.ActualTempFrameIcon', ACTUAL_TEMP_FRAME_ICON)
+WEATHER_WINDOW.setProperty('Forecast.FeelsLikeTempFrameIcon', FEELSLIKE_TEMP_FRAME_ICON)
 WEATHER_WINDOW.setProperty('WeatherProvider', __addonname__)
 WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
 WEATHER_WINDOW.setProperty('Locations', '1')

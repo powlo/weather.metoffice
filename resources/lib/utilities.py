@@ -53,6 +53,7 @@ __media__    = os.path.join( __addonpath__, 'resources', 'media' )
 WEATHER_ICON = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
 TEMP_ICON = os.path.join(__media__, 'temp', '%s.png')
 WIND_ICON = os.path.join(__media__, 'wind', 'average', '%s.png')
+GUST_ICON = os.path.join(__media__, 'wind', 'gust', '%s.png')
 
 VISIBILITY_CODES = {
     'UN': 'Unknown',
@@ -146,6 +147,7 @@ def parse_json_report(data):
                     weather_type = rep.get('W', 'NA')
                     forecast['Forecast.Day%s.%s.Outlook' % (p, dollar)] = WEATHER_CODES.get(weather_type)[1]
                     forecast['Forecast.Day%s.%s.WindIcon' % (p, dollar)] = WIND_ICON % rep.get('D', 'na')
+                    forecast['Forecast.Day%s.%s.GustIcon' % (p, dollar)] = GUST_ICON % rep.get('D', 'na')
                     forecast['Forecast.Day%s.%s.OutlookIcon' % (p, dollar)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
                     forecast['Forecast.Day%s.%s.Title' % (p, dollar)] = day_name(period.get('value'))
                     forecast['Forecast.Day%s.%s.Time' % (p, dollar)] = tim
@@ -154,6 +156,9 @@ def parse_json_report(data):
                         forecast['Forecast.Day%s.%s.ActualTempIcon' % (p, dollar)] = TEMP_ICON % rep['Dm']
                     elif dollar =='Night':
                         forecast['Forecast.Day%s.%s.ActualTempIcon' % (p, dollar)] = TEMP_ICON % rep['Nm']
+                    else:
+                        forecast['Forecast.Day%s.%s.ActualTempIcon' % (p, dollar)] = TEMP_ICON % rep['T']
+                        forecast['Forecast.Day%s.%s.FeelsLikeTempIcon' % (p, dollar)] = TEMP_ICON % rep['F']
 
         else:
             forecast['HourlyObservation.IssuedAt'] = dv.get('dataDate').rstrip('Z')
