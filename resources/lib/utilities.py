@@ -54,6 +54,7 @@ WEATHER_ICON = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8
 TEMP_ICON = os.path.join(__media__, 'temp', '%s.png')
 WIND_ICON = os.path.join(__media__, 'wind', 'average', '%s.png')
 GUST_ICON = os.path.join(__media__, 'wind', 'gust', '%s.png')
+UV_ICON = os.path.join(__media__, 'uv', '%s.png')
 
 VISIBILITY_CODES = {
     'UN': 'Unknown',
@@ -64,6 +65,22 @@ VISIBILITY_CODES = {
     'VG': 'Very Good',
     'EX': 'Excellent'
 }
+
+UV_CODES = {
+    '0' : 'grey',
+    '1' : 'green',
+    '2' : 'green',
+    '3' : 'yellow',
+    '4' : 'yellow',
+    '5' : 'yellow',
+    '6' : 'red',
+    '7' : 'red',
+    '8' : 'purple',
+    '9' : 'purple',
+    '10': 'purple',
+    '11': 'purple'
+    }
+
 #This list must appear in the same order as it appears in 
 #the settings.xml in order for the indexes to align.
 GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitude':'lon'},
@@ -148,6 +165,7 @@ def parse_json_report(data):
                     forecast['Forecast.Day%s.%s.Outlook' % (p, dollar)] = WEATHER_CODES.get(weather_type)[1]
                     forecast['Forecast.Day%s.%s.WindIcon' % (p, dollar)] = WIND_ICON % rep.get('D', 'na')
                     forecast['Forecast.Day%s.%s.GustIcon' % (p, dollar)] = GUST_ICON % rep.get('D', 'na')
+                    forecast['Forecast.Day%s.%s.UVIcon' % (p, dollar)] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
                     forecast['Forecast.Day%s.%s.OutlookIcon' % (p, dollar)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
                     forecast['Forecast.Day%s.%s.Title' % (p, dollar)] = day_name(period.get('value'))
                     forecast['Forecast.Day%s.%s.Time' % (p, dollar)] = tim
