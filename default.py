@@ -68,7 +68,6 @@ def set_properties(panel):
             'api_args' : {
                 'resource' : 'wxfcs',
                 'params' : {'res' : 'daily'},
-                'object' : __addon__.getSetting('ForecastLocationID')
             }
         },
         '3HourlyForecast' : {
@@ -79,7 +78,6 @@ def set_properties(panel):
             'api_args' : {
                 'resource' : 'wxfcs',
                 'params' : {'res' : '3hourly'},
-                'object' : __addon__.getSetting('ForecastLocationID')
             }
         },
         'RegionalForecast' : {
@@ -91,7 +89,6 @@ def set_properties(panel):
                 'format' : 'txt',
                 'resource' : 'wxfcs',
                 'group' : 'regionalforecast',
-                'object' : __addon__.getSetting('RegionalLocationID')
             },
         },
         'HourlyObservation' : {
@@ -101,7 +98,6 @@ def set_properties(panel):
             'location_id' : 'ObservationLocationID',
             'api_args' : {
                 'params' : {'res' : 'hourly'},
-                'object' : __addon__.getSetting('ObservationLocationID')
             }
         },
     }
@@ -137,7 +133,10 @@ def set_properties(panel):
         api_args.get('params').update({'key': API_KEY})
     except AttributeError:
         api_args['params'] = {'key': API_KEY}
-    
+
+    #assumes we always want 'object' to be set. True at the moment.
+    api_args.update({'object' : location_id})
+
     url = datapointapi.url(**api_args)
     try:
         log( "Fetching %s for '%s (%s)' from the Met Office..." % (panel_name, location_name, location_id))
