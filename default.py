@@ -85,7 +85,7 @@ def set_properties(panel):
         },
         'RegionalForecast' : {
             'name' : 'Regional Forecast',
-            'interval' : timedelta(hours=1),
+            'interval' : timedelta(hours=12),
             'location_name' : 'RegionalLocation',
             'location_id' : 'RegionalLocationID',
             'api_args' : {
