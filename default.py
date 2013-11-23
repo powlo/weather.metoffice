@@ -26,7 +26,6 @@ sys.path.append(__resource__)
 import utilities
 import datapointapi
 ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%S'
-REGIONAL_FORECAST_INTERVAL = timedelta(hours=1)
 ACTUAL_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'actual.png')
 FEELSLIKE_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'feelslike.png')
 
@@ -63,7 +62,7 @@ def set_properties(panel):
     config = {
         'DailyForecast' : {
             'name' : 'Daily Forecast',
-            'interval' : timedelta(hours=1),
+            'updatefrequency' : {'hours' : 1},
             'location_name' : 'ForecastLocation',
             'location_id' : 'ForecastLocationID',
             'api_args' : {
@@ -74,7 +73,7 @@ def set_properties(panel):
         },
         '3HourlyForecast' : {
             'name' : '3Hourly Forecast',
-            'interval' : timedelta(hours=1),
+            'updatefrequency' : {'hours' : 1},
             'location_name' : 'ForecastLocation',
             'location_id' : 'ForecastLocationID',
             'api_args' : {
@@ -85,7 +84,7 @@ def set_properties(panel):
         },
         'RegionalForecast' : {
             'name' : 'Regional Forecast',
-            'interval' : timedelta(hours=12),
+            'updatefrequency' : {'hours' : 12},
             'location_name' : 'RegionalLocation',
             'location_id' : 'RegionalLocationID',
             'api_args' : {
@@ -97,7 +96,7 @@ def set_properties(panel):
         },
         'HourlyObservation' : {
             'name' : 'Hourly Observation',
-            'interval' : timedelta(hours=1),
+            'updatefrequency' : {'hours' : 1},
             'location_name' : 'ObservationLocation',
             'location_id' : 'ObservationLocationID',
             'api_args' : {
@@ -114,13 +113,14 @@ def set_properties(panel):
 
     if WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel):
         issuedat = WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel)
+        updatefrequency = timedelta(**panel_config['updatefrequency'])
         try:
             issuedat = datetime.fromtimestamp(time.mktime(time.strptime(issuedat, ISSUEDAT_FORMAT)))
         except ValueError:
-            issuedat = datetime.now() - panel_config['interval']
+            issuedat = datetime.now() - updatefrequency
         interval = datetime.now() - issuedat
         log("Last %s report was issued %s minutes ago." % (panel_config.get('name'), interval.seconds/60))
-        if interval < panel_config['interval']:
+        if interval < updatefrequency:
             log("No need to fetch data.")
             return
 
