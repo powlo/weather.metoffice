@@ -80,15 +80,18 @@ def regional(data):
     forecast = dict()
     rf = data['RegionalFcst']
     forecast['RegionalForecast.IssuedAt'] = rf['issuedAt'].rstrip('Z')
+    count = 0
     for period in rf['FcstPeriods']['Period']:
         #have to check type because json can return list or dict here
         if isinstance(period['Paragraph'],list):
-            for p, paragraph in enumerate(period['Paragraph']):
-                forecast['Regional.%s.Paragraph%s.Title' % (period.get('id'), p)] = paragraph['title'].rstrip(':').lstrip('UK Outlook for')
-                forecast['Regional.%s.Paragraph%s.Content' % (period.get('id'), p)] = paragraph['$']
+            for paragraph in period['Paragraph']:
+                forecast['Regional.Paragraph%d.Title' % count] = paragraph['title'].rstrip(':').lstrip('UK Outlook for')
+                forecast['Regional.Paragraph%d.Content' % count] = paragraph['$']
+                count+=1
         else:
-            forecast['Regional.%s.Paragraph0.Title' % period.get('id')] = period['Paragraph']['title'].rstrip(':').lstrip('UK Outlook for')
-            forecast['Regional.%s.Paragraph0.Content' % period.get('id')] = period['Paragraph']['$']
+            forecast['Regional.Paragraph%d.Title' % count] = period['Paragraph']['title'].rstrip(':').lstrip('UK Outlook for')
+            forecast['Regional.Paragraph%d.Content' % count] = period['Paragraph']['$']
+            count+=1
     return forecast
 
 def threehourly(data):
