@@ -24,6 +24,7 @@ sys.path.append(__resource__)
 #We can now import from local lib dir
 #Need to think about whether this fudging is a good thing
 import utilities
+import jsonparser
 import datapointapi
 ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%S'
 ACTUAL_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'actual.png')
@@ -65,6 +66,7 @@ def set_properties(panel):
             'updatefrequency' : {'hours' : 1},
             'location_name' : 'ForecastLocation',
             'location_id' : 'ForecastLocationID',
+            'parser' : 'daily',
             'api_args' : {
                 'resource' : 'wxfcs',
                 'params' : {'res' : 'daily'},
@@ -75,6 +77,7 @@ def set_properties(panel):
             'updatefrequency' : {'hours' : 1},
             'location_name' : 'ForecastLocation',
             'location_id' : 'ForecastLocationID',
+            'parser' : 'threehourly',
             'api_args' : {
                 'resource' : 'wxfcs',
                 'params' : {'res' : '3hourly'},
@@ -85,6 +88,7 @@ def set_properties(panel):
             'updatefrequency' : {'hours' : 12},
             'location_name' : 'RegionalLocation',
             'location_id' : 'RegionalLocationID',
+            'parser' : 'regional',
             'api_args' : {
                 'format' : 'txt',
                 'resource' : 'wxfcs',
@@ -96,6 +100,7 @@ def set_properties(panel):
             'updatefrequency' : {'hours' : 1},
             'location_name' : 'ObservationLocation',
             'location_id' : 'ObservationLocationID',
+            'parser' : 'observation',
             'api_args' : {
                 'params' : {'res' : 'hourly'},
             }
@@ -148,7 +153,8 @@ def set_properties(panel):
         log(str(e), xbmc.LOGERROR)
         return
     log('Converting json to XBMC properties...')
-    report = utilities.parse_json_report(data)
+    parsefunc = getattr(jsonparser, panel_config['parser'])
+    report = parsefunc(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
         #set_empty_regional_forecast()
