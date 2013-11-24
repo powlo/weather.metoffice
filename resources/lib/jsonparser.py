@@ -4,7 +4,7 @@ import xbmcaddon
 import utilities
 
 WEATHER_CODES = {
-    'NA': ('na', 'Not Available'),
+    'na': ('na', 'Not Available'),
     '0': ('31', 'Clear'), #night
     '1': ('32', 'Sunny'),
     '2': ('29', 'Partly Cloudy'), #night
@@ -155,29 +155,21 @@ def daily(data):
     forecast = dict()
     dv = data['SiteRep']['DV']
     forecast['DailyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
-
-    #Parse Daily or 3Hourly Forecast
     for p, period in enumerate(dv['Location']['Period']):
+        forecast['Day%d.Title' %p] = utilities.day_name(period.get('value'))
         for rep in period['Rep']:
-            dollar = rep.pop('$')
-            for key, value in rep.iteritems():
-                if key == 'V':
-                    try:
-                        value = VISIBILITY_CODES[value]
-                    except KeyError:
-                        pass
-                forecast['Forecast.Day%s.%s.%s' % (p, dollar, key)] = value
-            #extra xbmc targeted info:
-            weather_type = rep.get('W', 'NA')
-            forecast['Forecast.Day%s.%s.Outlook' % (p, dollar)] = WEATHER_CODES.get(weather_type)[1]
-            forecast['Forecast.Day%s.%s.WindIcon' % (p, dollar)] = WIND_ICON % rep.get('D', 'na')
-            forecast['Forecast.Day%s.%s.GustIcon' % (p, dollar)] = GUST_ICON % rep.get('D', 'na')
-            forecast['Forecast.Day%s.%s.UVIcon' % (p, dollar)] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
-            forecast['Forecast.Day%s.%s.OutlookIcon' % (p, dollar)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
-            forecast['Forecast.Day%s.%s.Title' % (p, dollar)] = utilities.day_name(period.get('value'))
-            forecast['Forecast.Day%s.%s.Date' % (p, dollar)] = period.get('value')
-            if dollar == 'Day':
-                forecast['Forecast.Day%s.%s.ActualTempIcon' % (p, dollar)] = TEMP_ICON % rep['Dm']
-            elif dollar =='Night':
-                forecast['Forecast.Day%s.%s.ActualTempIcon' % (p, dollar)] = TEMP_ICON % rep['Nm']
+            weather_type = rep.get('W', 'na')
+            if rep.get('$') == 'Day':
+                forecast['Day%d.HighTemp' %p] = rep.get('Dm', 'na')
+                forecast['Day%d.HighTempIcon' % p] = TEMP_ICON % rep.get('Dm', 'na')
+                forecast['Day%d.Outlook' %p] = WEATHER_CODES.get(weather_type)[1]
+                forecast['Day%d.OutlookIcon' % p] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
+                forecast['Day%d.WindSpeed' % p] = rep.get('S', 'na')
+                forecast['Day%d.WindIcon' % p] = WIND_ICON % rep.get('D', 'na')
+                forecast['Day%d.GustIcon' % p] = GUST_ICON % rep.get('D', 'na')
+                forecast['Day%d.UVIcon' % p] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
+            elif rep.get('$') == 'Night':
+                forecast['Day%d.LowTemp' %p] = rep.get('Nm', 'na')
+                forecast['Day%d.LowTempIcon' % p] = TEMP_ICON % rep.get('Nm', 'na')
+    print forecast
     return forecast
