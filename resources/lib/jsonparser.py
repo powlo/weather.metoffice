@@ -101,31 +101,26 @@ def threehourly(data):
     forecast = dict()
     dv = data['SiteRep']['DV']
     forecast['3HourlyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
-    for p, period in enumerate(dv['Location']['Period']):
+    count = 0
+    for period in dv['Location']['Period']:
         for rep in period['Rep']:
-            dollar = rep.pop('$')
-            tim = 'None'
-            tim = utilities.minutes_as_time(int(dollar))
-            dollar = 'Hour%d' % (int(dollar)/60)
-            for key, value in rep.iteritems():
-                if key == 'V':
-                    try:
-                        value = VISIBILITY_CODES[value]
-                    except KeyError:
-                        pass
-                forecast['Forecast.Day%s.%s.%s' % (p, dollar, key)] = value
             #extra xbmc targeted info:
             weather_type = rep.get('W', 'NA')
-            forecast['Forecast.Day%s.%s.Outlook' % (p, dollar)] = WEATHER_CODES.get(weather_type)[1]
-            forecast['Forecast.Day%s.%s.WindIcon' % (p, dollar)] = WIND_ICON % rep.get('D', 'na')
-            forecast['Forecast.Day%s.%s.GustIcon' % (p, dollar)] = GUST_ICON % rep.get('D', 'na')
-            forecast['Forecast.Day%s.%s.UVIcon' % (p, dollar)] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
-            forecast['Forecast.Day%s.%s.OutlookIcon' % (p, dollar)] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
-            forecast['Forecast.Day%s.%s.Title' % (p, dollar)] = utilities.day_name(period.get('value'))
-            forecast['Forecast.Day%s.%s.Time' % (p, dollar)] = tim
-            forecast['Forecast.Day%s.%s.Date' % (p, dollar)] = period.get('value')
-            forecast['Forecast.Day%s.%s.ActualTempIcon' % (p, dollar)] = TEMP_ICON % rep['T']
-            forecast['Forecast.Day%s.%s.FeelsLikeTempIcon' % (p, dollar)] = TEMP_ICON % rep['F']
+            forecast['3Hourly%d.Outlook' % count] = WEATHER_CODES.get(weather_type)[1]
+            forecast['3Hourly%d.WindSpeed' % count] = rep.get('S', 'n/a')
+            forecast['3Hourly%d.WindIcon' % count] = WIND_ICON % rep.get('D', 'na')
+            forecast['3Hourly%d.GustSpeed' % count] = rep.get('G', 'n/a')
+            forecast['3Hourly%d.GustIcon' % count] = GUST_ICON % rep.get('D', 'na')
+            forecast['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
+            forecast['3Hourly%d.UVIcon' % count] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
+            forecast['3Hourly%d.Precipitation' % count] = rep.get('Pp')
+            forecast['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
+            forecast['3Hourly%d.Day' % count] = utilities.day_name(period.get('value'))
+            forecast['3Hourly%d.Time' % count] = utilities.minutes_as_time(int(rep.get('$')))
+            forecast['3Hourly%d.Date' % count] = period.get('value')
+            forecast['3Hourly%d.ActualTempIcon' % count] = TEMP_ICON % rep['T']
+            forecast['3Hourly%d.FeelsLikeTempIcon' % count] = TEMP_ICON % rep['F']
+            count +=1
     return forecast
 
 def observation(data):
