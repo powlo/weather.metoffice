@@ -113,7 +113,7 @@ def threehourly(data):
             forecast['3Hourly%d.GustIcon' % count] = GUST_ICON % rep.get('D', 'na')
             forecast['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
             forecast['3Hourly%d.UVIcon' % count] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
-            forecast['3Hourly%d.Precipitation' % count] = rep.get('Pp')
+            forecast['3Hourly%d.Precipitation' % count] = "%s%%" % rep.get('Pp')
             forecast['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
             forecast['3Hourly%d.Day' % count] = utilities.day_name(period.get('value'))
             forecast['3Hourly%d.Time' % count] = utilities.minutes_as_time(int(rep.get('$')))
