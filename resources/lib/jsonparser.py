@@ -166,5 +166,4 @@ def daily(data):
             elif rep.get('$') == 'Night':
                 forecast['Day%d.LowTemp' %p] = rep.get('Nm', 'na')
                 forecast['Day%d.LowTempIcon' % p] = TEMP_ICON % rep.get('Nm', 'na')
-    print forecast
     return forecast
