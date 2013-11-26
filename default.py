@@ -112,6 +112,7 @@ def set_properties(panel):
         log("Unknown panel '%s'" % panel, xbmc.LOGERROR)
         return
 
+    panel_name = panel_config.get('name')
     if WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel):
         issuedat = WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel)
         updatefrequency = timedelta(**panel_config['updatefrequency'])
@@ -120,7 +121,7 @@ def set_properties(panel):
         except ValueError:
             issuedat = datetime.now() - updatefrequency
         interval = datetime.now() - issuedat
-        log("Last %s report was issued %s minutes ago." % (panel_config.get('name'), interval.seconds/60))
+        log("Last %s report was issued %s ago." % (panel_name, utilities.verbose_timedelta(interval)))
         if interval < updatefrequency:
             log("No need to fetch data.")
             return
@@ -128,11 +129,10 @@ def set_properties(panel):
     location_name = __addon__.getSetting(panel_config.get('location_name'))
     location_id = __addon__.getSetting(panel_config.get('location_id'))
     if not (location_id and location_name):
-        log( "%s location is not set" % panel_config.get('name'), xbmc.LOGERROR)
+        log( "%s location is not set" % panel_name, xbmc.LOGERROR)
         #set_empty_regional_forecast()
         return
     #Fetch data from Met Office:
-    panel_name = panel_config.get('name')
     api_args = panel_config.get('api_args', {})
     try:
         api_args.get('params').update({'key': API_KEY})

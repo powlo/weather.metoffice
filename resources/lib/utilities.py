@@ -274,3 +274,19 @@ def minutes_as_time(minutes):
     as a time, starting at midnight.
     """
     return time.strftime('%H:%M', time.gmtime(minutes*60))
+
+def verbose_timedelta(delta):
+    hours, remainder = divmod(delta.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    dstr = "%s day%s" % (delta.days, "s" if delta.days != 1 else "")
+    hstr = "%s hour%s" % (hours, "s" if hours!=1 else "")
+    mstr = "%s minute%s" % (minutes, "s" if minutes != 1 else "")
+    sstr = "%s second%s" % (seconds, "s" if seconds != 1 else "")
+    dhms = [dstr, hstr, mstr, sstr]
+    for _ in range(2):
+        for x, y in enumerate(dhms):
+            if not y.startswith('0'):
+                dhms = dhms[x:]
+                break
+        dhms.reverse()
+    return ', '.join(dhms)
