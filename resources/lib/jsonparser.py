@@ -77,93 +77,93 @@ def regional(data):
     """
     Parse data to produce regional forecast data
     """
-    forecast = dict()
+    d = dict()
     rf = data['RegionalFcst']
-    forecast['RegionalForecast.IssuedAt'] = rf['createdOn'].rstrip('Z')
+    d['RegionalForecast.IssuedAt'] = rf['createdOn'].rstrip('Z')
     count = 0
     for period in rf['FcstPeriods']['Period']:
         #have to check type because json can return list or dict here
         if isinstance(period['Paragraph'],list):
             for paragraph in period['Paragraph']:
-                forecast['Regional.Paragraph%d.Title' % count] = paragraph['title'].rstrip(':').lstrip('UK Outlook for')
-                forecast['Regional.Paragraph%d.Content' % count] = paragraph['$']
+                d['Regional.Paragraph%d.Title' % count] = paragraph['title'].rstrip(':').lstrip('UK Outlook for')
+                d['Regional.Paragraph%d.Content' % count] = paragraph['$']
                 count+=1
         else:
-            forecast['Regional.Paragraph%d.Title' % count] = period['Paragraph']['title'].rstrip(':').lstrip('UK Outlook for')
-            forecast['Regional.Paragraph%d.Content' % count] = period['Paragraph']['$']
+            d['Regional.Paragraph%d.Title' % count] = period['Paragraph']['title'].rstrip(':').lstrip('UK Outlook for')
+            d['Regional.Paragraph%d.Content' % count] = period['Paragraph']['$']
             count+=1
-    return forecast
+    return d
 
 def threehourly(data):
     """
     Parse data to produce three hourly data
     """
-    forecast = dict()
+    d = dict()
     dv = data['SiteRep']['DV']
-    forecast['3HourlyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
+    d['3HourlyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
     count = 0
     for period in dv['Location']['Period']:
         for rep in period['Rep']:
             #extra xbmc targeted info:
             weather_type = rep.get('W', 'NA')
-            forecast['3Hourly%d.Outlook' % count] = WEATHER_CODES.get(weather_type)[1]
-            forecast['3Hourly%d.WindSpeed' % count] = rep.get('S', 'n/a')
-            forecast['3Hourly%d.WindIcon' % count] = WIND_ICON % rep.get('D', 'na').lower()
-            forecast['3Hourly%d.GustSpeed' % count] = rep.get('G', 'n/a')
-            forecast['3Hourly%d.GustIcon' % count] = GUST_ICON % rep.get('D', 'na').lower()
-            forecast['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
-            forecast['3Hourly%d.UVIcon' % count] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
-            forecast['3Hourly%d.Precipitation' % count] = "%s%%" % rep.get('Pp')
-            forecast['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
-            forecast['3Hourly%d.Day' % count] = utilities.day_name(period.get('value'))
-            forecast['3Hourly%d.Time' % count] = utilities.minutes_as_time(int(rep.get('$')))
-            forecast['3Hourly%d.Date' % count] = period.get('value')
-            forecast['3Hourly%d.ActualTempIcon' % count] = TEMP_ICON % rep['T']
-            forecast['3Hourly%d.FeelsLikeTempIcon' % count] = TEMP_ICON % rep['F']
+            d['3Hourly%d.Outlook' % count] = WEATHER_CODES.get(weather_type)[1]
+            d['3Hourly%d.WindSpeed' % count] = rep.get('S', 'n/a')
+            d['3Hourly%d.WindIcon' % count] = WIND_ICON % rep.get('D', 'na').lower()
+            d['3Hourly%d.GustSpeed' % count] = rep.get('G', 'n/a')
+            d['3Hourly%d.GustIcon' % count] = GUST_ICON % rep.get('D', 'na').lower()
+            d['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
+            d['3Hourly%d.UVIcon' % count] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
+            d['3Hourly%d.Precipitation' % count] = "%s%%" % rep.get('Pp')
+            d['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
+            d['3Hourly%d.Day' % count] = utilities.day_name(period.get('value'))
+            d['3Hourly%d.Time' % count] = utilities.minutes_as_time(int(rep.get('$')))
+            d['3Hourly%d.Date' % count] = period.get('value')
+            d['3Hourly%d.ActualTempIcon' % count] = TEMP_ICON % rep['T']
+            d['3Hourly%d.FeelsLikeTempIcon' % count] = TEMP_ICON % rep['F']
             count +=1
-    return forecast
+    return d
 
 def observation(data):
     """
     Parse data to produce observation (current) data
     """
-    forecast = dict()
+    d = dict()
     dv = data['SiteRep']['DV']
-    forecast['HourlyObservation.IssuedAt'] = dv.get('dataDate').rstrip('Z')
+    d['HourlyObservation.IssuedAt'] = dv.get('dataDate').rstrip('Z')
     latest_obs = dv['Location']['Period'][-1]['Rep'][-1]
-    forecast['Current.Location'] = dv['Location']['name']
-    forecast['Current.Condition'] = WEATHER_CODES[latest_obs.get('W', 'NA')][1]
-    forecast['Current.Visibility'] = latest_obs.get('V', 'n/a')
-    forecast['Current.Pressure'] = latest_obs.get('P', 'n/a')
-    forecast['Current.Temperature'] = latest_obs.get('T', 'n/a').split('.')[0]
-    forecast['Current.Wind'] = latest_obs.get('S', 'n/a')
-    forecast['Current.WindDirection'] = latest_obs.get('D', 'n/a')
-    forecast['Current.WindGust'] = latest_obs.get('G', 'n/a')
-    forecast['Current.OutlookIcon'] = '%s.png' % WEATHER_CODES[latest_obs.get('W', 'NA')][0]
-    forecast['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','NA')][0]
-    return forecast
+    d['Current.Location'] = dv['Location']['name']
+    d['Current.Condition'] = WEATHER_CODES[latest_obs.get('W', 'NA')][1]
+    d['Current.Visibility'] = latest_obs.get('V', 'n/a')
+    d['Current.Pressure'] = latest_obs.get('P', 'n/a')
+    d['Current.Temperature'] = latest_obs.get('T', 'n/a').split('.')[0]
+    d['Current.Wind'] = latest_obs.get('S', 'n/a')
+    d['Current.WindDirection'] = latest_obs.get('D', 'n/a')
+    d['Current.WindGust'] = latest_obs.get('G', 'n/a')
+    d['Current.OutlookIcon'] = '%s.png' % WEATHER_CODES[latest_obs.get('W', 'NA')][0]
+    d['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','NA')][0]
+    return d
 
 def daily(data):
     """
     Parse data to produce daily forecast data
     """
-    forecast = dict()
+    d = dict()
     dv = data['SiteRep']['DV']
-    forecast['DailyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
+    d['DailyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
     for p, period in enumerate(dv['Location']['Period']):
-        forecast['Day%d.Title' %p] = utilities.day_name(period.get('value'))
+        d['Day%d.Title' %p] = utilities.day_name(period.get('value'))
         for rep in period['Rep']:
             weather_type = rep.get('W', 'na')
             if rep.get('$') == 'Day':
-                forecast['Day%d.HighTemp' %p] = rep.get('Dm', 'na')
-                forecast['Day%d.HighTempIcon' % p] = TEMP_ICON % rep.get('Dm', 'na')
-                forecast['Day%d.Outlook' %p] = WEATHER_CODES.get(weather_type)[1]
-                forecast['Day%d.OutlookIcon' % p] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
-                forecast['Day%d.WindSpeed' % p] = rep.get('S', 'na')
-                forecast['Day%d.WindIcon' % p] = WIND_ICON % rep.get('D', 'na').lower()
-                forecast['Day%d.GustIcon' % p] = GUST_ICON % rep.get('D', 'na')
-                forecast['Day%d.UVIcon' % p] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
+                d['Day%d.HighTemp' %p] = rep.get('Dm', 'na')
+                d['Day%d.HighTempIcon' % p] = TEMP_ICON % rep.get('Dm', 'na')
+                d['Day%d.Outlook' %p] = WEATHER_CODES.get(weather_type)[1]
+                d['Day%d.OutlookIcon' % p] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
+                d['Day%d.WindSpeed' % p] = rep.get('S', 'na')
+                d['Day%d.WindIcon' % p] = WIND_ICON % rep.get('D', 'na').lower()
+                d['Day%d.GustIcon' % p] = GUST_ICON % rep.get('D', 'na')
+                d['Day%d.UVIcon' % p] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
             elif rep.get('$') == 'Night':
-                forecast['Day%d.LowTemp' %p] = rep.get('Nm', 'na')
-                forecast['Day%d.LowTempIcon' % p] = TEMP_ICON % rep.get('Nm', 'na')
-    return forecast
+                d['Day%d.LowTemp' %p] = rep.get('Nm', 'na')
+                d['Day%d.LowTempIcon' % p] = TEMP_ICON % rep.get('Nm', 'na')
+    return d
