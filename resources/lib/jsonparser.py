@@ -73,56 +73,6 @@ WIND_ICON = os.path.join(__media__, 'wind', 'average', '%s.png')
 GUST_ICON = os.path.join(__media__, 'wind', 'gust', '%s.png')
 UV_ICON = os.path.join(__media__, 'uv', '%s.png')
 
-def regional(data):
-    """
-    Parse data to produce regional forecast data
-    """
-    d = dict()
-    rf = data['RegionalFcst']
-    d['RegionalForecast.IssuedAt'] = rf['createdOn'].rstrip('Z')
-    count = 0
-    for period in rf['FcstPeriods']['Period']:
-        #have to check type because json can return list or dict here
-        if isinstance(period['Paragraph'],list):
-            for paragraph in period['Paragraph']:
-                d['Regional.Paragraph%d.Title' % count] = paragraph['title'].rstrip(':').lstrip('UK Outlook for')
-                d['Regional.Paragraph%d.Content' % count] = paragraph['$']
-                count+=1
-        else:
-            d['Regional.Paragraph%d.Title' % count] = period['Paragraph']['title'].rstrip(':').lstrip('UK Outlook for')
-            d['Regional.Paragraph%d.Content' % count] = period['Paragraph']['$']
-            count+=1
-    return d
-
-def threehourly(data):
-    """
-    Parse data to produce three hourly data
-    """
-    d = dict()
-    dv = data['SiteRep']['DV']
-    d['3HourlyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
-    count = 0
-    for period in dv['Location']['Period']:
-        for rep in period['Rep']:
-            #extra xbmc targeted info:
-            weather_type = rep.get('W', 'NA')
-            d['3Hourly%d.Outlook' % count] = WEATHER_CODES.get(weather_type)[1]
-            d['3Hourly%d.WindSpeed' % count] = rep.get('S', 'n/a')
-            d['3Hourly%d.WindIcon' % count] = WIND_ICON % rep.get('D', 'na').lower()
-            d['3Hourly%d.GustSpeed' % count] = rep.get('G', 'n/a')
-            d['3Hourly%d.GustIcon' % count] = GUST_ICON % rep.get('D', 'na').lower()
-            d['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
-            d['3Hourly%d.UVIcon' % count] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
-            d['3Hourly%d.Precipitation' % count] = "%s%%" % rep.get('Pp')
-            d['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
-            d['3Hourly%d.Day' % count] = utilities.day_name(period.get('value'))
-            d['3Hourly%d.Time' % count] = utilities.minutes_as_time(int(rep.get('$')))
-            d['3Hourly%d.Date' % count] = period.get('value')
-            d['3Hourly%d.ActualTempIcon' % count] = TEMP_ICON % rep['T']
-            d['3Hourly%d.FeelsLikeTempIcon' % count] = TEMP_ICON % rep['F']
-            count +=1
-    return d
-
 def observation(data):
     """
     Parse data to produce observation (current) data
@@ -166,4 +116,54 @@ def daily(data):
             elif rep.get('$') == 'Night':
                 d['Day%d.LowTemp' %p] = rep.get('Nm', 'na')
                 d['Day%d.LowTempIcon' % p] = TEMP_ICON % rep.get('Nm', 'na')
+    return d
+
+def threehourly(data):
+    """
+    Parse data to produce three hourly data
+    """
+    d = dict()
+    dv = data['SiteRep']['DV']
+    d['3HourlyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
+    count = 0
+    for period in dv['Location']['Period']:
+        for rep in period['Rep']:
+            #extra xbmc targeted info:
+            weather_type = rep.get('W', 'NA')
+            d['3Hourly%d.Outlook' % count] = WEATHER_CODES.get(weather_type)[1]
+            d['3Hourly%d.WindSpeed' % count] = rep.get('S', 'n/a')
+            d['3Hourly%d.WindIcon' % count] = WIND_ICON % rep.get('D', 'na').lower()
+            d['3Hourly%d.GustSpeed' % count] = rep.get('G', 'n/a')
+            d['3Hourly%d.GustIcon' % count] = GUST_ICON % rep.get('D', 'na').lower()
+            d['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
+            d['3Hourly%d.UVIcon' % count] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
+            d['3Hourly%d.Precipitation' % count] = "%s%%" % rep.get('Pp')
+            d['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
+            d['3Hourly%d.Day' % count] = utilities.day_name(period.get('value'))
+            d['3Hourly%d.Time' % count] = utilities.minutes_as_time(int(rep.get('$')))
+            d['3Hourly%d.Date' % count] = period.get('value')
+            d['3Hourly%d.ActualTempIcon' % count] = TEMP_ICON % rep['T']
+            d['3Hourly%d.FeelsLikeTempIcon' % count] = TEMP_ICON % rep['F']
+            count +=1
+    return d
+
+def regional(data):
+    """
+    Parse data to produce regional forecast data
+    """
+    d = dict()
+    rf = data['RegionalFcst']
+    d['RegionalForecast.IssuedAt'] = rf['createdOn'].rstrip('Z')
+    count = 0
+    for period in rf['FcstPeriods']['Period']:
+        #have to check type because json can return list or dict here
+        if isinstance(period['Paragraph'],list):
+            for paragraph in period['Paragraph']:
+                d['Regional.Paragraph%d.Title' % count] = paragraph['title'].rstrip(':').lstrip('UK Outlook for')
+                d['Regional.Paragraph%d.Content' % count] = paragraph['$']
+                count+=1
+        else:
+            d['Regional.Paragraph%d.Title' % count] = period['Paragraph']['title'].rstrip(':').lstrip('UK Outlook for')
+            d['Regional.Paragraph%d.Content' % count] = period['Paragraph']['$']
+            count+=1
     return d
