@@ -248,7 +248,7 @@ def retryurlopen(url, retry=3):
     """
     while True:
         try:
-            return urllib2.urlopen(url).read()
+            return urllib2.urlopen(url, timeout=1).read()
         except:
             if retry:
                 retry -= 1
