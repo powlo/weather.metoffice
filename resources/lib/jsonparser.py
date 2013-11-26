@@ -108,9 +108,9 @@ def threehourly(data):
             weather_type = rep.get('W', 'NA')
             forecast['3Hourly%d.Outlook' % count] = WEATHER_CODES.get(weather_type)[1]
             forecast['3Hourly%d.WindSpeed' % count] = rep.get('S', 'n/a')
-            forecast['3Hourly%d.WindIcon' % count] = WIND_ICON % rep.get('D', 'na')
+            forecast['3Hourly%d.WindIcon' % count] = WIND_ICON % rep.get('D', 'na').lower()
             forecast['3Hourly%d.GustSpeed' % count] = rep.get('G', 'n/a')
-            forecast['3Hourly%d.GustIcon' % count] = GUST_ICON % rep.get('D', 'na')
+            forecast['3Hourly%d.GustIcon' % count] = GUST_ICON % rep.get('D', 'na').lower()
             forecast['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
             forecast['3Hourly%d.UVIcon' % count] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
             forecast['3Hourly%d.Precipitation' % count] = "%s%%" % rep.get('Pp')
@@ -160,7 +160,7 @@ def daily(data):
                 forecast['Day%d.Outlook' %p] = WEATHER_CODES.get(weather_type)[1]
                 forecast['Day%d.OutlookIcon' % p] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
                 forecast['Day%d.WindSpeed' % p] = rep.get('S', 'na')
-                forecast['Day%d.WindIcon' % p] = WIND_ICON % rep.get('D', 'na')
+                forecast['Day%d.WindIcon' % p] = WIND_ICON % rep.get('D', 'na').lower()
                 forecast['Day%d.GustIcon' % p] = GUST_ICON % rep.get('D', 'na')
                 forecast['Day%d.UVIcon' % p] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
             elif rep.get('$') == 'Night':
