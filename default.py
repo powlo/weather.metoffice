@@ -314,5 +314,5 @@ else:
 WEATHER_WINDOW.setProperty('Forecast.ActualTempFrameIcon', ACTUAL_TEMP_FRAME_ICON)
 WEATHER_WINDOW.setProperty('Forecast.FeelsLikeTempFrameIcon', FEELSLIKE_TEMP_FRAME_ICON)
 WEATHER_WINDOW.setProperty('WeatherProvider', __addonname__)
-WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ForecastLocation'))
+WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ObservationLocation'))
 WEATHER_WINDOW.setProperty('Locations', '1')

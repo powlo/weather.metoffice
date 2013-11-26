@@ -81,7 +81,6 @@ def observation(data):
     dv = data['SiteRep']['DV']
     d['HourlyObservation.IssuedAt'] = dv.get('dataDate').rstrip('Z')
     latest_obs = dv['Location']['Period'][-1]['Rep'][-1]
-    d['Current.Location'] = dv['Location']['name']
     d['Current.Condition'] = WEATHER_CODES[latest_obs.get('W', 'NA')][1]
     d['Current.Visibility'] = latest_obs.get('V', 'n/a')
     d['Current.Pressure'] = latest_obs.get('P', 'n/a')
