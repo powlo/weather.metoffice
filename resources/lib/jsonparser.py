@@ -79,7 +79,7 @@ def regional(data):
     """
     forecast = dict()
     rf = data['RegionalFcst']
-    forecast['RegionalForecast.IssuedAt'] = rf['issuedAt'].rstrip('Z')
+    forecast['RegionalForecast.IssuedAt'] = rf['createdOn'].rstrip('Z')
     count = 0
     for period in rf['FcstPeriods']['Period']:
         #have to check type because json can return list or dict here
