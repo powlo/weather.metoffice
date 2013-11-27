@@ -81,15 +81,15 @@ def observation(data):
     dv = data['SiteRep']['DV']
     d['HourlyObservation.IssuedAt'] = dv.get('dataDate').rstrip('Z')
     latest_obs = dv['Location']['Period'][-1]['Rep'][-1]
-    d['Current.Condition'] = WEATHER_CODES[latest_obs.get('W', 'NA')][1]
+    d['Current.Condition'] = WEATHER_CODES[latest_obs.get('W', 'na')][1]
     d['Current.Visibility'] = latest_obs.get('V', 'n/a')
     d['Current.Pressure'] = latest_obs.get('P', 'n/a')
     d['Current.Temperature'] = latest_obs.get('T', 'n/a').split('.')[0]
     d['Current.Wind'] = latest_obs.get('S', 'n/a')
     d['Current.WindDirection'] = latest_obs.get('D', 'n/a')
     d['Current.WindGust'] = latest_obs.get('G', 'n/a')
-    d['Current.OutlookIcon'] = '%s.png' % WEATHER_CODES[latest_obs.get('W', 'NA')][0]
-    d['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','NA')][0]
+    d['Current.OutlookIcon'] = '%s.png' % WEATHER_CODES[latest_obs.get('W', 'na')][0]
+    d['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','na')][0]
     return d
 
 def daily(data):
@@ -128,7 +128,7 @@ def threehourly(data):
     for period in dv['Location']['Period']:
         for rep in period['Rep']:
             #extra xbmc targeted info:
-            weather_type = rep.get('W', 'NA')
+            weather_type = rep.get('W', 'na')
             d['3Hourly%d.Outlook' % count] = WEATHER_CODES.get(weather_type)[1]
             d['3Hourly%d.WindSpeed' % count] = rep.get('S', 'n/a')
             d['3Hourly%d.WindIcon' % count] = WIND_ICON % rep.get('D', 'na').lower()
@@ -137,7 +137,7 @@ def threehourly(data):
             d['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
             d['3Hourly%d.UVIcon' % count] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
             d['3Hourly%d.Precipitation' % count] = "%s%%" % rep.get('Pp')
-            d['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'NA')[0]
+            d['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
             d['3Hourly%d.Day' % count] = utilities.day_name(period.get('value'))
             d['3Hourly%d.Time' % count] = utilities.minutes_as_time(int(rep.get('$')))
             d['3Hourly%d.Date' % count] = period.get('value')
