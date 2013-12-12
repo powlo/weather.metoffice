@@ -4,6 +4,7 @@ import xbmcaddon
 import os
 import time
 import sys
+import socket
 import json
 from datetime import datetime, timedelta
 from urllib2 import HTTPError, URLError
@@ -149,7 +150,7 @@ def set_properties(panel):
         page = utilities.retryurlopen(url).decode('latin-1')
         log('Converting page to json data...')
         data = json.loads(page)
-    except (URLError, ValueError) as e:
+    except (socket.timeout, URLError, ValueError) as e:
         log(str(e), xbmc.LOGERROR)
         return
     log('Converting json to XBMC properties...')
