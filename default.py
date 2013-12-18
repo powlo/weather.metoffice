@@ -191,7 +191,7 @@ def get_sitelist(location):
 
     if location == 'RegionalLocation':
         #bug in datapoint: sitelist requires cleaning for regional forecast
-        sitelist = utilities.clean_sitelist(sitelist)
+        sitelist = datapointapi.clean_sitelist(sitelist)
         #long names are more user friendly
         for site in sitelist:
             site['name'] = datapointapi.LONG_REGIONAL_NAMES[site['name']]
@@ -228,7 +228,7 @@ def set_location(location):
     text= keyboard.isConfirmed() and keyboard.getText()
     dialog = xbmcgui.Dialog()
     sitelist = get_sitelist(location)
-    filtered_sites = utilities.filter_sitelist(text, sitelist)
+    filtered_sites = datapointapi.filter_sitelist(text, sitelist)
     if filtered_sites == []:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
         log( "No locations found containing '%s'" % text)

@@ -21,33 +21,6 @@ __addonid__     = __addon__.getAddonInfo('id')
 def log(msg, level=xbmc.LOGNOTICE):
     xbmc.log("%s: %s" %(__addonid__, msg), level)
 
-def clean_sitelist(sitelist):
-    """
-    A bug in datapoint returns keys prefixed with '@'
-    This func chops them out
-    """
-    new_sites = []
-    new_site = {}
-
-    for site in sitelist:
-        for key in site:
-           if key.startswith('@'):
-               new_key = key[1:]
-               new_site[new_key] = site[key]
-        new_sites.append(new_site.copy())
-    return new_sites
-
-def filter_sitelist(text, sitelist):
-    """
-    Takes a list of dictionaries and returns only
-    those entries whose 'name' key contains text
-    """
-    filteredsitelist = list()
-    for x in sitelist:
-        if x['name'].lower().find(text.lower()) != -1:
-            filteredsitelist.append(x)
-    return filteredsitelist
-
 def haversine_distance(lat1, lon1, lat2, lon2):
     """
     Calculate the distance between two coords
