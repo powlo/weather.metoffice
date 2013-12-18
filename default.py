@@ -34,30 +34,6 @@ FEELSLIKE_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'feelslike.png')
 def log(msg, level=xbmc.LOGNOTICE):
     xbmc.log("%s: %s" %(__addonid__, msg), level)
 
-def set_empty_daily_forecast():
-    log("Setting empty daily forecast...")
-    clear = utilities.empty_daily_forecast()
-    for field, value in clear.iteritems():
-        WEATHER_WINDOW.setProperty(field, value)
-
-def set_empty_3hourly_forecast():
-    log("Setting empty 3 hourly forecast...", DEBUG)
-    clear = utilities.empty_3hourly_forecast()
-    for field, value in clear.iteritems():
-        WEATHER_WINDOW.setProperty(field, value)
-
-def set_empty_regional_forecast():
-    log("Setting empty regional forecast...", DEBUG)
-    clear = utilities.empty_3hourly_forecast()
-    for field, value in clear.iteritems():
-        WEATHER_WINDOW.setProperty(field, value)
-    
-def set_empty_observation():
-    log("Setting empty observation...", DEBUG)
-    clear = utilities.empty_observation()
-    for field, value in clear.iteritems():
-        WEATHER_WINDOW.setProperty(field, value)
-
 def set_properties(panel):
     #Look at the time the last regional forecast was fetched
     #and if fetched over a given period ago then refetch.
@@ -131,7 +107,6 @@ def set_properties(panel):
     location_id = __addon__.getSetting(panel_config.get('location_id'))
     if not (location_id and location_name):
         log( "%s location is not set" % panel_name, xbmc.LOGERROR)
-        #set_empty_regional_forecast()
         return
     #Fetch data from Met Office:
     api_args = panel_config.get('api_args', {})
@@ -158,7 +133,6 @@ def set_properties(panel):
     report = parsefunc(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
-        #set_empty_regional_forecast()
 
 def geoip_distance(sitelist):
     if __addon__.getSetting('GeoLocation') != 'true':
