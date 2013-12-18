@@ -15,6 +15,11 @@ GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitud
              {'url':'http://api.hostip.info/get_json.php?position=true','latitude':'lat', 'longitude':'lng'},
              {'url':'http://geoiplookup.net/geoapi.php?output=json', 'latitude':'latitude', 'longitude':'longitude'}
                    ]
+__addon__       = xbmcaddon.Addon()
+__addonid__     = __addon__.getAddonInfo('id')
+
+def log(msg, level=xbmc.LOGNOTICE):
+    xbmc.log("%s: %s" %(__addonid__, msg), level)
 
 def clean_sitelist(sitelist):
     """

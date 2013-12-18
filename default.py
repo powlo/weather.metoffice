@@ -25,14 +25,12 @@ sys.path.append(__resource__)
 #We can now import from local lib dir
 #Need to think about whether this fudging is a good thing
 import utilities
+from utilities import log
 import jsonparser
 import datapointapi
 ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%S'
 ACTUAL_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'actual.png')
 FEELSLIKE_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'feelslike.png')
-
-def log(msg, level=xbmc.LOGNOTICE):
-    xbmc.log("%s: %s" %(__addonid__, msg), level)
 
 def set_properties(panel):
     #Look at the time the last regional forecast was fetched
