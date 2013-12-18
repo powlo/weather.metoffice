@@ -27,7 +27,7 @@ sys.path.append(__resource__)
 import utilities
 from utilities import log
 import jsonparser
-import datapointapi
+import datapoint
 ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%S'
 ACTUAL_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'actual.png')
 FEELSLIKE_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'feelslike.png')
@@ -116,7 +116,7 @@ def set_properties(panel):
     #assumes we always want 'object' to be set. True at the moment.
     api_args.update({'object' : location_id})
 
-    url = datapointapi.url(**api_args)
+    url = datapoint.url(**api_args)
     try:
         log( "Fetching %s for '%s (%s)' from the Met Office..." % (panel_name, location_name, location_id))
         log("URL: %s " % url)
@@ -173,7 +173,7 @@ def get_sitelist(location):
         }
     args = url_params[location]
     args.update({'params':{'key': API_KEY}})
-    url = datapointapi.url(**args)
+    url = datapoint.url(**args)
     log("URL: %s" % url)
     xbmc.executebuiltin( "ActivateWindow(busydialog)" )
     try:
@@ -191,10 +191,10 @@ def get_sitelist(location):
 
     if location == 'RegionalLocation':
         #bug in datapoint: sitelist requires cleaning for regional forecast
-        sitelist = datapointapi.clean_sitelist(sitelist)
+        sitelist = datapoint.clean_sitelist(sitelist)
         #long names are more user friendly
         for site in sitelist:
-            site['name'] = datapointapi.LONG_REGIONAL_NAMES[site['name']]
+            site['name'] = datapoint.LONG_REGIONAL_NAMES[site['name']]
 
     return geoip_distance(sitelist)
 
@@ -222,13 +222,13 @@ def set_location(location):
     is set.
     :returns: None
     """  
-    assert(location in datapointapi.SITELIST_TYPES)
+    assert(location in datapoint.SITELIST_TYPES)
     keyboard = xbmc.Keyboard()
     keyboard.doModal()
     text= keyboard.isConfirmed() and keyboard.getText()
     dialog = xbmcgui.Dialog()
     sitelist = get_sitelist(location)
-    filtered_sites = datapointapi.filter_sitelist(text, sitelist)
+    filtered_sites = datapoint.filter_sitelist(text, sitelist)
     if filtered_sites == []:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
         log( "No locations found containing '%s'" % text)
