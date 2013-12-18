@@ -13,6 +13,24 @@ RESOURCE_URL = "%(format)s/%(resource)s/%(group)s/%(datatype)s/%(object)s?%(para
 
 SITELIST_TYPES = ['ForecastLocation', 'ObservationLocation', 'RegionalLocation']
 
+LONG_REGIONAL_NAMES = {'os': 'Orkney and Shetland',
+                       'he': 'Highland and Eilean Siar',
+                       'gr': 'Grampian',
+                       'ta': 'Tayside',
+                       'st': 'Strathclyde',
+                       'dg': 'Dumfries, Galloway, Lothian',
+                       'ni': 'Northern Ireland',
+                       'yh': 'Yorkshire and the Humber',
+                       'ne': 'Northeast England',
+                       'em': 'East Midlands',
+                       'ee': 'East of England',
+                       'se': 'London and Southeast England',
+                       'nw': 'Northwest England',
+                       'wm': 'West Midlands',
+                       'sw': 'Southwest England',
+                       'wl': 'Wales',
+                       'uk': 'United Kingdom'}
+
 #get data from datapoint
 def url(format='val', resource='wxobs', group='all', datatype='json', object='sitelist', params={}):
     #todo: validate parameters

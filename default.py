@@ -196,7 +196,7 @@ def get_sitelist(location):
         sitelist = utilities.clean_sitelist(sitelist)
         #long names are more user friendly
         for site in sitelist:
-            site['name'] = utilities.LONG_REGIONAL_NAMES[site['name']]
+            site['name'] = datapointapi.LONG_REGIONAL_NAMES[site['name']]
 
     return geoip_distance(sitelist)
 
