@@ -39,8 +39,8 @@ def clean_sitelist(sitelist):
 
 def filter_sitelist(text, sitelist):
     """
-    Takes a list of strings and returns only
-    those entries which contain a given string
+    Takes a list of dictionaries and returns only
+    those entries whose 'name' key contains text
     """
     filteredsitelist = list()
     for x in sitelist:
