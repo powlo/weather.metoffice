@@ -29,8 +29,6 @@ from utilities import log
 import jsonparser
 import datapoint
 ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%S'
-ACTUAL_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'actual.png')
-FEELSLIKE_TEMP_FRAME_ICON = os.path.join(__media__, 'temp', 'feelslike.png')
 
 def set_properties(panel):
     #Look at the time the last regional forecast was fetched
@@ -283,8 +281,7 @@ elif sys.argv[1] == ('SetLocation'):
     set_location(sys.argv[2])
 else:
     set_properties(sys.argv[1])
-WEATHER_WINDOW.setProperty('Forecast.ActualTempFrameIcon', ACTUAL_TEMP_FRAME_ICON)
-WEATHER_WINDOW.setProperty('Forecast.FeelsLikeTempFrameIcon', FEELSLIKE_TEMP_FRAME_ICON)
+
 WEATHER_WINDOW.setProperty('WeatherProvider', __addonname__)
 WEATHER_WINDOW.setProperty('ObservationLocation', __addon__.getSetting('ObservationLocation'))
 WEATHER_WINDOW.setProperty('ForecastLocation', __addon__.getSetting('ForecastLocation'))

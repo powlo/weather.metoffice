@@ -48,7 +48,7 @@ VISIBILITY_CODES = {
     'EX': 'Excellent'
 }
 
-UV_CODES = {
+UV_COLOUR_CODES = {
     '0' : 'grey',
     '1' : 'green',
     '2' : 'green',
@@ -105,16 +105,13 @@ def daily(data):
             weather_type = rep.get('W', 'na')
             if rep.get('$') == 'Day':
                 d['Day%d.HighTemp' %p] = rep.get('Dm', 'na')
-                d['Day%d.HighTempIcon' % p] = TEMP_ICON % rep.get('Dm', 'na')
                 d['Day%d.Outlook' %p] = WEATHER_CODES.get(weather_type)[1]
                 d['Day%d.OutlookIcon' % p] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
                 d['Day%d.WindSpeed' % p] = rep.get('S', 'na')
-                d['Day%d.WindIcon' % p] = WIND_ICON % rep.get('D', 'na').lower()
-                d['Day%d.GustIcon' % p] = GUST_ICON % rep.get('D', 'na')
-                d['Day%d.UVIcon' % p] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
+                d['Day%d.WindDirection' % p] = rep.get('D', 'na').lower()
+                d['Day%d.UVColour' % p] = UV_COLOUR_CODES[rep.get('U', '0')]
             elif rep.get('$') == 'Night':
                 d['Day%d.LowTemp' %p] = rep.get('Nm', 'na')
-                d['Day%d.LowTempIcon' % p] = TEMP_ICON % rep.get('Nm', 'na')
     return d
 
 def threehourly(data):
@@ -131,18 +128,17 @@ def threehourly(data):
             weather_type = rep.get('W', 'na')
             d['3Hourly%d.Outlook' % count] = WEATHER_CODES.get(weather_type)[1]
             d['3Hourly%d.WindSpeed' % count] = rep.get('S', 'n/a')
-            d['3Hourly%d.WindIcon' % count] = WIND_ICON % rep.get('D', 'na').lower()
+            d['3Hourly%d.WindDirection' % count] = rep.get('D', 'na').lower()
             d['3Hourly%d.GustSpeed' % count] = rep.get('G', 'n/a')
-            d['3Hourly%d.GustIcon' % count] = GUST_ICON % rep.get('D', 'na').lower()
             d['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
-            d['3Hourly%d.UVIcon' % count] = UV_ICON % UV_CODES.get(rep.get('U', '0'),'grey')
-            d['3Hourly%d.Precipitation' % count] = "%s%%" % rep.get('Pp')
+            d['3Hourly%d.UVColour' % count] = UV_COLOUR_CODES[rep.get('U', '0')]
+            d['3Hourly%d.Precipitation' % count] = rep.get('Pp')
             d['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
             d['3Hourly%d.Day' % count] = utilities.day_name(period.get('value'))
             d['3Hourly%d.Time' % count] = utilities.minutes_as_time(int(rep.get('$')))
             d['3Hourly%d.Date' % count] = period.get('value')
-            d['3Hourly%d.ActualTempIcon' % count] = TEMP_ICON % rep['T']
-            d['3Hourly%d.FeelsLikeTempIcon' % count] = TEMP_ICON % rep['F']
+            d['3Hourly%d.ActualTemp' % count] = rep.get('T', 'na')
+            d['3Hourly%d.FeelsLikeTemp' % count] = rep.get('F', 'na')
             count +=1
     return d
 
