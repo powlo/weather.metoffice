@@ -17,17 +17,15 @@ __addonname__   = __addon__.getAddonInfo('name')
 __author__      = __addon__.getAddonInfo('author')
 __version__     = __addon__.getAddonInfo('version')
 __addonpath__   = __addon__.getAddonInfo('path')
-__resource__    = os.path.join( __addonpath__, 'resources', 'lib' )
-__media__       = os.path.join( __addonpath__, 'resources', 'media' )
 
-sys.path.append(__resource__)
 
 #We can now import from local lib dir
 #Need to think about whether this fudging is a good thing
-import utilities
-from utilities import log
-import jsonparser
-import datapoint
+from resources.lib import utilities
+from resources.lib import jsonparser
+from resources.lib import datapoint
+from resources.lib.utilities import log
+
 ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 def set_properties(panel):
