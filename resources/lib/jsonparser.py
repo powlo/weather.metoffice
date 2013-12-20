@@ -53,10 +53,6 @@ __addonpath__ = __addon__.getAddonInfo('path')
 __media__ = os.path.join( __addonpath__, 'resources', 'media' )
 
 WEATHER_ICON = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
-TEMP_ICON = os.path.join(__media__, 'temp', '%s.png')
-WIND_ICON = os.path.join(__media__, 'wind', 'average', '%s.png')
-GUST_ICON = os.path.join(__media__, 'wind', 'gust', '%s.png')
-UV_ICON = os.path.join(__media__, 'uv', '%s.png')
 
 def observation(data):
     """
