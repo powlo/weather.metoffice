@@ -10,23 +10,14 @@ from datetime import datetime, timedelta
 from urllib2 import HTTPError, URLError
 from operator import itemgetter
 
-### addon info
-__addon__       = xbmcaddon.Addon()
-__addonid__     = __addon__.getAddonInfo('id')
-__addonname__   = __addon__.getAddonInfo('name')
-__author__      = __addon__.getAddonInfo('author')
-__version__     = __addon__.getAddonInfo('version')
-__addonpath__   = __addon__.getAddonInfo('path')
-
-
-#We can now import from local lib dir
-#Need to think about whether this fudging is a good thing
 from resources.lib import utilities
 from resources.lib import jsonparser
 from resources.lib import datapoint
 from resources.lib.utilities import log
 
 ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%S'
+
+__addon__ = xbmcaddon.Addon()
 
 def set_properties(panel):
     #Look at the time the last regional forecast was fetched
@@ -280,7 +271,7 @@ elif sys.argv[1] == ('SetLocation'):
 else:
     set_properties(sys.argv[1])
 
-WEATHER_WINDOW.setProperty('WeatherProvider', __addonname__)
+WEATHER_WINDOW.setProperty('WeatherProvider', __addon__.getAddonInfo('name'))
 WEATHER_WINDOW.setProperty('ObservationLocation', __addon__.getSetting('ObservationLocation'))
 WEATHER_WINDOW.setProperty('ForecastLocation', __addon__.getSetting('ForecastLocation'))
 WEATHER_WINDOW.setProperty('RegionalLocation', __addon__.getSetting('RegionalLocation'))
