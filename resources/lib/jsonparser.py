@@ -48,21 +48,6 @@ VISIBILITY_CODES = {
     'EX': 'Excellent'
 }
 
-UV_COLOUR_CODES = {
-    '0' : 'grey',
-    '1' : 'green',
-    '2' : 'green',
-    '3' : 'yellow',
-    '4' : 'yellow',
-    '5' : 'yellow',
-    '6' : 'red',
-    '7' : 'red',
-    '8' : 'purple',
-    '9' : 'purple',
-    '10': 'purple',
-    '11': 'purple'
-    }
-
 __addon__ = xbmcaddon.Addon()
 __addonpath__ = __addon__.getAddonInfo('path')
 __media__ = os.path.join( __addonpath__, 'resources', 'media' )
@@ -109,7 +94,6 @@ def daily(data):
                 d['Day%d.OutlookIcon' % p] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
                 d['Day%d.WindSpeed' % p] = rep.get('S', 'na')
                 d['Day%d.WindDirection' % p] = rep.get('D', 'na').lower()
-                d['Day%d.UVColour' % p] = UV_COLOUR_CODES[rep.get('U', '0')]
             elif rep.get('$') == 'Night':
                 d['Day%d.LowTemp' %p] = rep.get('Nm', 'na')
     return d
@@ -131,7 +115,6 @@ def threehourly(data):
             d['3Hourly%d.WindDirection' % count] = rep.get('D', 'na').lower()
             d['3Hourly%d.GustSpeed' % count] = rep.get('G', 'n/a')
             d['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
-            d['3Hourly%d.UVColour' % count] = UV_COLOUR_CODES[rep.get('U', '0')]
             d['3Hourly%d.Precipitation' % count] = rep.get('Pp')
             d['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
             d['3Hourly%d.Day' % count] = utilities.day_name(period.get('value'))
