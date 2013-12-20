@@ -38,16 +38,6 @@ WEATHER_CODES = {
     '30': ('17', 'Thunder')
 }
 
-VISIBILITY_CODES = {
-    'UN': 'Unknown',
-    'VP': 'Very Poor',
-    'PO': 'Poor',
-    'MO': 'Moderate',
-    'GO': 'Good',
-    'VG': 'Very Good',
-    'EX': 'Excellent'
-}
-
 __addon__ = xbmcaddon.Addon()
 __addonpath__ = __addon__.getAddonInfo('path')
 __media__ = os.path.join( __addonpath__, 'resources', 'media' )
