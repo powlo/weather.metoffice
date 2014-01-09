@@ -6,8 +6,12 @@ import time
 import sys
 import socket
 import json
+import urllib
+import xbmcvfs
+
 from datetime import datetime, timedelta
-from urllib2 import HTTPError, URLError
+
+from urllib2 import URLError
 from operator import itemgetter
 
 from resources.lib import utilities
@@ -16,12 +20,14 @@ from resources.lib import datapoint
 from resources.lib.utilities import log
 
 ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%S'
+DEFAULT_INITIAL_TIMESTEP = '0'
 
 __addon__ = xbmcaddon.Addon()
 
 def set_properties(panel):
     #Look at the time the last regional forecast was fetched
     #and if fetched over a given period ago then refetch.
+    #TODO: Embed the url in the config, not the url params.
     config = {
         'DailyForecast' : {
             'name' : 'Daily Forecast',
@@ -55,10 +61,20 @@ def set_properties(panel):
                 'format' : 'txt',
                 'resource' : 'wxfcs',
                 'group' : 'regionalforecast',
-            },
+            }
         },
         'HourlyObservation' : {
             'name' : 'Hourly Observation',
+            'updatefrequency' : {'hours' : 1},
+            'location_name' : 'ObservationLocation',
+            'location_id' : 'ObservationLocationID',
+            'parser' : 'observation',
+            'api_args' : {
+                'params' : {'res' : 'hourly'},
+            }
+        },
+        'ForecastMap' : {
+            'name' : 'Forecast Map',
             'updatefrequency' : {'hours' : 1},
             'location_name' : 'ObservationLocation',
             'location_id' : 'ObservationLocationID',
@@ -73,6 +89,15 @@ def set_properties(panel):
     except KeyError:
         log("Unknown panel '%s'" % panel, xbmc.LOGERROR)
         return
+
+    #is there a file in the local directory?
+    #load the file from the local directory.
+    #why use file when properties have probably been set? protects against pollution from other weather addons?
+    #all we need to do is set a property that points to a file
+    #maps do not have a locationID used in the url, although we may want to set a location, ie latitude and longitude.
+    #examine timestamp
+    #if timestamp is out of date then refresh from server
+    #
 
     panel_name = panel_config.get('name')
     if WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel):
@@ -234,6 +259,65 @@ def set_location(location):
         __addon__.setSetting("%sID" % location, filtered_sites[selected]['id'])
         log( "Setting '%s' to '%s (%s)'" % (location, filtered_sites[selected]['name'], filtered_sites[selected]['id']))
 
+def set_map():
+    #note that we're doing the same thing over and over: see if something is in cache. if not get it from a url.
+    #a proper cache will have a centralised resource which lists cached files and expiry times
+
+    #get underlay map
+    log('Checking cache for surface map')
+    folder = xbmc.translatePath('special://profile/addon_data/%s/cache/surfacemap/' % __addon__.getAddonInfo('id'))
+    if not xbmcvfs.exists(folder):
+        log('Creating folder for surface map image.')
+        xbmcvfs.mkdirs(folder)
+    file = os.path.join(folder, 'surface.json')
+    if not xbmcvfs.exists(file):
+        log('No surface map file in cache. Fetching file.')
+        url='http://maps.googleapis.com/maps/api/staticmap?center=55,-3.5&zoom=5&size=385x513&sensor=false&maptype=satellite&style=feature:all|element:labels|visibility:off'
+        urllib.urlretrieve(url, file)
+    else:
+        log('Cached file found.')
+    WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file)
+
+    #get capabilities
+    log('Checking cache for layer capabilities file')
+    folder = xbmc.translatePath('special://profile/addon_data/%s/cache/layer/' % __addon__.getAddonInfo('id'))
+    if not xbmcvfs.exists(folder):
+        log('Creating folder for layer images.')
+        xbmcvfs.mkdirs(folder)
+    file = os.path.join(folder, 'capabilities.json')
+    if not xbmcvfs.exists(file):
+        log('No capbilities file in cache. Fetching file from datapoint.')
+        url=datapoint.url(format='layer', resource='wxfcs', object='capabilities', params={'key': API_KEY})
+        urllib.urlretrieve(url, file)
+    else:
+        log('Cached file found.')
+    handle = open(file, 'r')
+    data = json.load(handle)
+    LayerURL = data['Layers']['BaseUrl']['$']
+    for thislayer in data['Layers']['Layer']:
+        if thislayer['@displayName'] == layer:
+            layer_name = thislayer['Service']['LayerName']
+            image_format = thislayer['Service']['ImageFormat']
+            default_time = thislayer['Service']['Timesteps']['@defaultTime']
+            timesteps = thislayer['Service']['Timesteps']['Timestep']
+            break
+    else:
+        log("Couldn't find layer")
+
+    #get overlay using parameters from gui settings
+    timestep = WEATHER_WINDOW.getProperty('Weather.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
+    url = LayerURL.format(LayerName=layer_name,
+                             ImageFormat=image_format,
+                             DefaultTime=default_time,
+                             Timestep=timesteps[int(timestep)],
+                             key=API_KEY)
+    folder = xbmc.translatePath('special://profile/addon_data/%s/cache/layer/%s/%s/' % (__addon__.getAddonInfo('id'), layer, default_time))
+    if not xbmcvfs.exists(folder):
+        xbmcvfs.mkdirs(folder)
+    file = os.path.join(folder, '{timestep}.png'.format(timestep=timestep))
+    urllib.urlretrieve(url, file)
+    WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file)
+
 #MAIN CODE
 WEATHER_WINDOW_ID = 12600
 WEATHER_WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
@@ -268,6 +352,8 @@ if sys.argv[1].isdigit():
 
 elif sys.argv[1] == ('SetLocation'):
     set_location(sys.argv[2])
+elif sys.argv[1] == ('ForecastMap'):
+    set_map()
 else:
     set_properties(sys.argv[1])
 
