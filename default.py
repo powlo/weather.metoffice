@@ -294,8 +294,9 @@ def set_map():
     handle = open(file, 'r')
     data = json.load(handle)
     LayerURL = data['Layers']['BaseUrl']['$']
+    #consider using jsonpath here
     for thislayer in data['Layers']['Layer']:
-        if thislayer['@displayName'] == layer:
+        if thislayer['@displayName'] == 'Rainfall':
             layer_name = thislayer['Service']['LayerName']
             image_format = thislayer['Service']['ImageFormat']
             default_time = thislayer['Service']['Timesteps']['@defaultTime']
@@ -311,7 +312,7 @@ def set_map():
                              DefaultTime=default_time,
                              Timestep=timesteps[int(timestep)],
                              key=API_KEY)
-    folder = xbmc.translatePath('special://profile/addon_data/%s/cache/layer/%s/%s/' % (__addon__.getAddonInfo('id'), layer, default_time))
+    folder = xbmc.translatePath('special://profile/addon_data/%s/cache/layer/Rainfall/%s/' % (__addon__.getAddonInfo('id'), default_time))
     if not xbmcvfs.exists(folder):
         xbmcvfs.mkdirs(folder)
     file = os.path.join(folder, '{timestep}.png'.format(timestep=timestep))
