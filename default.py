@@ -19,7 +19,8 @@ from resources.lib import jsonparser
 from resources.lib import datapoint
 from resources.lib.utilities import log
 
-ISSUEDAT_FORMAT = '%Y-%m-%dT%H:%M:%S'
+TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
+MAPTIME_FORMAT = '%H%M %a'
 DEFAULT_INITIAL_TIMESTEP = '0'
 
 __addon__ = xbmcaddon.Addon()
@@ -90,21 +91,12 @@ def set_properties(panel):
         log("Unknown panel '%s'" % panel, xbmc.LOGERROR)
         return
 
-    #is there a file in the local directory?
-    #load the file from the local directory.
-    #why use file when properties have probably been set? protects against pollution from other weather addons?
-    #all we need to do is set a property that points to a file
-    #maps do not have a locationID used in the url, although we may want to set a location, ie latitude and longitude.
-    #examine timestamp
-    #if timestamp is out of date then refresh from server
-    #
-
     panel_name = panel_config.get('name')
     if WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel):
         issuedat = WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel)
         updatefrequency = timedelta(**panel_config['updatefrequency'])
         try:
-            issuedat = datetime.fromtimestamp(time.mktime(time.strptime(issuedat, ISSUEDAT_FORMAT)))
+            issuedat = datetime.fromtimestamp(time.mktime(time.strptime(issuedat, TIME_FORMAT)))
         except ValueError:
             issuedat = datetime.now() - updatefrequency
         interval = datetime.now() - issuedat
@@ -305,8 +297,13 @@ def set_map():
     else:
         log("Couldn't find layer")
 
-    #get overlay using parameters from gui settings
+    default = datetime.fromtimestamp(time.mktime(time.strptime(default_time, TIME_FORMAT)))
     timestep = WEATHER_WINDOW.getProperty('Weather.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
+    delta = timedelta(hours=timesteps[int(timestep)])
+    maptime = default + delta
+    WEATHER_WINDOW.setProperty('Weather.MapTime', maptime.strftime(MAPTIME_FORMAT))
+
+    #get overlay using parameters from gui settings
     url = LayerURL.format(LayerName=layer_name,
                              ImageFormat=image_format,
                              DefaultTime=default_time,
