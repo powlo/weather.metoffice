@@ -22,6 +22,7 @@ from resources.lib.utilities import log
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 MAPTIME_FORMAT = '%H%M %a'
 DEFAULT_INITIAL_TIMESTEP = '0'
+DEFAULT_INITIAL_LAYER = 'Rain'
 
 __addon__ = xbmcaddon.Addon()
 
@@ -254,6 +255,8 @@ def set_location(location):
 def set_map():
     #note that we're doing the same thing over and over: see if something is in cache. if not get it from a url.
     #a proper cache will have a centralised resource which lists cached files and expiry times
+    layer = WEATHER_WINDOW.getProperty('Weather.LayerSelection') or DEFAULT_INITIAL_LAYER
+    timestepindex = WEATHER_WINDOW.getProperty('Weather.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
 
     #get underlay map
     log('Checking cache for surface map')
@@ -288,18 +291,23 @@ def set_map():
     LayerURL = data['Layers']['BaseUrl']['$']
     #consider using jsonpath here
     for thislayer in data['Layers']['Layer']:
-        if thislayer['@displayName'] == 'Rainfall':
+        if thislayer['@displayName'] == layer:
             layer_name = thislayer['Service']['LayerName']
             image_format = thislayer['Service']['ImageFormat']
             default_time = thislayer['Service']['Timesteps']['@defaultTime']
             timesteps = thislayer['Service']['Timesteps']['Timestep']
             break
     else:
-        log("Couldn't find layer")
+        log("Couldn't find layer '%s'" % layer)
+        sys.exit(1)
 
     default = datetime.fromtimestamp(time.mktime(time.strptime(default_time, TIME_FORMAT)))
-    timestep = WEATHER_WINDOW.getProperty('Weather.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
-    delta = timedelta(hours=timesteps[int(timestep)])
+    #we create 12 slider positions but pressure only returns 8 timesteps.
+    try:
+        timestep = timesteps[int(timestepindex)]
+    except IndexError:
+        timestep = timesteps[0]
+    delta = timedelta(hours=timestep)
     maptime = default + delta
     WEATHER_WINDOW.setProperty('Weather.MapTime', maptime.strftime(MAPTIME_FORMAT))
 
@@ -307,12 +315,12 @@ def set_map():
     url = LayerURL.format(LayerName=layer_name,
                              ImageFormat=image_format,
                              DefaultTime=default_time,
-                             Timestep=timesteps[int(timestep)],
+                             Timestep=timestep,
                              key=API_KEY)
-    folder = xbmc.translatePath('special://profile/addon_data/%s/cache/layer/Rainfall/%s/' % (__addon__.getAddonInfo('id'), default_time))
+    folder = xbmc.translatePath('special://profile/addon_data/%s/cache/layer/%s/%s/' % (__addon__.getAddonInfo('id'), layer, default_time))
     if not xbmcvfs.exists(folder):
         xbmcvfs.mkdirs(folder)
-    file = os.path.join(folder, '{timestep}.png'.format(timestep=timestep))
+    file = os.path.join(folder, '{t}.png'.format(t=timestepindex))
     urllib.urlretrieve(url, file)
     WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file)
 
