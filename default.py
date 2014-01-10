@@ -264,7 +264,7 @@ def set_map():
     if not xbmcvfs.exists(folder):
         log('Creating folder for surface map image.')
         xbmcvfs.mkdirs(folder)
-    file = os.path.join(folder, 'surface.json')
+    file = os.path.join(folder, 'surface.png')
     if not xbmcvfs.exists(file):
         log('No surface map file in cache. Fetching file.')
         url='http://maps.googleapis.com/maps/api/staticmap?center=55,-3.5&zoom=5&size=385x513&sensor=false&maptype=satellite&style=feature:all|element:labels|visibility:off'
