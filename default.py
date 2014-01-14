@@ -8,6 +8,7 @@ import socket
 import json
 import urllib
 import xbmcvfs
+import shutil
 
 from datetime import datetime, timedelta
 
@@ -17,12 +18,13 @@ from operator import itemgetter
 from resources.lib import utilities
 from resources.lib import jsonparser
 from resources.lib import datapoint
+from resources.lib.urlcache import URLCache
 from resources.lib.utilities import log
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 MAPTIME_FORMAT = '%H%M %a'
 DEFAULT_INITIAL_TIMESTEP = '0'
-DEFAULT_INITIAL_LAYER = 'Rain'
+DEFAULT_INITIAL_LAYER = 'Rainfall'
 
 __addon__ = xbmcaddon.Addon()
 
@@ -253,41 +255,21 @@ def set_location(location):
         log( "Setting '%s' to '%s (%s)'" % (location, filtered_sites[selected]['name'], filtered_sites[selected]['id']))
 
 def set_map():
-    #note that we're doing the same thing over and over: see if something is in cache. if not get it from a url.
-    #a proper cache will have a centralised resource which lists cached files and expiry times
     layer = WEATHER_WINDOW.getProperty('Weather.LayerSelection') or DEFAULT_INITIAL_LAYER
     timestepindex = WEATHER_WINDOW.getProperty('Weather.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
 
     #get underlay map
-    log('Checking cache for surface map')
-    folder = xbmc.translatePath('special://profile/addon_data/%s/cache/surfacemap/' % __addon__.getAddonInfo('id'))
-    if not xbmcvfs.exists(folder):
-        log('Creating folder for surface map image.')
-        xbmcvfs.mkdirs(folder)
-    file = os.path.join(folder, 'surface.png')
-    if not xbmcvfs.exists(file):
-        log('No surface map file in cache. Fetching file.')
-        url='http://maps.googleapis.com/maps/api/staticmap?center=55,-3.5&zoom=5&size=385x513&sensor=false&maptype=satellite&style=feature:all|element:labels|visibility:off'
-        urllib.urlretrieve(url, file)
-    else:
-        log('Cached file found.')
-    WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file)
-
+    url='http://maps.googleapis.com/maps/api/staticmap?center=55,-3.5&zoom=5&size=385x513&sensor=false&maptype=satellite&style=feature:all|element:labels|visibility:off'
+    expiry = datetime.now() + timedelta(days=30)
+    file = cache.urlretrieve(url, expiry)
+    WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file.name)
+    file.close()
     #get capabilities
-    log('Checking cache for layer capabilities file')
-    folder = xbmc.translatePath('special://profile/addon_data/%s/cache/layer/' % __addon__.getAddonInfo('id'))
-    if not xbmcvfs.exists(folder):
-        log('Creating folder for layer images.')
-        xbmcvfs.mkdirs(folder)
-    file = os.path.join(folder, 'capabilities.json')
-    if not xbmcvfs.exists(file):
-        log('No capbilities file in cache. Fetching file from datapoint.')
-        url=datapoint.url(format='layer', resource='wxfcs', object='capabilities', params={'key': API_KEY})
-        urllib.urlretrieve(url, file)
-    else:
-        log('Cached file found.')
-    handle = open(file, 'r')
-    data = json.load(handle)
+    url=datapoint.url(format='layer', resource='wxfcs', object='capabilities', params={'key': API_KEY})
+    expiry = datetime.now() + timedelta(days=1) #should be midnight tomorrow
+    file = cache.urlretrieve(url, expiry)
+    data = json.load(file)
+    file.close()
     LayerURL = data['Layers']['BaseUrl']['$']
     #consider using jsonpath here
     for thislayer in data['Layers']['Layer']:
@@ -307,6 +289,7 @@ def set_map():
         timestep = timesteps[int(timestepindex)]
     except IndexError:
         timestep = timesteps[0]
+        WEATHER_WINDOW.setProperty('Weather.SliderPosition', DEFAULT_INITIAL_TIMESTEP)
     delta = timedelta(hours=timestep)
     maptime = default + delta
     WEATHER_WINDOW.setProperty('Weather.MapTime', maptime.strftime(MAPTIME_FORMAT))
@@ -317,13 +300,10 @@ def set_map():
                              DefaultTime=default_time,
                              Timestep=timestep,
                              key=API_KEY)
-    folder = xbmc.translatePath('special://profile/addon_data/%s/cache/layer/%s/%s/' % (__addon__.getAddonInfo('id'), layer, default_time))
-    if not xbmcvfs.exists(folder):
-        xbmcvfs.mkdirs(folder)
-    file = os.path.join(folder, '{t}.png'.format(t=timestepindex))
-    urllib.urlretrieve(url, file)
-    WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file)
-
+    expiry = datetime.now() + timedelta(days=1) # change to midnight
+    file = cache.urlretrieve(url, expiry)
+    WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file.name)
+    file.close()
 #MAIN CODE
 WEATHER_WINDOW_ID = 12600
 WEATHER_WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
@@ -332,6 +312,11 @@ DEBUG = True if __addon__.getSetting('Debug') == 'true' else False
 API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
 FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
+cache_folder = xbmc.translatePath('special://profile/addon_data/%s/cache/' % __addon__.getAddonInfo('id'))
+if not os.path.exists(cache_folder):
+    os.mkdir(cache_folder)
+cache_file = os.path.join(cache_folder, 'cachecontrol.json')
+cache = URLCache(cache_file, cache_folder)
 
 if not API_KEY:
     dialog = xbmcgui.Dialog()
@@ -363,6 +348,7 @@ elif sys.argv[1] == ('ForecastMap'):
 else:
     set_properties(sys.argv[1])
 
+del cache
 WEATHER_WINDOW.setProperty('WeatherProvider', __addon__.getAddonInfo('name'))
 WEATHER_WINDOW.setProperty('ObservationLocation', __addon__.getSetting('ObservationLocation'))
 WEATHER_WINDOW.setProperty('ForecastLocation', __addon__.getSetting('ForecastLocation'))
