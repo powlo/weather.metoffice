@@ -1,9 +1,8 @@
 #A basic way of caching files associated with URLs
 #with emphasis on caching results from urlretrieve.
 
-#TODO: consider adding support for python's 'with' statement
-
 from datetime import datetime, timedelta
+import time
 import os
 import shutil
 import urllib
@@ -15,9 +14,12 @@ class URLCache(object):
     def __init__(self, filename, folder):
         self._cachefilename = filename
         self._cachefolder = folder
+        
+    def __enter__(self):
         try:
             file = open(self._cachefilename, 'r')
         except IOError:
+            #create the file and try again.
             open(self._cachefilename, 'a').close()
             file = open(self._cachefilename, 'r')            
         try:
@@ -25,17 +27,17 @@ class URLCache(object):
         except ValueError:
             self._cachetable = dict()
         file.close()
+        return self
 
-    def __del__(self):
-        file = open(self._cachefilename, 'w+')
-        json.dump(self._cachetable, file, indent=2)
-        file.close()        
+    def __exit__(self, type, value, traceback):
+        with open(self._cachefilename, 'w+') as file:
+            json.dump(self._cachetable, file, indent=2)
         
     def put(self, url, src, expiry):
         #takes a file and copies it into the cache
         shutil.copy(src, self._cachefolder)
         resource = os.path.join(self._cachefolder, os.path.basename(src))
-        self._cachetable[url] = {'resource':resource, 'expiry': datetime.strftime(expiry, self.TIME_FORMAT)}
+        self._cachetable[url] = {'resource':resource, 'expiry': expiry.strftime(self.TIME_FORMAT)}
 
     def get(self, url):
         try:
@@ -44,12 +46,12 @@ class URLCache(object):
         except:
             expired = True
         if not expired:
-            return self._cachetable[url]['resource']
+            return entry['resource']
         else:
             return None 
 
     def remove(self, url):
-        del self._cachedata[url]
+        del self._cachetable[url]
 
     def flush(self):
         #flush should 1) delete expired, 2) remove null targets 3) remove null sources
@@ -62,7 +64,7 @@ class URLCache(object):
 
     def isexpired(self, entry):
         try:
-            expiry = datetime.strptime(entry['expiry'], self.TIME_FORMAT)
+            expiry = datetime.fromtimestamp(time.mktime(time.strptime(entry['expiry'], self.TIME_FORMAT)))
             if expiry > datetime.now():
                 return False
         except:

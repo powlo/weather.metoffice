@@ -255,55 +255,59 @@ def set_location(location):
         log( "Setting '%s' to '%s (%s)'" % (location, filtered_sites[selected]['name'], filtered_sites[selected]['id']))
 
 def set_map():
-    layer = WEATHER_WINDOW.getProperty('Weather.LayerSelection') or DEFAULT_INITIAL_LAYER
-    timestepindex = WEATHER_WINDOW.getProperty('Weather.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
-
-    #get underlay map
-    url='http://maps.googleapis.com/maps/api/staticmap?center=55,-3.5&zoom=5&size=385x513&sensor=false&maptype=satellite&style=feature:all|element:labels|visibility:off'
-    expiry = datetime.now() + timedelta(days=30)
-    file = cache.urlretrieve(url, expiry)
-    WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file.name)
-    file.close()
-    #get capabilities
-    url=datapoint.url(format='layer', resource='wxfcs', object='capabilities', params={'key': API_KEY})
-    expiry = datetime.now() + timedelta(days=1) #should be midnight tomorrow
-    file = cache.urlretrieve(url, expiry)
-    data = json.load(file)
-    file.close()
-    LayerURL = data['Layers']['BaseUrl']['$']
-    #consider using jsonpath here
-    for thislayer in data['Layers']['Layer']:
-        if thislayer['@displayName'] == layer:
-            layer_name = thislayer['Service']['LayerName']
-            image_format = thislayer['Service']['ImageFormat']
-            default_time = thislayer['Service']['Timesteps']['@defaultTime']
-            timesteps = thislayer['Service']['Timesteps']['Timestep']
-            break
-    else:
-        log("Couldn't find layer '%s'" % layer)
-        sys.exit(1)
-
-    default = datetime.fromtimestamp(time.mktime(time.strptime(default_time, TIME_FORMAT)))
-    #we create 12 slider positions but pressure only returns 8 timesteps.
-    try:
-        timestep = timesteps[int(timestepindex)]
-    except IndexError:
-        timestep = timesteps[0]
-        WEATHER_WINDOW.setProperty('Weather.SliderPosition', DEFAULT_INITIAL_TIMESTEP)
-    delta = timedelta(hours=timestep)
-    maptime = default + delta
-    WEATHER_WINDOW.setProperty('Weather.MapTime', maptime.strftime(MAPTIME_FORMAT))
-
-    #get overlay using parameters from gui settings
-    url = LayerURL.format(LayerName=layer_name,
-                             ImageFormat=image_format,
-                             DefaultTime=default_time,
-                             Timestep=timestep,
-                             key=API_KEY)
-    expiry = datetime.now() + timedelta(days=1) # change to midnight
-    file = cache.urlretrieve(url, expiry)
-    WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file.name)
-    file.close()
+    with URLCache(cache_file, cache_folder) as cache:
+        layer = WEATHER_WINDOW.getProperty('Weather.LayerSelection') or DEFAULT_INITIAL_LAYER
+        timestepindex = WEATHER_WINDOW.getProperty('Weather.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
+    
+        #get underlay map
+        url='http://maps.googleapis.com/maps/api/staticmap?center=55,-3.5&zoom=5&size=385x513&sensor=false&maptype=satellite&style=feature:all|element:labels|visibility:off'
+        expiry = datetime.now() + timedelta(days=30)
+        with cache.urlretrieve(url, expiry) as file:
+            WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file.name)
+        #get capabilities
+        url=datapoint.url(format='layer', resource='wxfcs', object='capabilities', params={'key': API_KEY})
+        expiry = datetime.now() + timedelta(days=1) #should be midnight tomorrow
+        with cache.urlretrieve(url, expiry) as file:
+            try:
+                data = json.load(file)
+            except ValueError:
+                cache.remove(url)
+                log('Couldn\'t load json data from %s' % file.name)
+                sys.exit(1) #should do some elegant failure here.
+            
+        LayerURL = data['Layers']['BaseUrl']['$']
+        #consider using jsonpath here
+        for thislayer in data['Layers']['Layer']:
+            if thislayer['@displayName'] == layer:
+                layer_name = thislayer['Service']['LayerName']
+                image_format = thislayer['Service']['ImageFormat']
+                default_time = thislayer['Service']['Timesteps']['@defaultTime']
+                timesteps = thislayer['Service']['Timesteps']['Timestep']
+                break
+        else:
+            log("Couldn't find layer '%s'" % layer)
+            sys.exit(1)
+    
+        default = datetime.fromtimestamp(time.mktime(time.strptime(default_time, TIME_FORMAT)))
+        #we create 12 slider positions but pressure only returns 8 timesteps.
+        try:
+            timestep = timesteps[int(timestepindex)]
+        except IndexError:
+            timestep = timesteps[0]
+            WEATHER_WINDOW.setProperty('Weather.SliderPosition', DEFAULT_INITIAL_TIMESTEP)
+        delta = timedelta(hours=timestep)
+        maptime = default + delta
+        WEATHER_WINDOW.setProperty('Weather.MapTime', maptime.strftime(MAPTIME_FORMAT))
+    
+        #get overlay using parameters from gui settings
+        url = LayerURL.format(LayerName=layer_name,
+                                 ImageFormat=image_format,
+                                 DefaultTime=default_time,
+                                 Timestep=timestep,
+                                 key=API_KEY)
+        expiry = datetime.now() + timedelta(days=1) # change to midnight
+        with cache.urlretrieve(url, expiry) as file:
+            WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file.name)
 #MAIN CODE
 WEATHER_WINDOW_ID = 12600
 WEATHER_WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
@@ -348,7 +352,6 @@ elif sys.argv[1] == ('ForecastMap'):
 else:
     set_properties(sys.argv[1])
 
-del cache
 WEATHER_WINDOW.setProperty('WeatherProvider', __addon__.getAddonInfo('name'))
 WEATHER_WINDOW.setProperty('ObservationLocation', __addon__.getSetting('ObservationLocation'))
 WEATHER_WINDOW.setProperty('ForecastLocation', __addon__.getSetting('ForecastLocation'))
