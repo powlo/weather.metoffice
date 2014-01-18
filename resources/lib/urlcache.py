@@ -14,7 +14,7 @@ class URLCache(object):
     def __init__(self, filename, folder):
         self._cachefilename = filename
         self._cachefolder = folder
-        
+
     def __enter__(self):
         try:
             file = open(self._cachefilename, 'r')
@@ -32,23 +32,24 @@ class URLCache(object):
     def __exit__(self, type, value, traceback):
         with open(self._cachefilename, 'w+') as file:
             json.dump(self._cachetable, file, indent=2)
-        
+
     def put(self, url, src, expiry):
         #takes a file and copies it into the cache
+        #returns resource location in cache
         shutil.copy(src, self._cachefolder)
         resource = os.path.join(self._cachefolder, os.path.basename(src))
         self._cachetable[url] = {'resource':resource, 'expiry': expiry.strftime(self.TIME_FORMAT)}
+        return resource
 
-    def get(self, url):
-        try:
-            entry = self._cachetable[url]
-            expired = self.isexpired(entry)
-        except:
-            expired = True
-        if not expired:
-            return entry['resource']
+    def get(self, url, ignoreexpired=False, ignoremissing=False):
+        entry = self._cachetable[url]
+        expired = self.isexpired(entry)
+        missing = self.ismissing(entry)
+        if (not ignoreexpired and expired) or (not ignoremissing and missing):
+            self.remove(url)
+            raise Exception("URL: '%s' is either missing or out of date." % url)
         else:
-            return None 
+            return entry['resource']
 
     def remove(self, url):
         del self._cachetable[url]
@@ -63,21 +64,18 @@ class URLCache(object):
             del self._cachedata[e]
 
     def isexpired(self, entry):
-        try:
-            expiry = datetime.fromtimestamp(time.mktime(time.strptime(entry['expiry'], self.TIME_FORMAT)))
-            if expiry > datetime.now():
-                return False
-        except:
-            return True
+        #the entry has expired, according to the 'expiry' field.
+        expiry = datetime.fromtimestamp(time.mktime(time.strptime(entry['expiry'], self.TIME_FORMAT)))
+        return expiry < datetime.now()
+
+    def ismissing(self, entry):
+        #the resource indicated by the entry no longer exists
+        return not os.path.exists(entry['resource'])
 
     def urlretrieve(self, url, expiry, mode='r'):
         try:
-            entry = self._cachetable[url]
-            expired = self.isexpired(entry)
+            resource = self.get(url)
         except:
-            expired = True
-        if expired:
             src = urllib.urlretrieve(url)[0]
-            self.put(url, src, expiry)
-        resource = self.get(url)
+            resource = self.put(url, src, expiry)
         return open(resource, mode)
