@@ -66,11 +66,32 @@ class URLCache(object):
         return not os.path.exists(entry['resource'])
 
     def urlretrieve(self, url, expiry, mode='r'):
-        if self._cachetable.has_key(url) \
-        and datetime.fromtimestamp(time.mktime(time.strptime(self._cachetable[url]['expiry'], self.TIME_FORMAT))) > datetime.now() \
-        and os.path.exists(self._cachetable[url]['resource']):
-            resource = self._cachetable[url]['resource']
-        else:
+        try:
+            entry = self.get(url)
+            if self.ismissing(entry):
+                raise MissingError
+            elif self.isexpired(entry):
+                raise ExpiredError
+            else:
+                resource = entry['resource']
+                return open(resource, mode)
+        except (KeyError, MissingError):
             src = urllib.urlretrieve(url)[0]
             resource = self.put(url, src, expiry)
-        return open(resource, mode)
+            return open(resource, mode)
+        except ExpiredError:
+            #set flag to indicate expired
+            resource = entry['resource']
+            try:
+                src = urllib.urlretrieve(url)[0]
+                resource = self.put(url, src, expiry)
+                #unset flag to indicate no longerexpired
+            finally:
+                return open(resource, mode)
+
+
+class MissingError(Exception):
+    pass
+
+class ExpiredError(Exception):
+    pass

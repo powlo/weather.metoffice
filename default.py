@@ -262,19 +262,29 @@ def set_map():
         #get underlay map
         url='http://maps.googleapis.com/maps/api/staticmap?center=55,-3.5&zoom=5&size=385x513&sensor=false&maptype=satellite&style=feature:all|element:labels|visibility:off'
         expiry = datetime.now() + timedelta(days=30)
-        with cache.urlretrieve(url, expiry) as file:
-            WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file.name)
+        try:
+            with cache.urlretrieve(url, expiry) as file:
+                WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file.name)
+        except (URLError, IOError):
+            WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
+            return
+
         #get capabilities
         url=datapoint.url(format='layer', resource='wxfcs', object='capabilities', params={'key': API_KEY})
         expiry = datetime.now() + timedelta(hours=12) #need to investigate further into how often forecasts are updated
-        with cache.urlretrieve(url, expiry) as file:
-            try:
-                data = json.load(file)
-            except ValueError:
-                cache.remove(url)
-                log('Couldn\'t load json data from %s' % file.name)
-                sys.exit(1) #should do some elegant failure here.
-            
+
+        try:
+            with cache.urlretrieve(url, expiry) as file:
+                try:
+                    data = json.load(file)
+                except ValueError:
+                    cache.remove(url)
+                    log('Couldn\'t load json data from %s' % file.name)
+                    return
+        except (URLError, IOError):
+            WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
+            return
+
         LayerURL = data['Layers']['BaseUrl']['$']
         #consider using jsonpath here
         for thislayer in data['Layers']['Layer']:
@@ -287,7 +297,7 @@ def set_map():
         else:
             log("Couldn't find layer '%s'" % layer)
             sys.exit(1)
-    
+
         default = datetime.fromtimestamp(time.mktime(time.strptime(default_time, TIME_FORMAT)))
         #we create 12 slider positions but pressure only returns 8 timesteps.
         try:
@@ -298,7 +308,7 @@ def set_map():
         delta = timedelta(hours=timestep)
         maptime = default + delta
         WEATHER_WINDOW.setProperty('Weather.MapTime', maptime.strftime(MAPTIME_FORMAT))
-    
+
         #get overlay using parameters from gui settings
         url = LayerURL.format(LayerName=layer_name,
                                  ImageFormat=image_format,
@@ -306,8 +316,13 @@ def set_map():
                                  Timestep=timestep,
                                  key=API_KEY)
         expiry = datetime.now() + timedelta(hours=12) # change to midnight
-        with cache.urlretrieve(url, expiry) as file:
-            WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file.name)
+        try:
+            with cache.urlretrieve(url, expiry) as file:
+                WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file.name)
+        except (URLError, IOError):
+            WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
+            return
+
 #MAIN CODE
 WEATHER_WINDOW_ID = 12600
 WEATHER_WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
