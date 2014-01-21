@@ -41,15 +41,8 @@ class URLCache(object):
         self._cachetable[url] = {'resource':resource, 'expiry': expiry.strftime(self.TIME_FORMAT)}
         return resource
 
-    def get(self, url, ignoreexpired=False, ignoremissing=False):
-        entry = self._cachetable[url]
-        expired = self.isexpired(entry)
-        missing = self.ismissing(entry)
-        if (not ignoreexpired and expired) or (not ignoremissing and missing):
-            self.remove(url)
-            raise Exception("URL: '%s' is either missing or out of date." % url)
-        else:
-            return entry['resource']
+    def get(self, url):
+        return self._cachetable[url]
 
     def remove(self, url):
         del self._cachetable[url]
@@ -73,9 +66,11 @@ class URLCache(object):
         return not os.path.exists(entry['resource'])
 
     def urlretrieve(self, url, expiry, mode='r'):
-        try:
-            resource = self.get(url)
-        except:
+        if self._cachetable.has_key(url) \
+        and datetime.fromtimestamp(time.mktime(time.strptime(self._cachetable[url]['expiry'], self.TIME_FORMAT))) > datetime.now() \
+        and os.path.exists(self._cachetable[url]['resource']):
+            resource = self._cachetable[url]['resource']
+        else:
             src = urllib.urlretrieve(url)[0]
             resource = self.put(url, src, expiry)
         return open(resource, mode)

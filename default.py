@@ -266,7 +266,7 @@ def set_map():
             WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file.name)
         #get capabilities
         url=datapoint.url(format='layer', resource='wxfcs', object='capabilities', params={'key': API_KEY})
-        expiry = datetime.now() + timedelta(days=1) #should be midnight tomorrow
+        expiry = datetime.now() + timedelta(hours=12) #need to investigate further into how often forecasts are updated
         with cache.urlretrieve(url, expiry) as file:
             try:
                 data = json.load(file)
@@ -305,7 +305,7 @@ def set_map():
                                  DefaultTime=default_time,
                                  Timestep=timestep,
                                  key=API_KEY)
-        expiry = datetime.now() + timedelta(days=1) # change to midnight
+        expiry = datetime.now() + timedelta(hours=12) # change to midnight
         with cache.urlretrieve(url, expiry) as file:
             WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file.name)
 #MAIN CODE
