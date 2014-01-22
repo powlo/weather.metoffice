@@ -45,6 +45,7 @@ class URLCache(object):
         return self._cachetable[url]
 
     def remove(self, url):
+        os.remove(self._cachetable[url]['resource'])
         del self._cachetable[url]
 
     def flush(self):
