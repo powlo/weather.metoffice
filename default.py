@@ -26,6 +26,14 @@ MAPTIME_FORMAT = '%H%M %a'
 DEFAULT_INITIAL_TIMESTEP = '0'
 DEFAULT_INITIAL_LAYER = 'Rainfall'
 
+GOOGLE_STATICMAP = 'http://maps.googleapis.com/maps/api/staticmap?'
+GOOGLE_PARAMS = {'center': '55,-3.5',
+                 'zoom': '5',
+                 'size':'385x513',
+                 'sensor':'false',
+                 'maptype': 'satellite',
+                 'style': 'feature:all|element:labels|visibility:off'}
+
 __addon__ = xbmcaddon.Addon()
 
 def set_properties(panel):
@@ -260,7 +268,7 @@ def set_map():
         timestepindex = WEATHER_WINDOW.getProperty('Weather.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
     
         #get underlay map
-        url='http://maps.googleapis.com/maps/api/staticmap?center=55,-3.5&zoom=5&size=385x513&sensor=false&maptype=satellite&style=feature:all|element:labels|visibility:off'
+        url=GOOGLE_STATICMAP + urllib.unquote(urllib.urlencode(GOOGLE_PARAMS))
         expiry = datetime.now() + timedelta(days=30)
         try:
             with cache.urlretrieve(url, expiry) as file:
