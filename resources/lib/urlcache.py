@@ -76,13 +76,20 @@ class URLCache(object):
             else:
                 return entry['resource']
         except (KeyError, MissingError):
-            src = urllib.urlretrieve(url)[0]
+            (src, headers) = urllib.urlretrieve(url)
+            #assumes second part is a valid file extension. True for application/json and image/png
+            ext = headers.type.split('/')[1]
+            shutil.move(src, src+'.'+ext)
+            src = src+'.'+ext
             return self.put(url, src, expiry)
         except ExpiredError:
             #set flag to indicate expired
             resource = entry['resource']
             try:
-                src = urllib.urlretrieve(url)[0]
+                (src, headers) = urllib.urlretrieve(url)
+                ext = headers.type.split('/')[1]
+                shutil.move(src, src+'.'+ext)
+                src = src+'.'+ext
                 resource = self.put(url, src, expiry)
                 #unset flag to indicate no longerexpired
             finally:
