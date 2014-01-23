@@ -66,7 +66,7 @@ class URLCache(object):
         #the resource indicated by the entry no longer exists
         return not os.path.exists(entry['resource'])
 
-    def urlretrieve(self, url, expiry, mode='r'):
+    def urlretrieve(self, url, expiry):
         try:
             entry = self.get(url)
             if self.ismissing(entry):
@@ -74,12 +74,10 @@ class URLCache(object):
             elif self.isexpired(entry):
                 raise ExpiredError
             else:
-                resource = entry['resource']
-                return open(resource, mode)
+                return entry['resource']
         except (KeyError, MissingError):
             src = urllib.urlretrieve(url)[0]
-            resource = self.put(url, src, expiry)
-            return open(resource, mode)
+            return self.put(url, src, expiry)
         except ExpiredError:
             #set flag to indicate expired
             resource = entry['resource']
@@ -88,7 +86,7 @@ class URLCache(object):
                 resource = self.put(url, src, expiry)
                 #unset flag to indicate no longerexpired
             finally:
-                return open(resource, mode)
+                return resource
 
 
 class MissingError(Exception):

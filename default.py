@@ -271,7 +271,7 @@ def set_map():
         url=GOOGLE_STATICMAP + urllib.unquote(urllib.urlencode(GOOGLE_PARAMS))
         expiry = datetime.now() + timedelta(days=30)
         try:
-            with cache.urlretrieve(url, expiry) as file:
+            with open(cache.urlretrieve(url, expiry)) as file:
                 WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file.name)
         except (URLError, IOError):
             WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
@@ -282,7 +282,7 @@ def set_map():
         expiry = datetime.now() + timedelta(hours=12) #need to investigate further into how often forecasts are updated
 
         try:
-            with cache.urlretrieve(url, expiry) as file:
+            with open(cache.urlretrieve(url, expiry)) as file:
                 try:
                     data = json.load(file)
                 except ValueError:
@@ -325,7 +325,7 @@ def set_map():
                                  key=API_KEY)
         expiry = datetime.now() + timedelta(hours=12) # change to midnight
         try:
-            with cache.urlretrieve(url, expiry) as file:
+            with open(cache.urlretrieve(url, expiry)) as file:
                 WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file.name)
         except (URLError, IOError):
             WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
