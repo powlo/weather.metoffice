@@ -11,7 +11,7 @@ import xbmcvfs
 import shutil
 
 from datetime import datetime, timedelta
-
+from PIL import Image
 from urllib2 import URLError
 from operator import itemgetter
 
@@ -29,10 +29,14 @@ DEFAULT_INITIAL_LAYER = 'Rainfall'
 GOOGLE_STATICMAP = 'http://maps.googleapis.com/maps/api/staticmap?'
 GOOGLE_PARAMS = {'center': '55,-3.5',
                  'zoom': '5',
-                 'size':'385x513',
+                 'size':'323x472',
                  'sensor':'false',
                  'maptype': 'satellite',
                  'style': 'feature:all|element:labels|visibility:off'}
+
+RAW_DATAPOINT_IMG_WIDTH = 500
+CROP_WIDTH = 40
+CROP_HEIGHT = 20
 
 __addon__ = xbmcaddon.Addon()
 
@@ -263,6 +267,7 @@ def set_location(location):
         log( "Setting '%s' to '%s (%s)'" % (location, filtered_sites[selected]['name'], filtered_sites[selected]['id']))
 
 def set_map():
+    #there are two kinds of fetches for this app, get a json file and get an image file.
     with URLCache(cache_file, cache_folder) as cache:
         layer = WEATHER_WINDOW.getProperty('Weather.LayerSelection') or DEFAULT_INITIAL_LAYER
         timestepindex = WEATHER_WINDOW.getProperty('Weather.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
@@ -271,8 +276,8 @@ def set_map():
         url=GOOGLE_STATICMAP + urllib.unquote(urllib.urlencode(GOOGLE_PARAMS))
         expiry = datetime.now() + timedelta(days=30)
         try:
-            with open(cache.urlretrieve(url, expiry)) as file:
-                WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file.name)
+            file = cache.urlretrieve(url, expiry)
+            WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file)
         except (URLError, IOError):
             WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
             return
@@ -325,8 +330,12 @@ def set_map():
                                  key=API_KEY)
         expiry = datetime.now() + timedelta(hours=12) # change to midnight
         try:
-            with open(cache.urlretrieve(url, expiry)) as file:
-                WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file.name)
+            file = cache.urlretrieve(url, expiry)
+            img = Image.open(file)
+            (width, height) = img.size
+            if width == RAW_DATAPOINT_IMG_WIDTH:
+                img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(file)
+            WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file)
         except (URLError, IOError):
             WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
             return
