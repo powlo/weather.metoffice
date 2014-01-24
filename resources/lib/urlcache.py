@@ -67,6 +67,12 @@ class URLCache(object):
         return not os.path.exists(entry['resource'])
 
     def urlretrieve(self, url, expiry):
+        """
+        Checks to see if an item is in cache
+        Uses urllib.urlretrieve to fetch the item
+        NB. Assumes the url header type contains a valid file
+        extension. This is true for application/json and image/png
+        """
         try:
             entry = self.get(url)
             if self.ismissing(entry):
@@ -77,21 +83,20 @@ class URLCache(object):
                 return entry['resource']
         except (KeyError, MissingError):
             (src, headers) = urllib.urlretrieve(url)
-            #assumes second part is a valid file extension. True for application/json and image/png
-            ext = headers.type.split('/')[1]
-            shutil.move(src, src+'.'+ext)
-            src = src+'.'+ext
-            return self.put(url, src, expiry)
-        except ExpiredError:
-            #set flag to indicate expired
-            resource = entry['resource']
-            try:
-                (src, headers) = urllib.urlretrieve(url)
+            if len(src.split('.')) == 1:
                 ext = headers.type.split('/')[1]
                 shutil.move(src, src+'.'+ext)
                 src = src+'.'+ext
+            return self.put(url, src, expiry)
+        except ExpiredError:
+            resource = entry['resource']
+            try:
+                (src, headers) = urllib.urlretrieve(url)
+                if len(src.split('.')) == 1:
+                    ext = headers.type.split('/')[1]
+                    shutil.move(src, src+'.'+ext)
+                    src = src+'.'+ext
                 resource = self.put(url, src, expiry)
-                #unset flag to indicate no longerexpired
             finally:
                 return resource
 
