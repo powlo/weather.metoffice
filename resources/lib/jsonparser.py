@@ -51,7 +51,14 @@ def observation(data):
     d = dict()
     dv = data['SiteRep']['DV']
     d['HourlyObservation.IssuedAt'] = dv.get('dataDate').rstrip('Z')
-    latest_obs = dv['Location']['Period'][-1]['Rep'][-1]
+    try:
+        latest_period = dv['Location']['Period'][-1]
+    except KeyError:
+        latest_period = dv['Location']['Period']
+    try:
+        latest_obs = latest_period['Rep'][-1]
+    except KeyError:
+        latest_obs = latest_period['Rep']
     d['Current.Condition'] = WEATHER_CODES[latest_obs.get('W', 'na')][1]
     d['Current.Visibility'] = latest_obs.get('V', 'n/a')
     d['Current.Pressure'] = latest_obs.get('P', 'n/a')
