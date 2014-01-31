@@ -275,17 +275,20 @@ def set_map():
         #get underlay map
         url=GOOGLE_STATICMAP + urllib.unquote(urllib.urlencode(GOOGLE_PARAMS))
         expiry = datetime.now() + timedelta(days=30)
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             file = cache.urlretrieve(url, expiry)
             WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file)
         except (URLError, IOError):
             WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
             return
+        finally:
+            xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
         #get capabilities
         url=datapoint.url(format='layer', resource='wxfcs', object='capabilities', params={'key': API_KEY})
         expiry = datetime.now() + timedelta(hours=12) #need to investigate further into how often forecasts are updated
-
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             with open(cache.urlretrieve(url, expiry)) as file:
                 try:
@@ -297,6 +300,8 @@ def set_map():
         except (URLError, IOError):
             WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
             return
+        finally:
+            xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
         LayerURL = data['Layers']['BaseUrl']['$']
         #consider using jsonpath here
@@ -329,6 +334,7 @@ def set_map():
                                  Timestep=timestep,
                                  key=API_KEY)
         expiry = datetime.now() + timedelta(hours=12) # change to midnight
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             file = cache.urlretrieve(url, expiry)
             img = Image.open(file)
@@ -339,6 +345,8 @@ def set_map():
         except (URLError, IOError):
             WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
             return
+        finally:
+            xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
 #MAIN CODE
 WEATHER_WINDOW_ID = 12600

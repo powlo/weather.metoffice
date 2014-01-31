@@ -7,6 +7,7 @@ import os
 import shutil
 import urllib
 import json
+from utilities import log
 
 class URLCache(object):
     TIME_FORMAT = "%a %b %d %H:%M:%S %Y"
@@ -74,14 +75,17 @@ class URLCache(object):
         extension. This is true for application/json and image/png
         """
         try:
+            log("Checking cache for '%s'" % url)
             entry = self.get(url)
             if self.ismissing(entry):
                 raise MissingError
             elif self.isexpired(entry):
                 raise ExpiredError
             else:
+                log("Returning cached item.")
                 return entry['resource']
         except (KeyError, MissingError):
+            log("Not in cache. Fetching from web.")
             (src, headers) = urllib.urlretrieve(url)
             if len(src.split('.')) == 1:
                 ext = headers.type.split('/')[1]
@@ -89,6 +93,7 @@ class URLCache(object):
                 src = src+'.'+ext
             return self.put(url, src, expiry)
         except ExpiredError:
+            log("Cached item has expired. Fetching from web.")
             resource = entry['resource']
             try:
                 (src, headers) = urllib.urlretrieve(url)
@@ -97,6 +102,8 @@ class URLCache(object):
                     shutil.move(src, src+'.'+ext)
                     src = src+'.'+ext
                 resource = self.put(url, src, expiry)
+            except URLError:
+                log("Fetch from web failed. Returning expired item.")
             finally:
                 return resource
 
