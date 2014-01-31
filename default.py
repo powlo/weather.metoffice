@@ -21,6 +21,9 @@ from resources.lib import datapoint
 from resources.lib.urlcache import URLCache
 from resources.lib.utilities import log
 
+__addon__ = xbmcaddon.Addon()
+ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % __addon__.getAddonInfo('id'))
+
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 MAPTIME_FORMAT = '%H%M %a'
 DEFAULT_INITIAL_TIMESTEP = '0'
@@ -37,8 +40,6 @@ GOOGLE_PARAMS = {'center': '55,-3.5',
 RAW_DATAPOINT_IMG_WIDTH = 500
 CROP_WIDTH = 40
 CROP_HEIGHT = 20
-
-__addon__ = xbmcaddon.Addon()
 
 def set_properties(panel):
     #Look at the time the last regional forecast was fetched
@@ -356,10 +357,10 @@ DEBUG = True if __addon__.getSetting('Debug') == 'true' else False
 API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
 FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
-cache_folder = xbmc.translatePath('special://profile/addon_data/%s/cache/' % __addon__.getAddonInfo('id'))
+cache_folder = os.path.join(ADDON_DATA_PATH, 'cache')
 if not os.path.exists(cache_folder):
     os.mkdir(cache_folder)
-cache_file = os.path.join(cache_folder, 'cachecontrol.json')
+cache_file = os.path.join(ADDON_DATA_PATH, 'cache.json')
 cache = URLCache(cache_file, cache_folder)
 
 if not API_KEY:
