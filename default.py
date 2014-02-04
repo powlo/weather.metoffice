@@ -338,6 +338,12 @@ def set_map():
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             file = cache.urlretrieve(url, expiry)
+            pattern = LayerURL.replace('?', '\?').format(LayerName=layer_name,
+                                 ImageFormat=image_format,
+                                 DefaultTime="(?!%s)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})" % default_time,
+                                 Timestep=timestep,
+                                 key="[a-z0-9-]+")
+            cache.flush(pattern)
             img = Image.open(file)
             (width, height) = img.size
             if width == RAW_DATAPOINT_IMG_WIDTH:

@@ -1,12 +1,18 @@
 #A basic way of caching files associated with URLs
 #with emphasis on caching results from urlretrieve.
 
+"""
+Add filter parameter to flush so that urls can be cleaned out according to pattern matching
+Ie filter out any expired Rainfall Timestep 0.
+"""
+
 from datetime import datetime, timedelta
 import time
 import os
 import shutil
 import urllib
 import json
+import re
 from utilities import log
 
 class URLCache(object):
@@ -49,14 +55,18 @@ class URLCache(object):
         os.remove(self._cachetable[url]['resource'])
         del self._cachetable[url]
 
-    def flush(self):
-        #flush should 1) delete expired, 2) remove null targets 3) remove null sources
-        expired = list()
-        for entry in self._cachetable:
-            if self.isexpired(entry):
-                expired.append(entry)
-        for e in expired:
-            del self._cachedata[e]
+    def flush(self, pattern=None):
+        flushlist = list()
+        for url in self._cachetable:
+            if pattern:
+                if self.isexpired(self._cachetable[url]):
+                    if re.match(pattern, url):
+                        flushlist.append(url)
+            else:
+                if self.isexpired(entry):
+                        flushlist.append(url)
+        for url in flushlist:
+            self.remove(url)
 
     def isexpired(self, entry):
         #the entry has expired, according to the 'expiry' field.
