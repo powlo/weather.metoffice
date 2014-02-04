@@ -270,8 +270,8 @@ def set_location(location):
 def set_map():
     #there are two kinds of fetches for this app, get a json file and get an image file.
     with URLCache(cache_file, cache_folder) as cache:
-        layer = WEATHER_WINDOW.getProperty('Weather.LayerSelection') or DEFAULT_INITIAL_LAYER
-        timestepindex = WEATHER_WINDOW.getProperty('Weather.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
+        layer = WEATHER_WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER
+        timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
     
         #get underlay map
         url=GOOGLE_STATICMAP + urllib.unquote(urllib.urlencode(GOOGLE_PARAMS))
@@ -279,9 +279,9 @@ def set_map():
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             file = cache.urlretrieve(url, expiry)
-            WEATHER_WINDOW.setProperty('Weather.MapSurfaceFile', file)
+            WEATHER_WINDOW.setProperty('ForecastMap.Surface', file)
         except (URLError, IOError):
-            WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
+            WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
             return
         finally:
             xbmc.executebuiltin( "Dialog.Close(busydialog)" )
@@ -299,7 +299,7 @@ def set_map():
                     log('Couldn\'t load json data from %s' % file.name)
                     return
         except (URLError, IOError):
-            WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
+            WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
             return
         finally:
             xbmc.executebuiltin( "Dialog.Close(busydialog)" )
@@ -323,10 +323,10 @@ def set_map():
             timestep = timesteps[int(timestepindex)]
         except IndexError:
             timestep = timesteps[0]
-            WEATHER_WINDOW.setProperty('Weather.SliderPosition', DEFAULT_INITIAL_TIMESTEP)
+            WEATHER_WINDOW.setProperty('ForecastMap.SliderPosition', DEFAULT_INITIAL_TIMESTEP)
         delta = timedelta(hours=timestep)
         maptime = default + delta
-        WEATHER_WINDOW.setProperty('Weather.MapTime', maptime.strftime(MAPTIME_FORMAT))
+        WEATHER_WINDOW.setProperty('ForecastMap.MapTime', maptime.strftime(MAPTIME_FORMAT))
 
         #get overlay using parameters from gui settings
         url = LayerURL.format(LayerName=layer_name,
@@ -348,9 +348,9 @@ def set_map():
             (width, height) = img.size
             if width == RAW_DATAPOINT_IMG_WIDTH:
                 img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(file)
-            WEATHER_WINDOW.setProperty('Weather.MapLayerFile', file)
+            WEATHER_WINDOW.setProperty('ForecastMap.Layer', file)
         except (URLError, IOError):
-            WEATHER_WINDOW.setProperty('Weather.ConnectionFailure', 'true')
+            WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
             return
         finally:
             xbmc.executebuiltin( "Dialog.Close(busydialog)" )
