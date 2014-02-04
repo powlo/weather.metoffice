@@ -52,7 +52,9 @@ class URLCache(object):
         return self._cachetable[url]
 
     def remove(self, url):
+        log("Deleting file '%s'" % self._cachetable[url]['resource'])
         os.remove(self._cachetable[url]['resource'])
+        log("Removing entry for '%s' from cache" % url)
         del self._cachetable[url]
 
     def flush(self, pattern=None):
