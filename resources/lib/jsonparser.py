@@ -1,6 +1,10 @@
 import os
+import time
+from datetime import datetime
+
 import xbmc
 import xbmcaddon
+
 import utilities
 
 WEATHER_CODES = {
@@ -50,7 +54,9 @@ def observation(data):
     """
     d = dict()
     dv = data['SiteRep']['DV']
-    d['HourlyObservation.IssuedAt'] = dv.get('dataDate').rstrip('Z')
+    dataDate = dv.get('dataDate').rstrip('Z')
+    d['HourlyObservation.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_FORMAT))
+
     try:
         latest_period = dv['Location']['Period'][-1]
     except KeyError:
@@ -76,7 +82,8 @@ def daily(data):
     """
     d = dict()
     dv = data['SiteRep']['DV']
-    d['DailyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
+    dataDate = dv.get('dataDate').rstrip('Z')
+    d['DailyForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_FORMAT))
     for p, period in enumerate(dv['Location']['Period']):
         d['Day%d.Title' %p] = utilities.day_name(period.get('value'))
         for rep in period['Rep']:
@@ -97,7 +104,8 @@ def threehourly(data):
     """
     d = dict()
     dv = data['SiteRep']['DV']
-    d['3HourlyForecast.IssuedAt'] = dv.get('dataDate').rstrip('Z')
+    dataDate = dv.get('dataDate').rstrip('Z')
+    d['3HourlyForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_FORMAT))
     count = 0
     for period in dv['Location']['Period']:
         for rep in period['Rep']:
@@ -124,7 +132,8 @@ def regional(data):
     """
     d = dict()
     rf = data['RegionalFcst']
-    d['RegionalForecast.IssuedAt'] = rf['createdOn'].rstrip('Z')
+    createdOn = rf['createdOn'].rstrip('Z')
+    d['RegionalForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(createdOn, utilities.DATAPOINT_FORMAT))
     count = 0
     for period in rf['FcstPeriods']['Period']:
         #have to check type because json can return list or dict here

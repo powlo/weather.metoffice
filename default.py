@@ -24,8 +24,6 @@ from resources.lib.utilities import log
 __addon__ = xbmcaddon.Addon()
 ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % __addon__.getAddonInfo('id'))
 
-TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
-MAPTIME_FORMAT = '%H%M %a'
 DEFAULT_INITIAL_TIMESTEP = '0'
 DEFAULT_INITIAL_LAYER = 'Rainfall'
 
@@ -112,7 +110,7 @@ def set_properties(panel):
         issuedat = WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel)
         updatefrequency = timedelta(**panel_config['updatefrequency'])
         try:
-            issuedat = datetime.fromtimestamp(time.mktime(time.strptime(issuedat, TIME_FORMAT)))
+            issuedat = datetime.fromtimestamp(time.mktime(time.strptime(issuedat, utilities.ISSUEDAT_FORMAT)))
         except ValueError:
             issuedat = datetime.now() - updatefrequency
         interval = datetime.now() - issuedat
@@ -317,7 +315,7 @@ def set_map():
             log("Couldn't find layer '%s'" % layer)
             sys.exit(1)
 
-        default = datetime.fromtimestamp(time.mktime(time.strptime(default_time, TIME_FORMAT)))
+        default = datetime.fromtimestamp(time.mktime(time.strptime(default_time, utilities.DATAPOINT_FORMAT)))
         #we create 12 slider positions but pressure only returns 8 timesteps.
         try:
             timestep = timesteps[int(timestepindex)]
@@ -326,7 +324,8 @@ def set_map():
             WEATHER_WINDOW.setProperty('ForecastMap.SliderPosition', DEFAULT_INITIAL_TIMESTEP)
         delta = timedelta(hours=timestep)
         maptime = default + delta
-        WEATHER_WINDOW.setProperty('ForecastMap.MapTime', maptime.strftime(MAPTIME_FORMAT))
+        WEATHER_WINDOW.setProperty('ForecastMap.IssuedAt', default.strftime(utilities.ISSUEDAT_FORMAT))
+        WEATHER_WINDOW.setProperty('ForecastMap.MapTime', maptime.strftime(utilities.MAPTIME_FORMAT))
 
         #get overlay using parameters from gui settings
         url = LayerURL.format(LayerName=layer_name,
