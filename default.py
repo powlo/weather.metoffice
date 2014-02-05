@@ -197,7 +197,7 @@ def get_sitelist(location):
     try:
         page = utilities.retryurlopen(url).decode('latin-1')
         data = json.loads(page)
-    except (URLError, ValueError) as e:
+    except (socket.timeout, URLError, ValueError) as e:
         log(str(e), xbmc.LOGERROR)
     finally:
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
