@@ -27,12 +27,13 @@ ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % __addo
 DEFAULT_INITIAL_TIMESTEP = '0'
 DEFAULT_INITIAL_LAYER = 'Rainfall'
 
-GOOGLE_STATICMAP = 'http://maps.googleapis.com/maps/api/staticmap?'
-GOOGLE_PARAMS = {'center': '55,-3.5',
+GOOGLE_STATIC_BASE = 'http://maps.googleapis.com/maps/api/staticmap?'
+GOOGLE_GLOBAL_PARAMS = {'center': '55,-3.5',
                  'zoom': '5',
                  'size':'323x472',
-                 'sensor':'false',
-                 'maptype': 'satellite'}
+                 'sensor':'false'}
+
+GOOGLE_SURFACE_PARAMS = dict(GOOGLE_GLOBAL_PARAMS.items() + {'maptype': 'satellite'}.items())
 
 RAW_DATAPOINT_IMG_WIDTH = 500
 CROP_WIDTH = 40
@@ -262,6 +263,8 @@ def set_location(location):
     if selected != -1:
         __addon__.setSetting(location, filtered_sites[selected]['name'])
         __addon__.setSetting("%sID" % location, filtered_sites[selected]['id'])
+        __addon__.setSetting("%sLatitude" % location, filtered_sites[selected]['latitude'])
+        __addon__.setSetting("%sLongitude" % location, filtered_sites[selected]['longitude'])
         log( "Setting '%s' to '%s (%s)'" % (location, filtered_sites[selected]['name'], filtered_sites[selected]['id']))
 
 def set_map():
@@ -271,7 +274,7 @@ def set_map():
         timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
     
         #get underlay map
-        url=GOOGLE_STATICMAP + urllib.urlencode(GOOGLE_PARAMS)
+        url=GOOGLE_STATIC_BASE + urllib.urlencode(GOOGLE_SURFACE_PARAMS)
         expiry = datetime.now() + timedelta(days=30)
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
@@ -282,6 +285,24 @@ def set_map():
             return
         finally:
             xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+
+        #get underlay map
+        lat = __addon__.getSetting('ForecastLocationLatitude')
+        long = __addon__.getSetting('ForecastLocationLongitude')
+        GOOGLE_MARKER_PARAMS = dict(GOOGLE_GLOBAL_PARAMS.items() + {'markers': '{lat},{long}'.format(lat=lat, long=long),
+                                                                    'style':'feature:all|element:all|visibility:off'}.items())
+        url=GOOGLE_STATIC_BASE + urllib.urlencode(GOOGLE_MARKER_PARAMS)
+        expiry = datetime.now() + timedelta(days=30)
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+        try:
+            file = cache.urlretrieve(url, expiry)
+            WEATHER_WINDOW.setProperty('ForecastMap.Marker', file)
+        except (URLError, IOError):
+            WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
+            return
+        finally:
+            xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+
 
         #get capabilities
         url=datapoint.url(format='layer', resource='wxfcs', object='capabilities', params={'key': API_KEY})
