@@ -32,8 +32,7 @@ GOOGLE_PARAMS = {'center': '55,-3.5',
                  'zoom': '5',
                  'size':'323x472',
                  'sensor':'false',
-                 'maptype': 'satellite',
-                 'style': 'feature:all|element:labels|visibility:off'}
+                 'maptype': 'satellite'}
 
 RAW_DATAPOINT_IMG_WIDTH = 500
 CROP_WIDTH = 40
@@ -272,7 +271,7 @@ def set_map():
         timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
     
         #get underlay map
-        url=GOOGLE_STATICMAP + urllib.unquote(urllib.urlencode(GOOGLE_PARAMS))
+        url=GOOGLE_STATICMAP + urllib.urlencode(GOOGLE_PARAMS)
         expiry = datetime.now() + timedelta(days=30)
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
