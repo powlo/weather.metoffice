@@ -384,7 +384,7 @@ AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
 FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
 cache_folder = os.path.join(ADDON_DATA_PATH, 'cache')
 if not os.path.exists(cache_folder):
-    os.mkdir(cache_folder)
+    os.makedirs(cache_folder)
 cache_file = os.path.join(ADDON_DATA_PATH, 'cache.json')
 cache = URLCache(cache_file, cache_folder)
 
