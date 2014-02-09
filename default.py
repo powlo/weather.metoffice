@@ -263,8 +263,8 @@ def set_location(location):
     if selected != -1:
         __addon__.setSetting(location, filtered_sites[selected]['name'])
         __addon__.setSetting("%sID" % location, filtered_sites[selected]['id'])
-        __addon__.setSetting("%sLatitude" % location, filtered_sites[selected]['latitude'])
-        __addon__.setSetting("%sLongitude" % location, filtered_sites[selected]['longitude'])
+        __addon__.setSetting("%sLatitude" % location, str(filtered_sites[selected].get('latitude')))
+        __addon__.setSetting("%sLongitude" % location, str(filtered_sites[selected].get('longitude')))
         log( "Setting '%s' to '%s (%s)'" % (location, filtered_sites[selected]['name'], filtered_sites[selected]['id']))
 
 def set_map():
