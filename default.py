@@ -297,12 +297,12 @@ def set_map():
             WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
             return
         else:
-            WEATHER_WINDOW.setProperty('ForecastMap.Marker', file)
             #remove any marker that isn't the one we just fetched
             markers = '(?!{lat})(\d+),(?!{long})(\d+)'.format(lat=lat, long=long)
             pattern = GOOGLE_MARKER.replace('?', '\?').format(sensor='false', center='55,-3.5',zoom='5',size='323x472',
                                        style='feature:all|element:all|visibility:off', markers=markers)
             cache.flush(pattern)
+            WEATHER_WINDOW.setProperty('ForecastMap.Marker', file)
         finally:
             xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
@@ -363,7 +363,6 @@ def set_map():
             WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
             return
         else:
-            WEATHER_WINDOW.setProperty('ForecastMap.Layer', file)
             #flush any image with the same name and timestep that isnt the one we just fetched
             pattern = LayerURL.replace('?', '\?').format(LayerName=layer_name,
                                  ImageFormat=image_format,
@@ -376,6 +375,7 @@ def set_map():
             (width, height) = img.size
             if width == RAW_DATAPOINT_IMG_WIDTH:
                 img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(file)
+            WEATHER_WINDOW.setProperty('ForecastMap.Layer', file)
         finally:
             xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
