@@ -271,7 +271,8 @@ def set_map():
         timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
     
         #get underlay map
-        url=GOOGLE_SURFACE.format(sensor='false', center='55,-3.5',zoom='5',size='323x472', maptype='satellite')
+        params = {'sensor':'false', 'center':'55,-3.5','zoom':'5','size':'323x472'}
+        url=GOOGLE_SURFACE.format(maptype='satellite', **params)
         expiry = datetime.now() + timedelta(days=30)
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
@@ -287,8 +288,7 @@ def set_map():
         lat = __addon__.getSetting('ForecastLocationLatitude')
         long = __addon__.getSetting('ForecastLocationLongitude')
         markers = '{lat},{long}'.format(lat=lat, long=long)
-        url = GOOGLE_MARKER.format(sensor='false', center='55,-3.5',zoom='5',size='323x472',
-                                   style='feature:all|element:all|visibility:off', markers=markers)
+        url = GOOGLE_MARKER.format(style='feature:all|element:all|visibility:off', markers=markers, **params)
         expiry = datetime.now() + timedelta(days=30)
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
