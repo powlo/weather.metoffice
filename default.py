@@ -359,20 +359,23 @@ def set_map():
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             file = cache.urlretrieve(url, expiry)
+        except (URLError, IOError):
+            WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
+            return
+        else:
+            WEATHER_WINDOW.setProperty('ForecastMap.Layer', file)
+            #flush any image with the same name and timestep that isnt the one we just fetched
             pattern = LayerURL.replace('?', '\?').format(LayerName=layer_name,
                                  ImageFormat=image_format,
                                  DefaultTime="(?!%s)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})" % default_time,
                                  Timestep=timestep,
                                  key="[a-z0-9-]+")
             cache.flush(pattern)
+            #remove the 'cone' from the image
             img = Image.open(file)
             (width, height) = img.size
             if width == RAW_DATAPOINT_IMG_WIDTH:
                 img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(file)
-            WEATHER_WINDOW.setProperty('ForecastMap.Layer', file)
-        except (URLError, IOError):
-            WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
-            return
         finally:
             xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
