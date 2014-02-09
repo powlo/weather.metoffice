@@ -269,14 +269,14 @@ def set_map():
     with URLCache(cache_file, cache_folder) as cache:
         layer = WEATHER_WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER
         timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
-    
-        #get underlay map
         params = {'sensor':'false', 'center':'55,-3.5','zoom':'5','size':'323x472'}
+        google_expiry = datetime.now() + timedelta(days=30)
+
+        #get underlay map
         url=GOOGLE_SURFACE.format(maptype='satellite', **params)
-        expiry = datetime.now() + timedelta(days=30)
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
-            file = cache.urlretrieve(url, expiry)
+            file = cache.urlretrieve(url, google_expiry)
             WEATHER_WINDOW.setProperty('ForecastMap.Surface', file)
         except (URLError, IOError):
             WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
@@ -289,10 +289,9 @@ def set_map():
         long = __addon__.getSetting('ForecastLocationLongitude')
         markers = '{lat},{long}'.format(lat=lat, long=long)
         url = GOOGLE_MARKER.format(style='feature:all|element:all|visibility:off', markers=markers, **params)
-        expiry = datetime.now() + timedelta(days=30)
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
-            file = cache.urlretrieve(url, expiry)
+            file = cache.urlretrieve(url, google_expiry)
         except (URLError, IOError):
             WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
             return
@@ -308,10 +307,9 @@ def set_map():
 
         #get capabilities
         url=datapoint.url(format='layer', resource='wxfcs', object='capabilities', params={'key': API_KEY})
-        expiry = datetime.now() + timedelta(hours=12) #need to investigate further into how often forecasts are updated
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
-            with open(cache.urlretrieve(url, expiry)) as file:
+            with open(cache.urlretrieve(url)) as file:
                 try:
                     data = json.load(file)
                 except ValueError:
@@ -321,6 +319,11 @@ def set_map():
         except (URLError, IOError):
             WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
             return
+        else:
+            expiry = data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime']
+            expiry = datetime.fromtimestamp(time.mktime(time.strptime(expiry, utilities.DATAPOINT_FORMAT)))
+            expiry = expiry + timedelta(hours=9)
+            cache.setexpiry(url, expiry)
         finally:
             xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
@@ -355,7 +358,6 @@ def set_map():
                                  DefaultTime=default_time,
                                  Timestep=timestep,
                                  key=API_KEY)
-        expiry = datetime.now() + timedelta(hours=12) # change to midnight
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             file = cache.urlretrieve(url, expiry)

@@ -79,7 +79,13 @@ class URLCache(object):
         #the resource indicated by the entry no longer exists
         return not os.path.exists(entry['resource'])
 
-    def urlretrieve(self, url, expiry):
+    def setexpiry(self, url, expiry):
+        """
+        Sets the expiry of a given url
+        """
+        self._cachetable[url]['expiry'] = expiry.strftime(self.TIME_FORMAT)
+
+    def urlretrieve(self, url, expiry=datetime.now()+timedelta(days=1)):
         """
         Checks to see if an item is in cache
         Uses urllib.urlretrieve to fetch the item
