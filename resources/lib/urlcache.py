@@ -18,50 +18,56 @@ from utilities import log
 class URLCache(object):
     TIME_FORMAT = "%a %b %d %H:%M:%S %Y"
 
-    def __init__(self, filename, folder):
-        self._cachefilename = filename
-        self._cachefolder = folder
+    def __init__(self, file, folder):
+        file_folder = os.path.dirname(file)
+        if not file_folder:
+            os.makedirs(file_folder)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+        self._file = file
+        self._folder = folder
 
     def __enter__(self):
         try:
-            file = open(self._cachefilename, 'r')
+            file = open(self._file, 'r')
         except IOError:
             #create the file and try again.
-            open(self._cachefilename, 'a').close()
-            file = open(self._cachefilename, 'r')            
+            open(self._file, 'a').close()
+            file = open(self._file, 'r')
         try:
-            self._cachetable = json.load(file)
+            self._cache = json.load(file)
         except ValueError:
-            self._cachetable = dict()
+            self._cache = dict()
         file.close()
         return self
 
     def __exit__(self, type, value, traceback):
-        with open(self._cachefilename, 'w+') as file:
-            json.dump(self._cachetable, file, indent=2)
+        with open(self._file, 'w+') as file:
+            json.dump(self._cache, file, indent=2)
 
     def put(self, url, src, expiry):
         #takes a file and copies it into the cache
         #returns resource location in cache
-        shutil.copy(src, self._cachefolder)
-        resource = os.path.join(self._cachefolder, os.path.basename(src))
-        self._cachetable[url] = {'resource':resource, 'expiry': expiry.strftime(self.TIME_FORMAT)}
+        shutil.copy(src, self._folder)
+        resource = os.path.join(self._folder, os.path.basename(src))
+        self._cache[url] = {'resource':resource, 'expiry': expiry.strftime(self.TIME_FORMAT)}
         return resource
 
     def get(self, url):
-        return self._cachetable[url]
+        return self._cache[url]
 
     def remove(self, url):
-        log("Deleting file '%s'" % self._cachetable[url]['resource'])
-        os.remove(self._cachetable[url]['resource'])
+        log("Deleting file '%s'" % self._cache[url]['resource'])
+        os.remove(self._cache[url]['resource'])
         log("Removing entry for '%s' from cache" % url)
-        del self._cachetable[url]
+        del self._cache[url]
 
     def flush(self, pattern=None):
         flushlist = list()
-        for url in self._cachetable:
+        for url in self._cache:
             if pattern:
-                if self.isexpired(self._cachetable[url]):
+                if self.isexpired(self._cache[url]):
                     if re.match(pattern, url):
                         flushlist.append(url)
             else:
@@ -83,7 +89,7 @@ class URLCache(object):
         """
         Sets the expiry of a given url
         """
-        self._cachetable[url]['expiry'] = expiry.strftime(self.TIME_FORMAT)
+        self._cache[url]['expiry'] = expiry.strftime(self.TIME_FORMAT)
 
     def urlretrieve(self, url, expiry=datetime.now()+timedelta(days=1)):
         """
@@ -125,6 +131,14 @@ class URLCache(object):
             finally:
                 return resource
 
+    def jsonretrieve(self, url, expiry=datetime.now()+timedelta(days=1)):
+        with open(self.urlretrieve(url, expiry)) as file:
+            try:
+                return json.load(file)
+            except ValueError:
+                self.remove(url)
+                log('Couldn\'t load json data from %s' % file.name)
+                raise
 
 class MissingError(Exception):
     pass
