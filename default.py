@@ -33,7 +33,7 @@ RAW_DATAPOINT_IMG_WIDTH = 500
 CROP_WIDTH = 40
 CROP_HEIGHT = 20
 
-def auto_location(location):
+def auto_location(location, cache):
     GEOIP_PROVIDER = int(__addon__.getSetting('GeoIPProvider'))
     if not GEOIP_PROVIDER:
         log( 'No GeoIP Provider is set.')
@@ -43,8 +43,7 @@ def auto_location(location):
     url = {'ForecastLocation' : datapoint.FORECAST_SITELIST_URL,
            'ObservationLocation': datapoint.OBSERVATION_SITELIST_URL}[location]
     url = url.format(key=API_KEY)
-    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
-        data = cache.jsonretrieve(url, datetime.now()+timedelta(weeks=1))
+    data = cache.jsonretrieve(url, datetime.now()+timedelta(weeks=1))
     sitelist = data['Locations']['Location']
     for site in sitelist:
         site['distance'] = locator.distance(float(site['latitude']), float(site['longitude']), GEOIP_PROVIDER)
@@ -54,7 +53,7 @@ def auto_location(location):
     __addon__.setSetting('%sID' % location, first['id'])
     log( "Location set to '%s'" % first['name'])
 
-def set_daily_forecast():
+def set_daily_forecast(cache):
     name = __addon__.getSetting('ForecastLocation')
     id = __addon__.getSetting('ForecastLocationID')
     log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, id))
@@ -65,7 +64,7 @@ def set_daily_forecast():
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
-def set_3hourly_forecast():
+def set_3hourly_forecast(cache):
     name = __addon__.getSetting('ForecastLocation')
     id = __addon__.getSetting('ForecastLocationID')
     log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, id))
@@ -76,7 +75,7 @@ def set_3hourly_forecast():
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
-def set_regional_forecast():
+def set_regional_forecast(cache):
     name = __addon__.getSetting('RegionalLocation')
     id = __addon__.getSetting('RegionalLocationID')
     log( "Fetching Regional Forecast for '%s (%s)' from the Met Office..." % (name, id))
@@ -87,7 +86,7 @@ def set_regional_forecast():
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
-def set_hourly_observation():
+def set_hourly_observation(cache):
     name = __addon__.getSetting('ObservationLocation')
     id = __addon__.getSetting('ObservationLocationID')
     log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, id))
@@ -98,7 +97,7 @@ def set_hourly_observation():
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
 
-def set_forecast_layer():
+def set_forecast_layer(cache):
     #there are two kinds of fetches for this app, get a json file and get an image file.
     layer = WEATHER_WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER
     timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
@@ -190,49 +189,51 @@ API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
 FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
 
-xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-try:
-    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
-        if not API_KEY:
-            dialog = xbmcgui.Dialog()
-            dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
-            log( 'No API Key', xbmc.LOGERROR)
-            sys.exit(1)
+@utilities.xbmcbusy
+def main():
+    try:
+        with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+            if not API_KEY:
+                dialog = xbmcgui.Dialog()
+                dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
+                log( 'No API Key', xbmc.LOGERROR)
+                sys.exit(1)
 
-        if sys.argv[1].isdigit():
-            #only autolocate when given a refresh command
-            if FORCEAUTOLOCATION:
-                auto_location('ForecastLocation')
-                auto_location('ObservationLocation')
-            elif AUTOLOCATION:
-                if not __addon__.getSetting('ForecastLocation'):
-                    auto_location('ForecastLocation')
-                if not __addon__.getSetting('ObservationLocation'):
-                    auto_location('ObservationLocation')
+            if sys.argv[1].isdigit():
+                #only autolocate when given a refresh command
+                if FORCEAUTOLOCATION:
+                    auto_location('ForecastLocation', cache)
+                    auto_location('ObservationLocation', cache)
+                elif AUTOLOCATION:
+                    if not __addon__.getSetting('ForecastLocation'):
+                        auto_location('ForecastLocation', cache)
+                    if not __addon__.getSetting('ObservationLocation'):
+                        auto_location('ObservationLocation', cache)
 
-            #fetch all?
-            #TODO: actually we want to do something smarter: look and see which panels are
-            #visible and only fetch data for them, so we'll pass a list into set_properties?...
-            set_hourly_observation()
-            set_daily_forecast()
-        elif sys.argv[1] == 'ForecastMap':
-            set_forecast_layer()
-        elif sys.argv[1] == 'DailyForecast':
-            set_daily_forecast()
-        elif sys.argv[1] == '3HourlyForecast':
-            set_3hourly_forecast()
-        elif sys.argv[1] == 'RegionalForecast':
-            set_regional_forecast()
-        elif sys.arg[1] == 'HourlyObservation':
-            set_hourly_observation()
+                #fetch all?
+                #TODO: actually we want to do something smarter: look and see which panels are
+                #visible and only fetch data for them, so we'll pass a list into set_properties?...
+                set_hourly_observation(cache)
+                set_daily_forecast(cache)
+            elif sys.argv[1] == 'ForecastMap':
+                set_forecast_layer(cache)
+            elif sys.argv[1] == 'DailyForecast':
+                set_daily_forecast(cache)
+            elif sys.argv[1] == '3HourlyForecast':
+                set_3hourly_forecast(cache)
+            elif sys.argv[1] == 'RegionalForecast':
+                set_regional_forecast(cache)
+            elif sys.arg[1] == 'HourlyObservation':
+                set_hourly_observation(cache)
 
-        WEATHER_WINDOW.setProperty('WeatherProvider', __addon__.getAddonInfo('name'))
-        WEATHER_WINDOW.setProperty('ObservationLocation', __addon__.getSetting('ObservationLocation'))
-        WEATHER_WINDOW.setProperty('ForecastLocation', __addon__.getSetting('ForecastLocation'))
-        WEATHER_WINDOW.setProperty('RegionalLocation', __addon__.getSetting('RegionalLocation'))
-        WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ObservationLocation'))
-        WEATHER_WINDOW.setProperty('Locations', '1')
-except (URLError, IOError):
-    WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
-finally:
-    xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+            WEATHER_WINDOW.setProperty('WeatherProvider', __addon__.getAddonInfo('name'))
+            WEATHER_WINDOW.setProperty('ObservationLocation', __addon__.getSetting('ObservationLocation'))
+            WEATHER_WINDOW.setProperty('ForecastLocation', __addon__.getSetting('ForecastLocation'))
+            WEATHER_WINDOW.setProperty('RegionalLocation', __addon__.getSetting('RegionalLocation'))
+            WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ObservationLocation'))
+            WEATHER_WINDOW.setProperty('Locations', '1')
+    except (URLError, IOError):
+        WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
+
+if __name__ == '__main__':
+    main()

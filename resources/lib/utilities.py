@@ -1,4 +1,4 @@
-
+from functools import wraps
 from datetime import datetime
 import json
 import os
@@ -20,6 +20,16 @@ CACHE_FILE = os.path.join(ADDON_DATA_PATH, 'cache.json')
 
 def log(msg, level=xbmc.LOGNOTICE):
     xbmc.log("%s: %s" %(__addonid__, msg), level)
+
+def xbmcbusy(f):
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+        try:
+            return f(*args, **kwds)
+        finally:
+            xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+    return wrapper
 
 def day_name(date):
     """
