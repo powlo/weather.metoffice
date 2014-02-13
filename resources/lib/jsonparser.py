@@ -1,10 +1,5 @@
-import os
 import time
-from datetime import datetime
-
 import xbmc
-import xbmcaddon
-
 import utilities
 
 WEATHER_CODES = {
@@ -41,10 +36,6 @@ WEATHER_CODES = {
     '29': ('17', 'Thunder'),
     '30': ('17', 'Thunder')
 }
-
-__addon__ = xbmcaddon.Addon()
-__addonpath__ = __addon__.getAddonInfo('path')
-__media__ = os.path.join( __addonpath__, 'resources', 'media' )
 
 WEATHER_ICON = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
 
