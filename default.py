@@ -210,7 +210,6 @@ def set_forecast_layer():
 WEATHER_WINDOW_ID = 12600
 WEATHER_WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
 
-DEBUG = True if __addon__.getSetting('Debug') == 'true' else False
 API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
 FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
