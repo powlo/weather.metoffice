@@ -2,16 +2,27 @@
 #http://www.metoffice.gov.uk/datapoint
 import urllib
 import urllib2
-from utilities import retryurlopen
+from utilities import retryurlopen, log
 
-#resource can be 'wxobs', 'wxfcs'
-#format can be 'val', 'txt', 'image', 'layer'
-#datatype can be 'json', 'xml'
-#object can be 'sitelist', 'capabilties', \d+ (string of digits)
-BASE_URL = "http://datapoint.metoffice.gov.uk/public/data/"
-RESOURCE_URL = "%(format)s/%(resource)s/%(group)s/%(datatype)s/%(object)s?%(params)s"
+URL_TEMPLATE = "http://datapoint.metoffice.gov.uk/public/data/{format}/{resource}/{group}/{datatype}/{object}?{get}"
 
-SITELIST_TYPES = ['ForecastLocation', 'ObservationLocation', 'RegionalLocation']
+FORECAST_SITELIST_URL = URL_TEMPLATE.format(format='val', resource='wxfcs', group='all', datatype='json', object='sitelist', 
+                                            get=urllib.unquote(urllib.urlencode((('key','{key}'),))))
+OBSERVATION_SITELIST_URL = URL_TEMPLATE.format(format='val', resource='wxobs', group='all', datatype='json', object='sitelist',
+                                            get=urllib.unquote(urllib.urlencode((('key','{key}'),))))
+REGIONAL_SITELIST_URL = URL_TEMPLATE.format(format='txt', resource='wxfcs', group='regionalforecast', datatype='json', object='sitelist',
+                                            get=urllib.unquote(urllib.urlencode((('key','{key}'),))))
+
+DAILY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(format='val', resource='wxfcs', group='all', datatype='json', object='{object}',
+                                            get=urllib.unquote(urllib.urlencode((('res', 'daily'),('key','{key}')))))
+THREEHOURLY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(format='val', resource='wxfcs', group='all', datatype='json', object='{object}',
+                                            get=urllib.unquote(urllib.urlencode((('res', '3hourly'),('key','{key}')))))
+HOURLY_LOCATION_OBSERVATION_URL = URL_TEMPLATE.format(format='val', resource='wxobs', group='all', datatype='json', object='{object}',
+                                            get=urllib.unquote(urllib.urlencode((('res', 'hourly'),('key','{key}')))))
+REGIONAL_TEXT_URL = URL_TEMPLATE.format(format='txt', resource='wxfcs', group='regionalforecast', datatype='json', object='{object}',
+                                            get=urllib.unquote(urllib.urlencode((('key','{key}'),))))
+FORECAST_LAYER_CAPABILITIES_URL = URL_TEMPLATE.format(format='layer', resource='wxfcs', group='all', datatype='json', object='capabilities',
+                                            get=urllib.unquote(urllib.urlencode((('key','{key}'),))))
 
 LONG_REGIONAL_NAMES = {'os': 'Orkney and Shetland',
                        'he': 'Highland and Eilean Siar',
@@ -30,6 +41,28 @@ LONG_REGIONAL_NAMES = {'os': 'Orkney and Shetland',
                        'sw': 'Southwest England',
                        'wl': 'Wales',
                        'uk': 'United Kingdom'}
+
+def get_sitelist(location):
+    log("Getting sitelist for '%s'" % location)
+    url_params = {
+        'ForecastLocation' : {'resource' : 'wxfcs'},
+        'ObservationLocation' : {'resource' : 'wxobs'},
+        'RegionalLocation' : {'resource' : 'wxfcs', 'format': 'txt', 'group' : 'regionalforecast'},
+        }
+    args = url_params[location]
+    args.update({'params':{'key': API_KEY}})
+    url = url(**args)
+    log("URL: %s" % url)
+    page = utilities.retryurlopen(url).decode('latin-1')
+    data = json.loads(page)
+    sitelist = data['Locations']['Location']
+    if location == 'RegionalLocation':
+        #bug in datapoint: sitelist requires cleaning for regional forecast
+        sitelist = clean_sitelist(sitelist)
+        #long names are more user friendly
+        for site in sitelist:
+            site['name'] = LONG_REGIONAL_NAMES[site['name']]
+    return sitelist
 
 def clean_sitelist(sitelist):
     """

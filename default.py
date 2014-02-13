@@ -15,10 +15,7 @@ from PIL import Image
 from urllib2 import URLError
 from operator import itemgetter
 
-from resources.lib import utilities
-from resources.lib import jsonparser
-from resources.lib import datapoint
-from resources.lib.urlcache import URLCache
+from resources.lib import utilities, jsonparser, datapoint, urlcache, locator
 from resources.lib.utilities import log
 
 __addon__ = xbmcaddon.Addon()
@@ -36,237 +33,78 @@ RAW_DATAPOINT_IMG_WIDTH = 500
 CROP_WIDTH = 40
 CROP_HEIGHT = 20
 
-def set_properties(panel):
-    #Look at the time the last regional forecast was fetched
-    #and if fetched over a given period ago then refetch.
-    #TODO: Embed the url in the config, not the url params.
-    config = {
-        'DailyForecast' : {
-            'name' : 'Daily Forecast',
-            'updatefrequency' : {'hours' : 1},
-            'location_name' : 'ForecastLocation',
-            'location_id' : 'ForecastLocationID',
-            'parser' : 'daily',
-            'api_args' : {
-                'resource' : 'wxfcs',
-                'params' : {'res' : 'daily'},
-            }
-        },
-        '3HourlyForecast' : {
-            'name' : '3Hourly Forecast',
-            'updatefrequency' : {'hours' : 1},
-            'location_name' : 'ForecastLocation',
-            'location_id' : 'ForecastLocationID',
-            'parser' : 'threehourly',
-            'api_args' : {
-                'resource' : 'wxfcs',
-                'params' : {'res' : '3hourly'},
-            }
-        },
-        'RegionalForecast' : {
-            'name' : 'Regional Forecast',
-            'updatefrequency' : {'hours' : 12},
-            'location_name' : 'RegionalLocation',
-            'location_id' : 'RegionalLocationID',
-            'parser' : 'regional',
-            'api_args' : {
-                'format' : 'txt',
-                'resource' : 'wxfcs',
-                'group' : 'regionalforecast',
-            }
-        },
-        'HourlyObservation' : {
-            'name' : 'Hourly Observation',
-            'updatefrequency' : {'hours' : 1},
-            'location_name' : 'ObservationLocation',
-            'location_id' : 'ObservationLocationID',
-            'parser' : 'observation',
-            'api_args' : {
-                'params' : {'res' : 'hourly'},
-            }
-        },
-        'ForecastMap' : {
-            'name' : 'Forecast Map',
-            'updatefrequency' : {'hours' : 1},
-            'location_name' : 'ObservationLocation',
-            'location_id' : 'ObservationLocationID',
-            'parser' : 'observation',
-            'api_args' : {
-                'params' : {'res' : 'hourly'},
-            }
-        },
-    }
-    try:
-        panel_config = config[panel]
-    except KeyError:
-        log("Unknown panel '%s'" % panel, xbmc.LOGERROR)
-        return
-
-    panel_name = panel_config.get('name')
-    if WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel):
-        issuedat = WEATHER_WINDOW.getProperty('%s.IssuedAt' % panel)
-        updatefrequency = timedelta(**panel_config['updatefrequency'])
-        try:
-            issuedat = datetime.fromtimestamp(time.mktime(time.strptime(issuedat, utilities.ISSUEDAT_FORMAT)))
-        except ValueError:
-            issuedat = datetime.now() - updatefrequency
-        interval = datetime.now() - issuedat
-        log("Last %s report was issued %s ago." % (panel_name, utilities.verbose_timedelta(interval)))
-        if interval < updatefrequency:
-            log("No need to fetch data.")
-            return
-
-    location_name = __addon__.getSetting(panel_config.get('location_name'))
-    location_id = __addon__.getSetting(panel_config.get('location_id'))
-    if not (location_id and location_name):
-        log( "%s location is not set" % panel_name, xbmc.LOGERROR)
-        return
-    #Fetch data from Met Office:
-    api_args = panel_config.get('api_args', {})
-    try:
-        api_args.get('params').update({'key': API_KEY})
-    except AttributeError:
-        api_args['params'] = {'key': API_KEY}
-
-    #assumes we always want 'object' to be set. True at the moment.
-    api_args.update({'object' : location_id})
-
-    url = datapoint.url(**api_args)
-    try:
-        log( "Fetching %s for '%s (%s)' from the Met Office..." % (panel_name, location_name, location_id))
-        log("URL: %s " % url)
-        page = utilities.retryurlopen(url).decode('latin-1')
-        log('Converting page to json data...')
-        data = json.loads(page)
-    except (socket.timeout, URLError, ValueError) as e:
-        log(str(e), xbmc.LOGERROR)
-        return
-    log('Converting json to XBMC properties...')
-    parsefunc = getattr(jsonparser, panel_config['parser'])
-    report = parsefunc(data)
-    for field, value in report.iteritems():
-        WEATHER_WINDOW.setProperty(field, value)
-
-def geoip_distance(sitelist):
-    if __addon__.getSetting('GeoLocation') != 'true':
-        return sitelist
-    provider = int(__addon__.getSetting('GeoIPProvider'))
-    url = utilities.GEOIP_PROVIDERS[provider]['url']
-    log("Adding distances based on GeoIP data from %s" % url.split('/')[2].lstrip('www.'))
-    log("URL: %s" % url)
-    try:
-        page = utilities.retryurlopen(url)
-        geoip = json.loads(page)
-    except (URLError, ValueError) as e:
-        log( str(e), xbmc.LOGERROR)
-        return sitelist
-    #different geoip providers user different names for latitude, longitude
-    latitude = utilities.GEOIP_PROVIDERS[provider]['latitude']
-    longitude = utilities.GEOIP_PROVIDERS[provider]['longitude']
-
-    try:
-        (latitude, longitude) = (float(geoip[latitude]), float(geoip[longitude]))
-    except TypeError:
-        #if geoip provider returns None
-        log( "Couldn't get lat,long data from %s" % url, xbmc.LOGERROR)
-        return sitelist
-    newlist = list(sitelist)
-    for site in newlist:
-        try:
-            site['distance'] = int(utilities.haversine_distance(latitude, longitude, float(site['latitude']), float(site['longitude'])))
-        except KeyError:
-            log( "Site '%s' does not have latitude, longitude info" % site['name'], xbmc.LOGERROR)
-            return sitelist
-    return newlist
-
-def get_sitelist(location):
-    log("Getting sitelist for '%s'" % location)
-    url_params = {
-        'ForecastLocation' : {'resource' : 'wxfcs'},
-        'ObservationLocation' : {'resource' : 'wxobs'},
-        'RegionalLocation' : {'resource' : 'wxfcs', 'format': 'txt', 'group' : 'regionalforecast'},
-        }
-    args = url_params[location]
-    args.update({'params':{'key': API_KEY}})
-    url = datapoint.url(**args)
-    log("URL: %s" % url)
-    xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-    try:
-        page = utilities.retryurlopen(url).decode('latin-1')
-        data = json.loads(page)
-    except (socket.timeout, URLError, ValueError) as e:
-        log(str(e), xbmc.LOGERROR)
-    finally:
-        xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-
-    try:
-        sitelist = data['Locations']['Location']
-    except NameError:
-        log("Could not fetch sitelist", xbmc.LOGERROR)
-
-    if location == 'RegionalLocation':
-        #bug in datapoint: sitelist requires cleaning for regional forecast
-        sitelist = datapoint.clean_sitelist(sitelist)
-        #long names are more user friendly
-        for site in sitelist:
-            site['name'] = datapoint.LONG_REGIONAL_NAMES[site['name']]
-
-    return geoip_distance(sitelist)
-
 def auto_location(location):
+    GEOIP_PROVIDER = int(__addon__.getSetting('GeoIPProvider'))
+    if not GEOIP_PROVIDER:
+        log( 'No GeoIP Provider is set.')
+        GEOIP_PROVIDER = 0
+    
     log( "Auto-assigning '%s'..." % location)
-    sitelist = get_sitelist(location)
-    try:
-        sitelist.sort(key=itemgetter('distance'))
-    except KeyError:
-        #if geoip service can't add distance then we can't autolocate
-        log( "Can't autolocate. Returned sitelist doesn't have 'distance' key.")
-        return
+    url = {'ForecastLocation' : datapoint.FORECAST_SITELIST_URL,
+           'ObservationLocation': datapoint.OBSERVATION_SITELIST_URL}[location]
+    url = url.format(key=API_KEY)
+    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+        data = cache.jsonretrieve(url, datetime.now()+timedelta(weeks=1))
+    sitelist = data['Locations']['Location']
+    for site in sitelist:
+        site['distance'] = locator.distance(float(site['latitude']), float(site['longitude']), GEOIP_PROVIDER)
+    sitelist.sort(key=itemgetter('distance'))
     first = sitelist[0]
     __addon__.setSetting(location, first['name'])
     __addon__.setSetting('%sID' % location, first['id'])
-
     log( "Location set to '%s'" % first['name'])
 
-def set_location(location):
-    """
-    Sets the forecast location by providing a keyboard prompt
-    to the user. The name entered by the user is searched in
-    site list. All matches are presented as a select list to
-    the user. On successful selection internal addon setting
-    is set.
-    :returns: None
-    """  
-    assert(location in datapoint.SITELIST_TYPES)
-    keyboard = xbmc.Keyboard()
-    keyboard.doModal()
-    text= keyboard.isConfirmed() and keyboard.getText()
-    dialog = xbmcgui.Dialog()
-    sitelist = get_sitelist(location)
-    filtered_sites = datapoint.filter_sitelist(text, sitelist)
-    if filtered_sites == []:
-        dialog.ok("No Matches", "No locations found containing '%s'" % text)
-        log( "No locations found containing '%s'" % text)
-        return
-    
-    try:
-        filtered_sites = sorted(filtered_sites,key=itemgetter('distance'))
-        display_list = ["%s (%skm)" % (x['name'], x['distance']) for x in filtered_sites]
-    except KeyError:
-        filtered_sites = sorted(filtered_sites,key=itemgetter('name'))
-        display_list = [x['name'] for x in filtered_sites]
-        
-    selected = dialog.select("Matching Sites", display_list)
-    if selected != -1:
-        __addon__.setSetting(location, filtered_sites[selected]['name'])
-        __addon__.setSetting("%sID" % location, filtered_sites[selected]['id'])
-        __addon__.setSetting("%sLatitude" % location, str(filtered_sites[selected].get('latitude')))
-        __addon__.setSetting("%sLongitude" % location, str(filtered_sites[selected].get('longitude')))
-        log( "Setting '%s' to '%s (%s)'" % (location, filtered_sites[selected]['name'], filtered_sites[selected]['id']))
+def set_daily_forecast():
+    name = __addon__.getSetting('ForecastLocation')
+    id = __addon__.getSetting('ForecastLocationID')
+    log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, id))
+    url = datapoint.DAILY_LOCATION_FORECAST_URL.format(object=id, key=API_KEY)
+    expiry = datetime.now() + timedelta(hours=1)
+    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+        data = cache.jsonretrieve(url, expiry)
+    report = jsonparser.daily(data)
+    for field, value in report.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
 
-def set_map():
+def set_3hourly_forecast():
+    name = __addon__.getSetting('ForecastLocation')
+    id = __addon__.getSetting('ForecastLocationID')
+    log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, id))
+    url = datapoint.THREEHOURLY_LOCATION_FORECAST_URL.format(object=id, key=API_KEY)
+    expiry = datetime.now() + timedelta(hours=1)
+    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+        data = cache.jsonretrieve(url, expiry)
+    report = jsonparser.threehourly(data)
+    for field, value in report.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
+
+def set_regional_forecast():
+    name = __addon__.getSetting('RegionalLocation')
+    id = __addon__.getSetting('RegionalLocationID')
+    log( "Fetching Regional Forecast for '%s (%s)' from the Met Office..." % (name, id))
+    url = datapoint.REGIONAL_TEXT_URL.format(object=id, key=API_KEY)
+    expiry = datetime.now() + timedelta(hours=1)
+    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+        data = cache.jsonretrieve(url, expiry)
+    report = jsonparser.regional(data)
+    for field, value in report.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
+
+def set_hourly_observation():
+    name = __addon__.getSetting('ObservationLocation')
+    id = __addon__.getSetting('ObservationLocationID')
+    log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, id))
+    url = datapoint.HOURLY_LOCATION_OBSERVATION_URL.format(object=id, key=API_KEY)
+    expiry = datetime.now() + timedelta(hours=1)
+    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+        data = cache.jsonretrieve(url, expiry)
+    report = jsonparser.observation(data)
+    for field, value in report.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
+
+def set_forecast_layer():
     #there are two kinds of fetches for this app, get a json file and get an image file.
-    with URLCache(cache_file, cache_folder) as cache:
+    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         layer = WEATHER_WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER
         timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
         params = {'sensor':'false', 'center':'55,-3.5','zoom':'5','size':'323x472'}
@@ -287,6 +125,7 @@ def set_map():
         #get marker map
         lat = __addon__.getSetting('ForecastLocationLatitude')
         long = __addon__.getSetting('ForecastLocationLongitude')
+        
         markers = '{lat},{long}'.format(lat=lat, long=long)
         url = GOOGLE_MARKER.format(style='feature:all|element:all|visibility:off', markers=markers, **params)
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
@@ -306,26 +145,12 @@ def set_map():
             xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 
         #get capabilities
-        url=datapoint.url(format='layer', resource='wxfcs', object='capabilities', params={'key': API_KEY})
-        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-        try:
-            with open(cache.urlretrieve(url)) as file:
-                try:
-                    data = json.load(file)
-                except ValueError:
-                    cache.remove(url)
-                    log('Couldn\'t load json data from %s' % file.name)
-                    return
-        except (URLError, IOError):
-            WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
-            return
-        else:
-            expiry = data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime']
-            expiry = datetime.fromtimestamp(time.mktime(time.strptime(expiry, utilities.DATAPOINT_FORMAT)))
-            expiry = expiry + timedelta(hours=9)
-            cache.setexpiry(url, expiry)
-        finally:
-            xbmc.executebuiltin( "Dialog.Close(busydialog)" )
+        url = datapoint.FORECAST_LAYER_CAPABILITIES_URL.format(key=API_KEY)
+        data = cache.jsonretrieve(url)
+        expiry = data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime']
+        expiry = datetime.fromtimestamp(time.mktime(time.strptime(expiry, utilities.DATAPOINT_FORMAT)))
+        expiry = expiry + timedelta(hours=9)
+        cache.setexpiry(url, expiry)
 
         LayerURL = data['Layers']['BaseUrl']['$']
         #consider using jsonpath here
@@ -338,7 +163,7 @@ def set_map():
                 break
         else:
             log("Couldn't find layer '%s'" % layer)
-            sys.exit(1)
+            return
 
         default = datetime.fromtimestamp(time.mktime(time.strptime(default_time, utilities.DATAPOINT_FORMAT)))
         #we create 12 slider positions but pressure only returns 8 timesteps.
@@ -389,11 +214,6 @@ DEBUG = True if __addon__.getSetting('Debug') == 'true' else False
 API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
 FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
-cache_folder = os.path.join(ADDON_DATA_PATH, 'cache')
-if not os.path.exists(cache_folder):
-    os.makedirs(cache_folder)
-cache_file = os.path.join(ADDON_DATA_PATH, 'cache.json')
-cache = URLCache(cache_file, cache_folder)
 
 if not API_KEY:
     dialog = xbmcgui.Dialog()
@@ -415,15 +235,18 @@ if sys.argv[1].isdigit():
     #fetch all?
     #TODO: actually we want to do something smarter: look and see which panels are
     #visible and only fetch data for them, so we'll pass a list into set_properties?...
-    set_properties('HourlyObservation')
-    set_properties('DailyForecast')
-
-elif sys.argv[1] == ('SetLocation'):
-    set_location(sys.argv[2])
-elif sys.argv[1] == ('ForecastMap'):
-    set_map()
-else:
-    set_properties(sys.argv[1])
+    set_hourly_observation()
+    set_daily_forecast()
+elif sys.argv[1] == 'ForecastMap':
+    set_forecast_layer()
+elif sys.argv[1] == 'DailyForecast':
+    set_daily_forecast()
+elif sys.argv[1] == '3HourlyForecast':
+    set_3hourly_forecast()
+elif sys.argv[1] == 'RegionalForecast':
+    set_regional_forecast()
+elif sys.arg[1] == 'HourlyObservation':
+    set_hourly_observation()
 
 WEATHER_WINDOW.setProperty('WeatherProvider', __addon__.getAddonInfo('name'))
 WEATHER_WINDOW.setProperty('ObservationLocation', __addon__.getSetting('ObservationLocation'))

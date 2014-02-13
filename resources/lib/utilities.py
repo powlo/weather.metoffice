@@ -1,6 +1,6 @@
+
 from datetime import datetime
 import json
-import math
 import os
 import time
 import urllib2
@@ -11,35 +11,15 @@ DATAPOINT_FORMAT = '%Y-%m-%dT%H:%M:%S'
 MAPTIME_FORMAT = '%H%M %a'
 ISSUEDAT_FORMAT = '%H:%M %a %d %b %Y'
 
-#This list must appear in the same order as it appears in 
-#the settings.xml in order for the indexes to align.
-GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitude':'lon'},
-             {'url':'http://freegeoip.net/json/', 'latitude':'latitude', 'longitude':'longitude'},
-             {'url':'http://www.telize.com/geoip/','latitude':'latitude', 'longitude':'longitude'},
-             {'url':'http://api.hostip.info/get_json.php?position=true','latitude':'lat', 'longitude':'lng'},
-             {'url':'http://geoiplookup.net/geoapi.php?output=json', 'latitude':'latitude', 'longitude':'longitude'}
-                   ]
-__addon__       = xbmcaddon.Addon()
+__addon__       = xbmcaddon.Addon(id="weather.metoffice")
 __addonid__     = __addon__.getAddonInfo('id')
+
+ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % __addon__.getAddonInfo('id'))
+CACHE_FOLDER = os.path.join(ADDON_DATA_PATH, 'cache')
+CACHE_FILE = os.path.join(ADDON_DATA_PATH, 'cache.json')
 
 def log(msg, level=xbmc.LOGNOTICE):
     xbmc.log("%s: %s" %(__addonid__, msg), level)
-
-def haversine_distance(lat1, lon1, lat2, lon2):
-    """
-    Calculate the distance between two coords
-    using the haversine formula
-    http://en.wikipedia.org/wiki/Haversine_formula
-    """
-    EARTH_RADIUS = 6371
-    lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
-    dlat = lat2-lat1
-    dlon = lon2-lon1
-    a = math.sin(dlat/2)**2 + \
-        math.cos(lat1) * math.cos(lat2) * \
-        math.sin(dlon/2)**2
-    c = 2 * math.asin(math.sqrt(a))
-    return EARTH_RADIUS * c
 
 def retryurlopen(url, retry=3):
     """

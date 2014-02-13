@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
 	<category label="Location Settings">
-		<setting id="ObservationLocation" label="Observation Location" type="action" action="RunScript($ID,SetLocation, ObservationLocation)" default=""/>
+		<setting id="ObservationLocation" label="Observation Location" type="action"
+			action="RunScript(special://home/addons/$ID/setlocation.py, ObservationLocation)" default=""/>
 		<setting id="ObservationLocationID" type="text" visible="false" default=""/>
-		<setting id="ForecastLocation" label="Forecast Location" type="action" action="RunScript($ID,SetLocation, ForecastLocation)" default=""/>
+		<setting id="ForecastLocation" label="Forecast Location" type="action"
+			action="RunScript(special://home/addons/$ID/setlocation.py, ForecastLocation)" default=""/>
 		<setting id="ForecastLocationID" type="text" visible="false" default=""/>
-		<setting id="RegionalLocation" label="Regional Forecast Location" type="action" action="RunScript($ID,SetLocation, RegionalLocation)" default=""/>
+		<setting id="RegionalLocation" label="Regional Forecast Location" type="action"
+			action="RunScript(special://home/addons/$ID/setlocation.py, RegionalLocation)" default=""/>
 		<setting id="RegionalLocationID" type="text" visible="false" default=""/>
 	</category>
 	<category label="Configuration">
