@@ -16,25 +16,21 @@ import xbmcaddon
 from resources.lib import datapoint, locator, urlcache, utilities
 from resources.lib.utilities import log
 
-def main(location):
-    __addon__ = xbmcaddon.Addon(id='weather.metoffice')    
-    API_KEY = __addon__.getSetting('ApiKey')
-    if not API_KEY:
-        dialog = xbmcgui.Dialog()
-        dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
-        log( 'No API Key', xbmc.LOGERROR)
-        return
-
-    GEOIP_PROVIDER = int(__addon__.getSetting('GeoIPProvider'))
-    if not GEOIP_PROVIDER:
-        log( 'No GeoIP Provider is set.')
-        GEOIP_PROVIDER = 0
-
-    keyboard = xbmc.Keyboard()
-    keyboard.doModal()
-    text= keyboard.isConfirmed() and keyboard.getText()
+__addon__ = xbmcaddon.Addon(id='weather.metoffice')
+API_KEY = __addon__.getSetting('ApiKey')
+if not API_KEY:
     dialog = xbmcgui.Dialog()
-    
+    dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
+    log( 'No API Key', xbmc.LOGERROR)
+    sys.exit(1)
+
+GEOIP_PROVIDER = int(__addon__.getSetting('GeoIPProvider'))
+if not GEOIP_PROVIDER:
+    log( 'No GeoIP Provider is set.')
+    GEOIP_PROVIDER = 0
+
+@utilities.xbmcbusy
+def fetchandfilter(location, text):
     url = {'ForecastLocation' : datapoint.FORECAST_SITELIST_URL,
            'ObservationLocation': datapoint.OBSERVATION_SITELIST_URL,
            'RegionalLocation': datapoint.REGIONAL_SITELIST_URL}[location]
@@ -55,28 +51,36 @@ def main(location):
     for x in sitelist:
         if x['name'].lower().find(text.lower()) != -1:
             filtered.append(x)
+    return filtered
 
-    if filtered == []:
+def main(location):
+
+    keyboard = xbmc.Keyboard()
+    keyboard.doModal()
+    text= keyboard.isConfirmed() and keyboard.getText()
+    dialog = xbmcgui.Dialog()
+    sitelist = fetchandfilter(location, text)
+    if sitelist == []:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
         log( "No locations found containing '%s'" % text)
         return
 
     if location != 'RegionalLocation':
-        for site in filtered:
+        for site in sitelist:
             site['distance'] = locator.distance(float(site['latitude']), float(site['longitude']), GEOIP_PROVIDER)
-        filtered = sorted(filtered,key=itemgetter('distance'))
-        display_list = ["%s (%skm)" % (x['name'], x['distance']) for x in filtered]
+        sitelist = sorted(sitelist,key=itemgetter('distance'))
+        display_list = ["%s (%skm)" % (x['name'], x['distance']) for x in sitelist]
     else:
-        filtered = sorted(filtered,key=itemgetter('name'))
-        display_list = [x['name'] for x in filtered]
+        sitelist = sorted(sitelist,key=itemgetter('name'))
+        display_list = [x['name'] for x in sitelist]
     
     selected = dialog.select("Matching Sites", display_list)
     if selected != -1:
-        __addon__.setSetting(location, filtered[selected]['name'])
-        __addon__.setSetting("%sID" % location, filtered[selected]['id'])
-        __addon__.setSetting("%sLatitude" % location, str(filtered[selected].get('latitude')))
-        __addon__.setSetting("%sLongitude" % location, str(filtered[selected].get('longitude')))
-        log( "Setting '%s' to '%s (%s)'" % (location, filtered[selected]['name'], filtered[selected]['id']))
+        __addon__.setSetting(location, sitelist[selected]['name'])
+        __addon__.setSetting("%sID" % location, sitelist[selected]['id'])
+        __addon__.setSetting("%sLatitude" % location, str(sitelist[selected].get('latitude')))
+        __addon__.setSetting("%sLongitude" % location, str(sitelist[selected].get('longitude')))
+        log( "Setting '%s' to '%s (%s)'" % (location, sitelist[selected]['name'], sitelist[selected]['id']))
 
 if __name__ == '__main__':
     #check sys.argv
