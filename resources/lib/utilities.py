@@ -1,9 +1,7 @@
 from functools import wraps
 from datetime import datetime
-import json
 import os
 import time
-import urllib2
 import xbmc
 import xbmcaddon
 

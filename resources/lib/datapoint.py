@@ -1,8 +1,6 @@
 #API for the Met Office's DataPoint API
 #http://www.metoffice.gov.uk/datapoint
 import urllib
-import urllib2
-from utilities import log
 
 URL_TEMPLATE = "http://datapoint.metoffice.gov.uk/public/data/{format}/{resource}/{group}/{datatype}/{object}?{get}"
 

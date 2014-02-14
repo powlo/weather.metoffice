@@ -6,7 +6,6 @@ the user. On successful selection internal addon setting
 is set.
 """
 import sys
-import json
 from datetime import datetime, timedelta
 from operator import itemgetter
 
