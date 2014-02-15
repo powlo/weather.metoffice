@@ -16,8 +16,19 @@ ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % __addo
 CACHE_FOLDER = os.path.join(ADDON_DATA_PATH, 'cache')
 CACHE_FILE = os.path.join(ADDON_DATA_PATH, 'cache.json')
 
-def log(msg, level=xbmc.LOGNOTICE):
-    xbmc.log("%s: %s" %(__addonid__, msg), level)
+LOGPREFIX = "weather.metoffice: "
+
+def metofficelog(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if args:
+            args = (LOGPREFIX+args[0],) + args[1:]
+        if kwargs.has_key('msg'):
+            kwargs['msg'] = LOGPREFIX + kwargs['msg']
+        return f(*args, **kwargs)
+    return wrapper
+
+xbmc.log = metofficelog(xbmc.log)
 
 def xbmcbusy(f):
     @wraps(f)

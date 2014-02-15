@@ -16,7 +16,6 @@ from urllib2 import URLError
 from operator import itemgetter
 
 from resources.lib import utilities, jsonparser, datapoint, urlcache, locator
-from resources.lib.utilities import log
 
 __addon__ = xbmcaddon.Addon()
 ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % __addon__.getAddonInfo('id'))
@@ -36,10 +35,10 @@ CROP_HEIGHT = 20
 def auto_location(location, cache):
     GEOIP_PROVIDER = int(__addon__.getSetting('GeoIPProvider'))
     if not GEOIP_PROVIDER:
-        log( 'No GeoIP Provider is set.')
+        xbmc.log( 'No GeoIP Provider is set.')
         GEOIP_PROVIDER = 0
     
-    log( "Auto-assigning '%s'..." % location)
+    xbmc.log( "Auto-assigning '%s'..." % location)
     url = {'ForecastLocation' : datapoint.FORECAST_SITELIST_URL,
            'ObservationLocation': datapoint.OBSERVATION_SITELIST_URL}[location]
     url = url.format(key=API_KEY)
@@ -51,12 +50,12 @@ def auto_location(location, cache):
     first = sitelist[0]
     __addon__.setSetting(location, first['name'])
     __addon__.setSetting('%sID' % location, first['id'])
-    log( "Location set to '%s'" % first['name'])
+    xbmc.log( "Location set to '%s'" % first['name'])
 
 def set_daily_forecast(cache):
     name = __addon__.getSetting('ForecastLocation')
     id = __addon__.getSetting('ForecastLocationID')
-    log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, id))
+    xbmc.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, id))
     url = datapoint.DAILY_LOCATION_FORECAST_URL.format(object=id, key=API_KEY)
     expiry = datetime.now() + timedelta(hours=1)
     data = cache.jsonretrieve(url, expiry)
@@ -67,7 +66,7 @@ def set_daily_forecast(cache):
 def set_3hourly_forecast(cache):
     name = __addon__.getSetting('ForecastLocation')
     id = __addon__.getSetting('ForecastLocationID')
-    log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, id))
+    xbmc.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, id))
     url = datapoint.THREEHOURLY_LOCATION_FORECAST_URL.format(object=id, key=API_KEY)
     expiry = datetime.now() + timedelta(hours=1)
     data = cache.jsonretrieve(url, expiry)
@@ -78,7 +77,7 @@ def set_3hourly_forecast(cache):
 def set_regional_forecast(cache):
     name = __addon__.getSetting('RegionalLocation')
     id = __addon__.getSetting('RegionalLocationID')
-    log( "Fetching Regional Forecast for '%s (%s)' from the Met Office..." % (name, id))
+    xbmc.log( "Fetching Regional Forecast for '%s (%s)' from the Met Office..." % (name, id))
     url = datapoint.REGIONAL_TEXT_URL.format(object=id, key=API_KEY)
     expiry = datetime.now() + timedelta(hours=1)
     data = cache.jsonretrieve(url, expiry)
@@ -89,7 +88,7 @@ def set_regional_forecast(cache):
 def set_hourly_observation(cache):
     name = __addon__.getSetting('ObservationLocation')
     id = __addon__.getSetting('ObservationLocationID')
-    log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, id))
+    xbmc.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, id))
     url = datapoint.HOURLY_LOCATION_OBSERVATION_URL.format(object=id, key=API_KEY)
     expiry = datetime.now() + timedelta(hours=1)
     data = cache.jsonretrieve(url, expiry)
@@ -142,7 +141,7 @@ def set_forecast_layer(cache):
             timesteps = thislayer['Service']['Timesteps']['Timestep']
             break
     else:
-        log("Couldn't find layer '%s'" % layer)
+        xbmc.log("Couldn't find layer '%s'" % layer)
         return
 
     default = datetime.fromtimestamp(time.mktime(time.strptime(default_time, utilities.DATAPOINT_FORMAT)))
@@ -196,7 +195,7 @@ def main():
             if not API_KEY:
                 dialog = xbmcgui.Dialog()
                 dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
-                log( 'No API Key', xbmc.LOGERROR)
+                xbmc.log( 'No API Key', xbmc.LOGERROR)
                 sys.exit(1)
 
             if sys.argv[1].isdigit():

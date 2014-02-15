@@ -2,9 +2,10 @@ import json
 import math
 from datetime import datetime, timedelta
 
+import xbmc
+
 import utilities
 from urlcache import URLCache
-from utilities import log
 
 #This list must appear in the same order as it appears in 
 #the settings.xml in order for the indexes to align.
@@ -18,8 +19,8 @@ GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitud
 def distance(site_lat, site_long, n=0):
     provider = GEOIP_PROVIDERS[n]
     url = provider['url']
-    log("Calculating distances based on GeoIP data from %s" % url.split('/')[2].lstrip('www.'))
-    log("URL: %s" % url)
+    xbmc.log("Calculating distances based on GeoIP data from %s" % url.split('/')[2].lstrip('www.'))
+    xbmc.log("URL: %s" % url)
     with URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         with open(cache.urlretrieve(url, datetime.now()+timedelta(hours=1))) as file:
             geoip = json.load(file)
