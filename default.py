@@ -231,6 +231,7 @@ def main():
             WEATHER_WINDOW.setProperty('RegionalLocation', __addon__.getSetting('RegionalLocation'))
             WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ObservationLocation'))
             WEATHER_WINDOW.setProperty('Locations', '1')
+            WEATHER_WINDOW.setProperty('{0}.IsFetched'.format(sys.argv[1]), 'true')
     except (URLError, IOError):
         WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
 
