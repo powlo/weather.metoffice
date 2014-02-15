@@ -65,8 +65,7 @@ def main(location):
         return
 
     if location != 'RegionalLocation':
-        for site in sitelist:
-            site['distance'] = locator.distance(float(site['latitude']), float(site['longitude']), GEOIP_PROVIDER)
+        locator.distances(sitelist, GEOIP_PROVIDER)
         sitelist = sorted(sitelist,key=itemgetter('distance'))
         display_list = ["%s (%skm)" % (x['name'], x['distance']) for x in sitelist]
     else:

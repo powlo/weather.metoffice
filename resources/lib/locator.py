@@ -16,19 +16,19 @@ GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitud
              {'url':'http://geoiplookup.net/geoapi.php?output=json', 'latitude':'latitude', 'longitude':'longitude'}
                    ]
 
-def distance(site_lat, site_long, n=0):
+def distances(sitelist, n=0):
     provider = GEOIP_PROVIDERS[n]
     url = provider['url']
     xbmc.log("Calculating distances based on GeoIP data from %s" % url.split('/')[2].lstrip('www.'))
     xbmc.log("URL: %s" % url)
     with URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
-        with open(cache.urlretrieve(url, datetime.now()+timedelta(hours=1))) as file:
-            geoip = json.load(file)
+        geoip = cache.jsonretrieve(url, datetime.now()+timedelta(hours=1))
     #different geoip providers user different names for latitude, longitude
     providers_lat_name = provider['latitude']
     providers_long_name = provider['longitude']
     (geoip_lat, geoip_long) = (float(geoip[providers_lat_name]), float(geoip[providers_long_name]))
-    return int(haversine_distance(geoip_lat, geoip_long, site_lat, site_long))
+    for site in sitelist:
+        site['distance'] = int(haversine_distance(geoip_lat, geoip_long, float(site['latitude']), float(site['longitude'])))
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     """
