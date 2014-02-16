@@ -62,6 +62,7 @@ def set_daily_forecast(cache):
     report = jsonparser.daily(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
+    WEATHER_WINDOW.setProperty('DailyForecast.IsFetched', 'true')
 
 def set_3hourly_forecast(cache):
     name = __addon__.getSetting('ForecastLocation')
@@ -73,6 +74,7 @@ def set_3hourly_forecast(cache):
     report = jsonparser.threehourly(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
+    WEATHER_WINDOW.setProperty('3HourlyForecast.IsFetched', 'true')
 
 def set_regional_forecast(cache):
     name = __addon__.getSetting('RegionalLocation')
@@ -84,6 +86,7 @@ def set_regional_forecast(cache):
     report = jsonparser.regional(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
+    WEATHER_WINDOW.setProperty('RegionalForecast.IsFetched', 'true')
 
 def set_hourly_observation(cache):
     name = __addon__.getSetting('ObservationLocation')
@@ -95,6 +98,7 @@ def set_hourly_observation(cache):
     report = jsonparser.observation(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
+    WEATHER_WINDOW.setProperty('HourlyObservation.IsFetched', 'true')
 
 def set_forecast_layer(cache):
     #there are two kinds of fetches for this app, get a json file and get an image file.
@@ -179,6 +183,7 @@ def set_forecast_layer(cache):
     if width == RAW_DATAPOINT_IMG_WIDTH:
         img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(file)
     WEATHER_WINDOW.setProperty('ForecastMap.Layer', file)
+    WEATHER_WINDOW.setProperty('ForecastMap.IsFetched', 'true')
 
 #MAIN CODE
 WEATHER_WINDOW_ID = 12600
@@ -231,7 +236,6 @@ def main():
             WEATHER_WINDOW.setProperty('RegionalLocation', __addon__.getSetting('RegionalLocation'))
             WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ObservationLocation'))
             WEATHER_WINDOW.setProperty('Locations', '1')
-            WEATHER_WINDOW.setProperty('{0}.IsFetched'.format(sys.argv[1]), 'true')
     except (URLError, IOError):
         WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
 
