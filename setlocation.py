@@ -47,9 +47,19 @@ def fetchandfilter(location, text):
             site['name'] = datapoint.LONG_REGIONAL_NAMES[site['name']]
 
     filtered = list()
-    for x in sitelist:
-        if x['name'].lower().find(text.lower()) != -1:
-            filtered.append(x)
+    for site in sitelist:
+        if site['name'].lower().find(text.lower()) != -1:
+            filtered.append(site)
+
+    if location != 'RegionalLocation':
+        locator.distances(filtered, GEOIP_PROVIDER)
+        for site in filtered:
+            site['display'] = "{name} ({distance}km)".format(name=site['name'].encode('utf-8'),distance=site['distance'])
+        filtered = sorted(filtered,key=itemgetter('distance'))
+    else:
+        for site in filtered:
+            site['display'] = site['name']
+        filtered = sorted(filtered,key=itemgetter('name'))
     return filtered
 
 def main(location):
@@ -63,22 +73,16 @@ def main(location):
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
         xbmc.log( "No locations found containing '%s'" % text)
         return
-
-    if location != 'RegionalLocation':
-        locator.distances(sitelist, GEOIP_PROVIDER)
-        sitelist = sorted(sitelist,key=itemgetter('distance'))
-        display_list = ["%s (%skm)" % (x['name'], x['distance']) for x in sitelist]
-    else:
-        sitelist = sorted(sitelist,key=itemgetter('name'))
-        display_list = [x['name'] for x in sitelist]
-    
+    display_list = [site['display'] for site in sitelist]
     selected = dialog.select("Matching Sites", display_list)
     if selected != -1:
         __addon__.setSetting(location, sitelist[selected]['name'])
         __addon__.setSetting("%sID" % location, sitelist[selected]['id'])
         __addon__.setSetting("%sLatitude" % location, str(sitelist[selected].get('latitude')))
         __addon__.setSetting("%sLongitude" % location, str(sitelist[selected].get('longitude')))
-        xbmc.log( "Setting '%s' to '%s (%s)'" % (location, sitelist[selected]['name'], sitelist[selected]['id']))
+        xbmc.log( "Setting '{location}' to '{name} ({distance})'".format(location=location,
+                                                                     name=sitelist[selected]['name'].encode('utf-8'),
+                                                                     distance=sitelist[selected]['id']))
 
 if __name__ == '__main__':
     #check sys.argv
