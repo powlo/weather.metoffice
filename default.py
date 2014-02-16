@@ -102,15 +102,12 @@ def set_hourly_observation(cache):
 
 def set_forecast_layer(cache):
     #there are two kinds of fetches for this app, get a json file and get an image file.
-    layer = WEATHER_WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER
-    timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
     params = {'sensor':'false', 'center':'55,-3.5','zoom':'5','size':'323x472'}
     google_expiry = datetime.now() + timedelta(days=30)
 
     #get underlay map
     url=GOOGLE_SURFACE.format(maptype='satellite', **params)
-    file = cache.urlretrieve(url, google_expiry)
-    WEATHER_WINDOW.setProperty('ForecastMap.Surface', file)
+    surface = cache.urlretrieve(url, google_expiry)
 
     #get marker map
     lat = __addon__.getSetting('ForecastLocationLatitude')
@@ -118,14 +115,13 @@ def set_forecast_layer(cache):
 
     markers = '{lat},{long}'.format(lat=lat, long=long)
     url = GOOGLE_MARKER.format(style='feature:all|element:all|visibility:off', markers=markers, **params)
-    file = cache.urlretrieve(url, google_expiry)
+    marker = cache.urlretrieve(url, google_expiry)
 
     #remove any marker that isn't the one we just fetched
     markers = '(?!{lat})(\d+),(?!{long})(\d+)'.format(lat=lat, long=long)
     pattern = GOOGLE_MARKER.replace('?', '\?').format(sensor='false', center='55,-3.5',zoom='5',size='323x472',
                                style='feature:all|element:all|visibility:off', markers=markers)
     cache.flush(pattern)
-    WEATHER_WINDOW.setProperty('ForecastMap.Marker', file)
 
     #get capabilities
     url = datapoint.FORECAST_LAYER_CAPABILITIES_URL.format(key=API_KEY)
@@ -135,39 +131,39 @@ def set_forecast_layer(cache):
     expiry = expiry + timedelta(hours=9)
     cache.setexpiry(url, expiry)
 
-    LayerURL = data['Layers']['BaseUrl']['$']
+    selection = WEATHER_WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER
     #pull parameters out of capabilities file - consider using jsonpath here
     for thislayer in data['Layers']['Layer']:
-        if thislayer['@displayName'] == layer:
+        if thislayer['@displayName'] == selection:
             layer_name = thislayer['Service']['LayerName']
             image_format = thislayer['Service']['ImageFormat']
             default_time = thislayer['Service']['Timesteps']['@defaultTime']
             timesteps = thislayer['Service']['Timesteps']['Timestep']
             break
     else:
-        xbmc.log("Couldn't find layer '%s'" % layer)
+        xbmc.log("Couldn't find layer '%s'" % selection)
         return
 
-    default = datetime.fromtimestamp(time.mktime(time.strptime(default_time, utilities.DATAPOINT_FORMAT)))
+    issuedat = datetime.fromtimestamp(time.mktime(time.strptime(default_time, utilities.DATAPOINT_FORMAT)))
 
     #we create 12 slider positions but pressure only returns 8 timesteps.
+    timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
     try:
         timestep = timesteps[int(timestepindex)]
     except IndexError:
-        timestep = timesteps[0]
-        WEATHER_WINDOW.setProperty('ForecastMap.SliderPosition', DEFAULT_INITIAL_TIMESTEP)
+        timestep = timesteps[int(DEFAULT_INITIAL_TIMESTEP)]
+        timestepindex = DEFAULT_INITIAL_TIMESTEP
     delta = timedelta(hours=timestep)
-    maptime = default + delta
-    WEATHER_WINDOW.setProperty('ForecastMap.IssuedAt', default.strftime(utilities.ISSUEDAT_FORMAT))
-    WEATHER_WINDOW.setProperty('ForecastMap.MapTime', maptime.strftime(utilities.MAPTIME_FORMAT))
+    maptime = issuedat + delta
 
     #get overlay using parameters from gui settings
+    LayerURL = data['Layers']['BaseUrl']['$']
     url = LayerURL.format(LayerName=layer_name,
                              ImageFormat=image_format,
                              DefaultTime=default_time,
                              Timestep=timestep,
                              key=API_KEY)
-    file = cache.urlretrieve(url, expiry)
+    layer = cache.urlretrieve(url, expiry)
 
     #flush any image with the same name and timestep that isnt the one we just fetched
     pattern = LayerURL.replace('?', '\?').format(LayerName=layer_name,
@@ -178,11 +174,17 @@ def set_forecast_layer(cache):
     cache.flush(pattern)
 
     #remove the 'cone' from the image
-    img = Image.open(file)
+    img = Image.open(layer)
     (width, height) = img.size
     if width == RAW_DATAPOINT_IMG_WIDTH:
-        img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(file)
-    WEATHER_WINDOW.setProperty('ForecastMap.Layer', file)
+        img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(layer)
+
+    WEATHER_WINDOW.setProperty('ForecastMap.Surface', surface)
+    WEATHER_WINDOW.setProperty('ForecastMap.Marker', marker)
+    WEATHER_WINDOW.setProperty('ForecastMap.SliderPosition', timestepindex)
+    WEATHER_WINDOW.setProperty('ForecastMap.IssuedAt', issuedat.strftime(utilities.ISSUEDAT_FORMAT))
+    WEATHER_WINDOW.setProperty('ForecastMap.MapTime', maptime.strftime(utilities.MAPTIME_FORMAT))
+    WEATHER_WINDOW.setProperty('ForecastMap.Layer', layer)
     WEATHER_WINDOW.setProperty('ForecastMap.IsFetched', 'true')
 
 #MAIN CODE
