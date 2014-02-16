@@ -6,7 +6,8 @@ import xbmc
 import xbmcgui
 import xbmcaddon
 
-WEATHER_WINDOW_ID = 12600
+WINDOW_WEATHER = 12600
+WINDOW_SETTINGS_MYWEATHER = 10014
 
 DATAPOINT_FORMAT = '%Y-%m-%dT%H:%M:%S'
 MAPTIME_FORMAT = '%H%M %a'
@@ -36,7 +37,7 @@ xbmc.log = metofficelog(xbmc.log)
 def xbmcbusy(f):
     @wraps(f)
     def wrapper(*args, **kwds):
-        if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID:
+        if xbmcgui.getCurrentWindowId() == WINDOW_WEATHER or xbmcgui.getCurrentWindowId() == WINDOW_SETTINGS_MYWEATHER:
             xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             return f(*args, **kwds)

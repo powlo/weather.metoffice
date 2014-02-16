@@ -188,7 +188,7 @@ def set_forecast_layer(cache):
     WEATHER_WINDOW.setProperty('ForecastMap.IsFetched', 'true')
 
 #MAIN CODE
-WEATHER_WINDOW = xbmcgui.Window(utilities.WEATHER_WINDOW_ID)
+WEATHER_WINDOW = xbmcgui.Window(utilities.WINDOW_WEATHER)
 
 API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
