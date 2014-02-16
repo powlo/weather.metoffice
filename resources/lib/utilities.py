@@ -3,7 +3,10 @@ from datetime import datetime
 import os
 import time
 import xbmc
+import xbmcgui
 import xbmcaddon
+
+WEATHER_WINDOW_ID = 12600
 
 DATAPOINT_FORMAT = '%Y-%m-%dT%H:%M:%S'
 MAPTIME_FORMAT = '%H%M %a'
@@ -33,7 +36,8 @@ xbmc.log = metofficelog(xbmc.log)
 def xbmcbusy(f):
     @wraps(f)
     def wrapper(*args, **kwds):
-        xbmc.executebuiltin( "ActivateWindow(busydialog)" )
+        if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID:
+            xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             return f(*args, **kwds)
         finally:
