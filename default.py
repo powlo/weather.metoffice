@@ -20,7 +20,8 @@ from resources.lib import utilities, jsonparser, datapoint, urlcache, locator
 __addon__ = xbmcaddon.Addon()
 ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % __addon__.getAddonInfo('id'))
 
-DEFAULT_INITIAL_TIMESTEP = '0'
+MIN_TIMESTEP = '0'
+MAX_TIMESTEP = '12'
 DEFAULT_INITIAL_LAYER = 'Rainfall'
 
 GOOGLE_BASE = 'http://maps.googleapis.com/maps/api/staticmap'
@@ -146,13 +147,25 @@ def set_forecast_layer(cache):
 
     issuedat = datetime.fromtimestamp(time.mktime(time.strptime(default_time, utilities.DATAPOINT_FORMAT)))
 
+    timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or MIN_TIMESTEP
+
+    #allow the timestep to be modified by a second argument. Supports keyboard navigation in skin.
+    try:
+        adjust = sys.argv[2]
+    except IndexError:
+        adjust = '0'
+    timestepindex = str(int(timestepindex) + int(adjust))
+    if int(timestepindex) < int(MIN_TIMESTEP):
+         timestepindex = MIN_TIMESTEP
+    elif int(timestepindex) > int(MAX_TIMESTEP):
+         timestepindex = MAX_TIMESTEP
+
     #we create 12 slider positions but pressure only returns 8 timesteps.
-    timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or DEFAULT_INITIAL_TIMESTEP
     try:
         timestep = timesteps[int(timestepindex)]
     except IndexError:
-        timestep = timesteps[int(DEFAULT_INITIAL_TIMESTEP)]
-        timestepindex = DEFAULT_INITIAL_TIMESTEP
+        timestep = timesteps[int(MIN_TIMESTEP)]
+        timestepindex = MIN_TIMESTEP
     delta = timedelta(hours=timestep)
     maptime = issuedat + delta
 
