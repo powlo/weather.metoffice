@@ -117,24 +117,24 @@ def threehourly(data):
             count +=1
     return d
 
-def regional(data):
+def text(data):
     """
-    Parse data to produce regional forecast data
+    Parse data to produce text forecast data
     """
     d = dict()
     rf = data['RegionalFcst']
     createdOn = rf['createdOn'].rstrip('Z')
-    d['RegionalForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(createdOn, utilities.DATAPOINT_FORMAT))
+    d['TextForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(createdOn, utilities.DATAPOINT_FORMAT))
     count = 0
     for period in rf['FcstPeriods']['Period']:
         #have to check type because json can return list or dict here
         if isinstance(period['Paragraph'],list):
             for paragraph in period['Paragraph']:
-                d['Regional.Paragraph%d.Title' % count] = paragraph['title'].rstrip(':').lstrip('UK Outlook for')
-                d['Regional.Paragraph%d.Content' % count] = paragraph['$']
+                d['Text.Paragraph%d.Title' % count] = paragraph['title'].rstrip(':').lstrip('UK Outlook for')
+                d['Text.Paragraph%d.Content' % count] = paragraph['$']
                 count+=1
         else:
-            d['Regional.Paragraph%d.Title' % count] = period['Paragraph']['title'].rstrip(':').lstrip('UK Outlook for')
-            d['Regional.Paragraph%d.Content' % count] = period['Paragraph']['$']
+            d['Text.Paragraph%d.Title' % count] = period['Paragraph']['title'].rstrip(':').lstrip('UK Outlook for')
+            d['Text.Paragraph%d.Content' % count] = period['Paragraph']['$']
             count+=1
     return d

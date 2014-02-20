@@ -17,7 +17,7 @@ THREEHOURLY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(format='val', resource='
                                             get=urllib.unquote(urllib.urlencode((('res', '3hourly'),('key','{key}')))))
 HOURLY_LOCATION_OBSERVATION_URL = URL_TEMPLATE.format(format='val', resource='wxobs', group='all', datatype='json', object='{object}',
                                             get=urllib.unquote(urllib.urlencode((('res', 'hourly'),('key','{key}')))))
-REGIONAL_TEXT_URL = URL_TEMPLATE.format(format='txt', resource='wxfcs', group='regionalforecast', datatype='json', object='{object}',
+TEXT_FORECAST_URL = URL_TEMPLATE.format(format='txt', resource='wxfcs', group='regionalforecast', datatype='json', object='{object}',
                                             get=urllib.unquote(urllib.urlencode((('key','{key}'),))))
 FORECAST_LAYER_CAPABILITIES_URL = URL_TEMPLATE.format(format='layer', resource='wxfcs', group='all', datatype='json', object='capabilities',
                                             get=urllib.unquote(urllib.urlencode((('key','{key}'),))))

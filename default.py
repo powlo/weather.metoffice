@@ -75,17 +75,17 @@ def set_3hourly_forecast(cache):
         WEATHER_WINDOW.setProperty(field, value)
     WEATHER_WINDOW.setProperty('3HourlyForecast.IsFetched', 'true')
 
-def set_regional_forecast(cache):
+def set_text_forecast(cache):
     name = __addon__.getSetting('RegionalLocation')
     id = __addon__.getSetting('RegionalLocationID')
-    xbmc.log( "Fetching Regional Forecast for '%s (%s)' from the Met Office..." % (name, id))
-    url = datapoint.REGIONAL_TEXT_URL.format(object=id, key=API_KEY)
+    xbmc.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, id))
+    url = datapoint.TEXT_FORECAST_URL.format(object=id, key=API_KEY)
     expiry = datetime.now() + timedelta(hours=1)
     data = cache.jsonretrieve(url, expiry)
-    report = jsonparser.regional(data)
+    report = jsonparser.text(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
-    WEATHER_WINDOW.setProperty('RegionalForecast.IsFetched', 'true')
+    WEATHER_WINDOW.setProperty('TextForecast.IsFetched', 'true')
 
 def set_hourly_observation(cache):
     name = __addon__.getSetting('ObservationLocation')
@@ -232,8 +232,8 @@ def main():
                 set_daily_forecast(cache)
             elif sys.argv[1] == '3HourlyForecast':
                 set_3hourly_forecast(cache)
-            elif sys.argv[1] == 'RegionalForecast':
-                set_regional_forecast(cache)
+            elif sys.argv[1] == 'TextForecast':
+                set_text_forecast(cache)
             elif sys.arg[1] == 'HourlyObservation':
                 set_hourly_observation(cache)
 
