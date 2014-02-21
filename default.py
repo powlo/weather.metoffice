@@ -9,6 +9,8 @@ import json
 import urllib
 import xbmcvfs
 import shutil
+import socket
+socket.setdefaulttimeout(20)
 
 from datetime import datetime, timedelta
 from PIL import Image
@@ -199,14 +201,14 @@ WEATHER_WINDOW = xbmcgui.Window(utilities.WINDOW_WEATHER)
 API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
 FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
+POPUP = xbmcgui.Dialog()
 
 @utilities.xbmcbusy
 def main():
     try:
         with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
             if not API_KEY:
-                dialog = xbmcgui.Dialog()
-                dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
+                POPUP.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
                 xbmc.log( 'No API Key', xbmc.LOGERROR)
                 sys.exit(1)
 
@@ -237,14 +239,22 @@ def main():
             elif sys.arg[1] == 'HourlyObservation':
                 set_hourly_observation(cache)
 
+            WEATHER_WINDOW.clearProperty('{0}.ConnectionFailure'.format(sys.argv[1]))
             WEATHER_WINDOW.setProperty('WeatherProvider', __addon__.getAddonInfo('name'))
             WEATHER_WINDOW.setProperty('ObservationLocation', __addon__.getSetting('ObservationLocation'))
             WEATHER_WINDOW.setProperty('ForecastLocation', __addon__.getSetting('ForecastLocation'))
             WEATHER_WINDOW.setProperty('RegionalLocation', __addon__.getSetting('RegionalLocation'))
             WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ObservationLocation'))
             WEATHER_WINDOW.setProperty('Locations', '1')
-    except (URLError, IOError):
-        WEATHER_WINDOW.setProperty('ForecastMap.ConnectionFailure', 'true')
+    except (URLError, IOError) as e:
+        if xbmcgui.getCurrentWindowId() == utilities.WINDOW_WEATHER:
+            if type(e)==URLError:
+                line2 = e.reason
+            else:
+                line2 = e.filename if e.filename!=None else 'Check your internet connection'
+            POPUP.ok(str(e.errno), str(e.strerror), line2)
+            xbmc.log( '{0} {1} {2}'.format(e.errno, str(e.strerror), line2), xbmc.LOGERROR)
+        WEATHER_WINDOW.setProperty('{0}.ConnectionFailure'.format(sys.argv[1]), 'true')
 
 if __name__ == '__main__':
     main()
