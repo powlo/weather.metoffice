@@ -121,18 +121,16 @@ class URLCache(object):
             return self.put(url, src, expiry)
         except ExpiredError:
             xbmc.log("Cached item has expired. Fetching from web.")
-            resource = entry['resource']
             try:
                 (src, headers) = urllib.urlretrieve(url)
                 if len(src.split('.')) == 1:
                     ext = headers.type.split('/')[1]
                     shutil.move(src, src+'.'+ext)
                     src = src+'.'+ext
-                resource = self.put(url, src, expiry)
-            except URLError:
-                xbmc.log("Fetch from web failed. Returning expired item.")
-            finally:
-                return resource
+                return self.put(url, src, expiry)
+            except Exception:
+                xbmc.log("Could not update cache.")
+                raise
 
     def jsonretrieve(self, url, expiry=datetime.now()+timedelta(days=1)):
         with open(self.urlretrieve(url, expiry)) as file:
