@@ -23,6 +23,7 @@ CACHE_FILE = os.path.join(ADDON_DATA_PATH, 'cache.json')
 
 LOGPREFIX = "weather.metoffice: "
 
+#by importing utilities all messages in xbmc log will be prepended with LOGPREFIX
 def metofficelog(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -32,8 +33,11 @@ def metofficelog(f):
             kwargs['msg'] = LOGPREFIX + kwargs['msg']
         return f(*args, **kwargs)
     return wrapper
-
 xbmc.log = metofficelog(xbmc.log)
+
+#python datetime.strptime is not thread safe: sometimes causes 'NoneType is not callable' error
+def strptime(dt, fmt):
+    return datetime(*(time.strptime(dt, fmt)[0:6]))
 
 def xbmcbusy(f):
     @wraps(f)

@@ -1,14 +1,7 @@
 import xbmc
 import xbmcgui
 import xbmcaddon
-import os
-import time
 import sys
-import socket
-import json
-import urllib
-import xbmcvfs
-import shutil
 import socket
 socket.setdefaulttimeout(20)
 
@@ -61,8 +54,9 @@ def set_daily_forecast():
         id = __addon__.getSetting('ForecastLocationID')
         xbmc.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, id))
         url = datapoint.DAILY_LOCATION_FORECAST_URL.format(object=id, key=API_KEY)
-        expiry = datetime.now() + timedelta(hours=1)
-        data = cache.jsonretrieve(url, expiry)
+        data = cache.jsonretrieve(url)
+        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
+        cache.setexpiry(url, expiry)
         report = jsonparser.daily(data)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
@@ -75,8 +69,9 @@ def set_3hourly_forecast():
         id = __addon__.getSetting('ForecastLocationID')
         xbmc.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, id))
         url = datapoint.THREEHOURLY_LOCATION_FORECAST_URL.format(object=id, key=API_KEY)
-        expiry = datetime.now() + timedelta(hours=1)
-        data = cache.jsonretrieve(url, expiry)
+        data = cache.jsonretrieve(url)
+        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
+        cache.setexpiry(url, expiry)
         report = jsonparser.threehourly(data)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
@@ -89,8 +84,9 @@ def set_text_forecast():
         id = __addon__.getSetting('RegionalLocationID')
         xbmc.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, id))
         url = datapoint.TEXT_FORECAST_URL.format(object=id, key=API_KEY)
-        expiry = datetime.now() + timedelta(hours=1)
-        data = cache.jsonretrieve(url, expiry)
+        data = cache.jsonretrieve(url)
+        expiry = utilities.strptime(data['RegionalFcst']['issuedAt'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=12)
+        cache.setexpiry(url, expiry)
         report = jsonparser.text(data)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
@@ -103,8 +99,9 @@ def set_hourly_observation():
         id = __addon__.getSetting('ObservationLocationID')
         xbmc.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, id))
         url = datapoint.HOURLY_LOCATION_OBSERVATION_URL.format(object=id, key=API_KEY)
-        expiry = datetime.now() + timedelta(hours=1)
-        data = cache.jsonretrieve(url, expiry)
+        data = cache.jsonretrieve(url)
+        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
+        cache.setexpiry(url, expiry)
         report = jsonparser.observation(data)
         for field, value in report.iteritems():
             WEATHER_WINDOW.setProperty(field, value)
@@ -138,9 +135,7 @@ def set_forecast_layer():
         #get capabilities
         url = datapoint.FORECAST_LAYER_CAPABILITIES_URL.format(key=API_KEY)
         data = cache.jsonretrieve(url)
-        expiry = data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime']
-        expiry = datetime.fromtimestamp(time.mktime(time.strptime(expiry, utilities.DATAPOINT_FORMAT)))
-        expiry = expiry + timedelta(hours=9)
+        expiry = utilities.strptime(data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime'], utilities.DATAPOINT_FORMAT) + timedelta(hours=9)
         cache.setexpiry(url, expiry)
 
         selection = WEATHER_WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER
@@ -156,8 +151,7 @@ def set_forecast_layer():
             xbmc.log("Couldn't find layer '%s'" % selection)
             return
 
-        issuedat = datetime.fromtimestamp(time.mktime(time.strptime(default_time, utilities.DATAPOINT_FORMAT)))
-
+        issuedat = utilities.strptime(default_time, utilities.DATAPOINT_FORMAT)
         timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or '0'
 
         #allow the timestep to be modified by a second argument. Supports keyboard navigation in skin.

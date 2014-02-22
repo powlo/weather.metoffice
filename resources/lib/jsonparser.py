@@ -123,8 +123,8 @@ def text(data):
     """
     d = dict()
     rf = data['RegionalFcst']
-    createdOn = rf['createdOn'].rstrip('Z')
-    d['TextForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(createdOn, utilities.DATAPOINT_FORMAT))
+    issuedat = rf['issuedAt'].rstrip('Z')
+    d['TextForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(issuedat, utilities.DATAPOINT_FORMAT))
     count = 0
     for period in rf['FcstPeriods']['Period']:
         #have to check type because json can return list or dict here
