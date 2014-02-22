@@ -39,8 +39,7 @@ def auto_location(location):
         url = url.format(key=API_KEY)
         data = cache.jsonretrieve(url, datetime.now()+timedelta(weeks=1))
         sitelist = data['Locations']['Location']
-        for site in sitelist:
-            site['distance'] = locator.distance(float(site['latitude']), float(site['longitude']), GEOIP_PROVIDER)
+        locator.distances(sitelist, GEOIP_PROVIDER)
         sitelist.sort(key=itemgetter('distance'))
         first = sitelist[0]
         __addon__.setSetting(location, first['name'])
