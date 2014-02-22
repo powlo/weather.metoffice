@@ -248,7 +248,6 @@ def main():
         elif sys.arg[1] == 'HourlyObservation':
             set_hourly_observation()
 
-        WEATHER_WINDOW.clearProperty('{0}.ConnectionFailure'.format(sys.argv[1]))
         WEATHER_WINDOW.setProperty('WeatherProvider', __addon__.getAddonInfo('name'))
         WEATHER_WINDOW.setProperty('ObservationLocation', __addon__.getSetting('ObservationLocation'))
         WEATHER_WINDOW.setProperty('ForecastLocation', __addon__.getSetting('ForecastLocation'))
@@ -263,7 +262,6 @@ def main():
                 line2 = e.filename if e.filename!=None else 'Check your internet connection'
             POPUP.ok(str(e.errno), str(e.strerror), line2)
             xbmc.log( '{0} {1} {2}'.format(e.errno, str(e.strerror), line2), xbmc.LOGERROR)
-        WEATHER_WINDOW.setProperty('{0}.ConnectionFailure'.format(sys.argv[1]), 'true')
 
 if __name__ == '__main__':
     main()
