@@ -8,6 +8,7 @@ import xbmcaddon
 
 WINDOW_WEATHER = 12600
 WINDOW_SETTINGS_MYWEATHER = 10014
+WEATHER_WINDOW = xbmcgui.Window(WINDOW_WEATHER)
 
 DATAPOINT_FORMAT = '%Y-%m-%dT%H:%M:%S'
 MAPTIME_FORMAT = '%H%M %a'
@@ -44,6 +45,19 @@ def xbmcbusy(f):
         finally:
             xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     return wrapper
+
+def panelbusy(pane):
+    def decorate(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            WEATHER_WINDOW.setProperty('{0}.IsBusy'.format(pane), 'true')
+            print '{0}.IsBusy'.format(pane)
+            try:
+                return f(*args, **kwargs)
+            finally:
+                WEATHER_WINDOW.clearProperty('{0}.IsBusy'.format(pane))
+        return wrapper
+    return decorate
 
 def day_name(date):
     """

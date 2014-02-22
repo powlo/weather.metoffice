@@ -53,6 +53,7 @@ def auto_location(location, cache):
     __addon__.setSetting('%sID' % location, first['id'])
     xbmc.log( "Location set to '%s'" % first['name'])
 
+@utilities.panelbusy('RightPane')
 def set_daily_forecast(cache):
     name = __addon__.getSetting('ForecastLocation')
     id = __addon__.getSetting('ForecastLocationID')
@@ -65,6 +66,7 @@ def set_daily_forecast(cache):
         WEATHER_WINDOW.setProperty(field, value)
     WEATHER_WINDOW.setProperty('DailyForecast.IsFetched', 'true')
 
+@utilities.panelbusy('RightPane')
 def set_3hourly_forecast(cache):
     name = __addon__.getSetting('ForecastLocation')
     id = __addon__.getSetting('ForecastLocationID')
@@ -77,6 +79,7 @@ def set_3hourly_forecast(cache):
         WEATHER_WINDOW.setProperty(field, value)
     WEATHER_WINDOW.setProperty('3HourlyForecast.IsFetched', 'true')
 
+@utilities.panelbusy('RightPane')
 def set_text_forecast(cache):
     name = __addon__.getSetting('RegionalLocation')
     id = __addon__.getSetting('RegionalLocationID')
@@ -89,6 +92,7 @@ def set_text_forecast(cache):
         WEATHER_WINDOW.setProperty(field, value)
     WEATHER_WINDOW.setProperty('TextForecast.IsFetched', 'true')
 
+@utilities.panelbusy('LeftPane')
 def set_hourly_observation(cache):
     name = __addon__.getSetting('ObservationLocation')
     id = __addon__.getSetting('ObservationLocationID')
@@ -101,6 +105,7 @@ def set_hourly_observation(cache):
         WEATHER_WINDOW.setProperty(field, value)
     WEATHER_WINDOW.setProperty('HourlyObservation.IsFetched', 'true')
 
+@utilities.panelbusy('RightPane')
 def set_forecast_layer(cache):
     #there are two kinds of fetches for this app, get a json file and get an image file.
     params = {'sensor':'false', 'center':'55,-3.5','zoom':'5','size':'323x472'}
@@ -196,14 +201,13 @@ def set_forecast_layer(cache):
     WEATHER_WINDOW.setProperty('ForecastMap.IsFetched', 'true')
 
 #MAIN CODE
-WEATHER_WINDOW = xbmcgui.Window(utilities.WINDOW_WEATHER)
+WEATHER_WINDOW = utilities.WEATHER_WINDOW
 
 API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
 FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
 POPUP = xbmcgui.Dialog()
 
-@utilities.xbmcbusy
 def main():
     try:
         with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
