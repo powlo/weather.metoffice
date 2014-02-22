@@ -8,8 +8,8 @@
 			action="RunScript(special://home/addons/$ID/setlocation.py, ForecastLocation)" default=""/>
 		<setting id="ForecastLocationID" type="text" visible="false" default=""/>
 		<setting id="RegionalLocation" label="Regional Location" type="action"
-			action="RunScript(special://home/addons/$ID/setlocation.py, RegionalLocation)" default=""/>
-		<setting id="RegionalLocationID" type="text" visible="false" default=""/>
+			action="RunScript(special://home/addons/$ID/setlocation.py, RegionalLocation)" default="United Kingdom"/>
+		<setting id="RegionalLocationID" type="text" visible="false" default="515"/>
 	</category>
 	<category label="Configuration">
 		<setting id="ApiKey" label="API Key" type="text" default="4eeb196d-a473-4634-a9da-397974138bf5"/>
