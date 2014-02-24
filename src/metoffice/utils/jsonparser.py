@@ -1,5 +1,5 @@
 import time
-import xbmc
+import xbmc #@UnresolvedImport
 import utilities
 
 WEATHER_CODES = {

@@ -50,9 +50,9 @@ def auto_location(location):
 def set_daily_forecast():
     with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         name = __addon__.getSetting('ForecastLocation')
-        id = __addon__.getSetting('ForecastLocationID')
-        utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, id))
-        url = datapoint.DAILY_LOCATION_FORECAST_URL.format(object=id, key=API_KEY)
+        flid = __addon__.getSetting('ForecastLocationID')
+        utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, flid))
+        url = datapoint.DAILY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
         cache.setexpiry(url, expiry)
@@ -65,9 +65,9 @@ def set_daily_forecast():
 def set_3hourly_forecast():
     with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         name = __addon__.getSetting('ForecastLocation')
-        id = __addon__.getSetting('ForecastLocationID')
-        utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, id))
-        url = datapoint.THREEHOURLY_LOCATION_FORECAST_URL.format(object=id, key=API_KEY)
+        flid = __addon__.getSetting('ForecastLocationID')
+        utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, flid))
+        url = datapoint.THREEHOURLY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
         cache.setexpiry(url, expiry)
@@ -80,9 +80,9 @@ def set_3hourly_forecast():
 def set_text_forecast():
     with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         name = __addon__.getSetting('RegionalLocation')
-        id = __addon__.getSetting('RegionalLocationID')
-        utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, id))
-        url = datapoint.TEXT_FORECAST_URL.format(object=id, key=API_KEY)
+        rlid = __addon__.getSetting('RegionalLocationID')
+        utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, rlid))
+        url = datapoint.TEXT_FORECAST_URL.format(object=rlid, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['RegionalFcst']['issuedAt'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=12)
         cache.setexpiry(url, expiry)
@@ -95,9 +95,9 @@ def set_text_forecast():
 def set_hourly_observation():
     with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         name = __addon__.getSetting('ObservationLocation')
-        id = __addon__.getSetting('ObservationLocationID')
-        utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, id))
-        url = datapoint.HOURLY_LOCATION_OBSERVATION_URL.format(object=id, key=API_KEY)
+        olid = __addon__.getSetting('ObservationLocationID')
+        utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, olid))
+        url = datapoint.HOURLY_LOCATION_OBSERVATION_URL.format(object=olid, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
         cache.setexpiry(url, expiry)
@@ -119,9 +119,9 @@ def set_forecast_layer():
 
         #get marker map
         lat = __addon__.getSetting('ForecastLocationLatitude')
-        long = __addon__.getSetting('ForecastLocationLongitude')
+        lng = __addon__.getSetting('ForecastLocationLongitude')
 
-        markers = '{lat},{long}'.format(lat=lat, long=long)
+        markers = '{lat},{lng}'.format(lat=lat, lng=lng)
         url = GOOGLE_MARKER.format(style='feature:all|element:all|visibility:off', markers=markers, **params)
         marker = cache.urlretrieve(url, google_expiry)
 
@@ -160,9 +160,9 @@ def set_forecast_layer():
             adjust = '0'
         timestepindex = str(int(timestepindex) + int(adjust))
         if int(timestepindex) < 0:
-             timestepindex = '0'
+            timestepindex = '0'
         elif int(timestepindex) > len(timesteps)-1:
-             timestepindex = str(len(timesteps)-1)
+            timestepindex = str(len(timesteps)-1)
 
         timestep = timesteps[int(timestepindex)]
         delta = timedelta(hours=timestep)

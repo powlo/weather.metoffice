@@ -14,40 +14,38 @@ import urllib
 import json
 import re
 
-import xbmc
-
 import utilities
 
 class URLCache(object):
     TIME_FORMAT = "%a %b %d %H:%M:%S %Y"
 
-    def __init__(self, file, folder):
-        file_folder = os.path.dirname(file)
+    def __init__(self, fyle, folder):
+        file_folder = os.path.dirname(fyle)
         if not file_folder:
             os.makedirs(file_folder)
         if not os.path.exists(folder):
             os.makedirs(folder)
 
-        self._file = file
+        self._file = fyle
         self._folder = folder
 
     def __enter__(self):
         try:
-            file = open(self._file, 'r')
+            fyle = open(self._file, 'r')
         except IOError:
             #create the file and try again.
             open(self._file, 'a').close()
-            file = open(self._file, 'r')
+            fyle = open(self._file, 'r')
         try:
-            self._cache = json.load(file)
+            self._cache = json.load(fyle)
         except ValueError:
             self._cache = dict()
-        file.close()
+        fyle.close()
         return self
 
-    def __exit__(self, type, value, traceback):
-        with open(self._file, 'w+') as file:
-            json.dump(self._cache, file, indent=2)
+    def __exit__(self, typ, value, traceback):
+        with open(self._file, 'w+') as fyle:
+            json.dump(self._cache, fyle, indent=2)
 
     def put(self, url, src, expiry):
         #takes a file and copies it into the cache
@@ -74,7 +72,7 @@ class URLCache(object):
                     if re.match(pattern, url):
                         flushlist.append(url)
             else:
-                if self.isexpired(entry):
+                if self.isexpired(self._cache[url]):
                         flushlist.append(url)
         for url in flushlist:
             self.remove(url)
@@ -133,12 +131,12 @@ class URLCache(object):
                 raise
 
     def jsonretrieve(self, url, expiry=datetime.now()+timedelta(days=1)):
-        with open(self.urlretrieve(url, expiry)) as file:
+        with open(self.urlretrieve(url, expiry)) as fyle:
             try:
-                return json.load(file)
+                return json.load(fyle)
             except ValueError:
                 self.remove(url)
-                utilities.log('Couldn\'t load json data from %s' % file.name)
+                utilities.log('Couldn\'t load json data from %s' % fyle.name)
                 raise
 
 class MissingError(Exception):

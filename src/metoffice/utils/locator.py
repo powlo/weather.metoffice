@@ -1,8 +1,5 @@
-import json
 import math
 from datetime import datetime, timedelta
-
-import xbmc
 
 import utilities
 from urlcache import URLCache
