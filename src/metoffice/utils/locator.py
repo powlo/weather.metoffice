@@ -19,8 +19,8 @@ GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitud
 def distances(sitelist, n=0):
     provider = GEOIP_PROVIDERS[n]
     url = provider['url']
-    xbmc.log("Calculating distances based on GeoIP data from %s" % url.split('/')[2].lstrip('www.'))
-    xbmc.log("URL: %s" % url)
+    utilities.log("Calculating distances based on GeoIP data from %s" % url.split('/')[2].lstrip('www.'))
+    utilities.log("URL: %s" % url)
     with URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         geoip = cache.jsonretrieve(url, datetime.now()+timedelta(hours=1))
     #different geoip providers user different names for latitude, longitude

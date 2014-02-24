@@ -30,10 +30,10 @@ def auto_location(location):
     with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         GEOIP_PROVIDER = int(__addon__.getSetting('GeoIPProvider'))
         if not GEOIP_PROVIDER:
-            xbmc.log( 'No GeoIP Provider is set.')
+            utilities.log( 'No GeoIP Provider is set.')
             GEOIP_PROVIDER = 0
 
-        xbmc.log( "Auto-assigning '%s'..." % location)
+        utilities.log( "Auto-assigning '%s'..." % location)
         url = {'ForecastLocation' : datapoint.FORECAST_SITELIST_URL,
                'ObservationLocation': datapoint.OBSERVATION_SITELIST_URL}[location]
         url = url.format(key=API_KEY)
@@ -44,14 +44,14 @@ def auto_location(location):
         first = sitelist[0]
         __addon__.setSetting(location, first['name'])
         __addon__.setSetting('%sID' % location, first['id'])
-        xbmc.log( "Location set to '%s'" % first['name'])
+        utilities.log( "Location set to '%s'" % first['name'])
 
 @utilities.panelbusy('RightPane')
 def set_daily_forecast():
     with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         name = __addon__.getSetting('ForecastLocation')
         id = __addon__.getSetting('ForecastLocationID')
-        xbmc.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, id))
+        utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, id))
         url = datapoint.DAILY_LOCATION_FORECAST_URL.format(object=id, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
@@ -66,7 +66,7 @@ def set_3hourly_forecast():
     with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         name = __addon__.getSetting('ForecastLocation')
         id = __addon__.getSetting('ForecastLocationID')
-        xbmc.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, id))
+        utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, id))
         url = datapoint.THREEHOURLY_LOCATION_FORECAST_URL.format(object=id, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
@@ -81,7 +81,7 @@ def set_text_forecast():
     with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         name = __addon__.getSetting('RegionalLocation')
         id = __addon__.getSetting('RegionalLocationID')
-        xbmc.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, id))
+        utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, id))
         url = datapoint.TEXT_FORECAST_URL.format(object=id, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['RegionalFcst']['issuedAt'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=12)
@@ -96,7 +96,7 @@ def set_hourly_observation():
     with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         name = __addon__.getSetting('ObservationLocation')
         id = __addon__.getSetting('ObservationLocationID')
-        xbmc.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, id))
+        utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, id))
         url = datapoint.HOURLY_LOCATION_OBSERVATION_URL.format(object=id, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
@@ -147,7 +147,7 @@ def set_forecast_layer():
                 timesteps = thislayer['Service']['Timesteps']['Timestep']
                 break
         else:
-            xbmc.log("Couldn't find layer '%s'" % selection)
+            utilities.log("Couldn't find layer '%s'" % selection)
             return
 
         issuedat = utilities.strptime(default_time, utilities.DATAPOINT_FORMAT)
@@ -211,7 +211,7 @@ def main():
     try:
         if not API_KEY:
             POPUP.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
-            xbmc.log( 'No API Key', xbmc.LOGERROR)
+            utilities.log( 'No API Key', xbmc.LOGERROR)
             sys.exit(1)
 
         if sys.argv[1].isdigit():
@@ -254,7 +254,7 @@ def main():
             else:
                 line2 = e.filename if e.filename!=None else 'Check your internet connection'
             POPUP.ok(str(e.errno), str(e.strerror), line2)
-            xbmc.log( '{0} {1} {2}'.format(e.errno, str(e.strerror), line2), xbmc.LOGERROR)
+            utilities.log( '{0} {1} {2}'.format(e.errno, str(e.strerror), line2), xbmc.LOGERROR)
 
 if __name__ == '__main__':
     main()

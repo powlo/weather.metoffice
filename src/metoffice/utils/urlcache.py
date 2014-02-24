@@ -61,9 +61,9 @@ class URLCache(object):
         return self._cache[url]
 
     def remove(self, url):
-        xbmc.log("Deleting file '%s'" % self._cache[url]['resource'])
+        utilities.log("Deleting file '%s'" % self._cache[url]['resource'])
         os.remove(self._cache[url]['resource'])
-        xbmc.log("Removing entry for '%s' from cache" % url)
+        utilities.log("Removing entry for '%s' from cache" % url)
         del self._cache[url]
 
     def flush(self, pattern=None):
@@ -102,17 +102,17 @@ class URLCache(object):
         extension. This is true for application/json and image/png
         """
         try:
-            xbmc.log("Checking cache for '%s'" % url)
+            utilities.log("Checking cache for '%s'" % url)
             entry = self.get(url)
             if self.ismissing(entry):
                 raise MissingError
             elif self.isexpired(entry):
                 raise ExpiredError
             else:
-                xbmc.log("Returning cached item.")
+                utilities.log("Returning cached item.")
                 return entry['resource']
         except (KeyError, MissingError):
-            xbmc.log("Not in cache. Fetching from web.")
+            utilities.log("Not in cache. Fetching from web.")
             (src, headers) = urllib.urlretrieve(url)
             if len(src.split('.')) == 1:
                 ext = headers.type.split('/')[1]
@@ -120,7 +120,7 @@ class URLCache(object):
                 src = src+'.'+ext
             return self.put(url, src, expiry)
         except ExpiredError:
-            xbmc.log("Cached item has expired. Fetching from web.")
+            utilities.log("Cached item has expired. Fetching from web.")
             try:
                 (src, headers) = urllib.urlretrieve(url)
                 if len(src.split('.')) == 1:
@@ -129,7 +129,7 @@ class URLCache(object):
                     src = src+'.'+ext
                 return self.put(url, src, expiry)
             except Exception:
-                xbmc.log("Could not update cache.")
+                utilities.log("Could not update cache.")
                 raise
 
     def jsonretrieve(self, url, expiry=datetime.now()+timedelta(days=1)):
@@ -138,7 +138,7 @@ class URLCache(object):
                 return json.load(file)
             except ValueError:
                 self.remove(url)
-                xbmc.log('Couldn\'t load json data from %s' % file.name)
+                utilities.log('Couldn\'t load json data from %s' % file.name)
                 raise
 
 class MissingError(Exception):

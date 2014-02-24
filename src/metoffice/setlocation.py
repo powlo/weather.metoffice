@@ -20,12 +20,12 @@ API_KEY = __addon__.getSetting('ApiKey')
 if not API_KEY:
     dialog = xbmcgui.Dialog()
     dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
-    xbmc.log( 'No API Key', xbmc.LOGERROR)
+    utilities.log( 'No API Key', xbmc.LOGERROR)
     sys.exit(1)
 
 GEOIP_PROVIDER = int(__addon__.getSetting('GeoIPProvider'))
 if not GEOIP_PROVIDER:
-    xbmc.log( 'No GeoIP Provider is set.')
+    utilities.log( 'No GeoIP Provider is set.')
     GEOIP_PROVIDER = 0
 
 @utilities.xbmcbusy
@@ -71,7 +71,7 @@ def main(location):
     sitelist = fetchandfilter(location, text)
     if sitelist == []:
         dialog.ok("No Matches", "No locations found containing '%s'" % text)
-        xbmc.log( "No locations found containing '%s'" % text)
+        utilities.log( "No locations found containing '%s'" % text)
         return
     display_list = [site['display'] for site in sitelist]
     selected = dialog.select("Matching Sites", display_list)
@@ -80,7 +80,7 @@ def main(location):
         __addon__.setSetting("%sID" % location, sitelist[selected]['id'])
         __addon__.setSetting("%sLatitude" % location, str(sitelist[selected].get('latitude')))
         __addon__.setSetting("%sLongitude" % location, str(sitelist[selected].get('longitude')))
-        xbmc.log( "Setting '{location}' to '{name} ({distance})'".format(location=location,
+        utilities.log( "Setting '{location}' to '{name} ({distance})'".format(location=location,
                                                                      name=sitelist[selected]['name'].encode('utf-8'),
                                                                      distance=sitelist[selected]['id']))
 

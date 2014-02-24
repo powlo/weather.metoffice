@@ -2,9 +2,9 @@ from functools import wraps
 from datetime import datetime
 import os
 import time
-import xbmc
-import xbmcgui
-import xbmcaddon
+import xbmc #@UnresolvedImport
+import xbmcgui #@UnresolvedImport
+import xbmcaddon #@UnresolvedImport
 
 WINDOW_WEATHER = 12600
 WINDOW_SETTINGS_MYWEATHER = 10014
@@ -24,16 +24,8 @@ CACHE_FILE = os.path.join(ADDON_DATA_PATH, 'cache.json')
 LOGPREFIX = "weather.metoffice: "
 
 #by importing utilities all messages in xbmc log will be prepended with LOGPREFIX
-def metofficelog(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if args:
-            args = (LOGPREFIX+args[0],) + args[1:]
-        if kwargs.has_key('msg'):
-            kwargs['msg'] = LOGPREFIX + kwargs['msg']
-        return f(*args, **kwargs)
-    return wrapper
-xbmc.log = metofficelog(xbmc.log)
+def log(msg, level=xbmc.LOGNOTICE):
+    xbmc.log('weather.metoffice: {0}'.format(msg), level)
 
 #python datetime.strptime is not thread safe: sometimes causes 'NoneType is not callable' error
 def strptime(dt, fmt):
