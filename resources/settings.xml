@@ -2,13 +2,13 @@
 <settings>
 	<category label="Location Settings">
 		<setting id="ObservationLocation" label="Observation Location" type="action"
-			action="RunScript(special://home/addons/$ID/setlocation.py, ObservationLocation)" default=""/>
+			action="RunScript(special://home/addons/$ID/src/metoffice/setlocation.py, ObservationLocation)" default=""/>
 		<setting id="ObservationLocationID" type="text" visible="false" default=""/>
 		<setting id="ForecastLocation" label="Forecast Location" type="action"
-			action="RunScript(special://home/addons/$ID/setlocation.py, ForecastLocation)" default=""/>
+			action="RunScript(special://home/addons/$ID/src/metoffice/setlocation.py, ForecastLocation)" default=""/>
 		<setting id="ForecastLocationID" type="text" visible="false" default=""/>
 		<setting id="RegionalLocation" label="Regional Location" type="action"
-			action="RunScript(special://home/addons/$ID/setlocation.py, RegionalLocation)" default="United Kingdom"/>
+			action="RunScript(special://home/addons/$ID/src/metoffice/setlocation.py, RegionalLocation)" default="United Kingdom"/>
 		<setting id="RegionalLocationID" type="text" visible="false" default="515"/>
 	</category>
 	<category label="Configuration">

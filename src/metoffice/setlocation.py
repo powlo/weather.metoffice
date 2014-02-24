@@ -9,11 +9,11 @@ import sys
 from datetime import datetime, timedelta
 from operator import itemgetter
 
-import xbmc
-import xbmcgui
-import xbmcaddon
+import xbmc #@UnresolvedImport
+import xbmcgui #@UnresolvedImport
+import xbmcaddon #@UnresolvedImport
 
-from resources.lib import datapoint, locator, urlcache, utilities
+from utils import datapoint, locator, urlcache, utilities
 
 __addon__ = xbmcaddon.Addon(id='weather.metoffice')
 API_KEY = __addon__.getSetting('ApiKey')

@@ -1,6 +1,6 @@
-import xbmc
-import xbmcgui
-import xbmcaddon
+import xbmc #@UnresolvedImport
+import xbmcgui #@UnresolvedImport
+import xbmcaddon #@UnresolvedImport
 import sys
 import socket
 socket.setdefaulttimeout(20)
@@ -10,7 +10,7 @@ from PIL import Image
 from urllib2 import URLError
 from operator import itemgetter
 
-from resources.lib import utilities, jsonparser, datapoint, urlcache, locator
+from utils import utilities, jsonparser, datapoint, urlcache, locator
 
 __addon__ = xbmcaddon.Addon()
 ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % __addon__.getAddonInfo('id'))
@@ -238,7 +238,7 @@ def main():
             set_3hourly_forecast()
         elif sys.argv[1] == 'TextForecast':
             set_text_forecast()
-        elif sys.arg[1] == 'HourlyObservation':
+        elif sys.argv[1] == 'HourlyObservation':
             set_hourly_observation()
 
         WEATHER_WINDOW.setProperty('WeatherProvider', __addon__.getAddonInfo('name'))
