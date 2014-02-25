@@ -21,7 +21,7 @@ class URLCache(object):
 
     def __init__(self, fyle, folder):
         file_folder = os.path.dirname(fyle)
-        if not file_folder:
+        if not os.path.exists(file_folder):
             os.makedirs(file_folder)
         if not os.path.exists(folder):
             os.makedirs(folder)
