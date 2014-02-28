@@ -47,7 +47,6 @@ def panelbusy(pane):
         @wraps(f)
         def wrapper(*args, **kwargs):
             WEATHER_WINDOW.setProperty('{0}.IsBusy'.format(pane), 'true')
-            print '{0}.IsBusy'.format(pane)
             try:
                 return f(*args, **kwargs)
             finally:
