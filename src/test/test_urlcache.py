@@ -3,33 +3,18 @@ import shutil
 import unittest
 from datetime import datetime, timedelta
 import urllib
-from mock import patch, Mock
+from mock import Mock
+
+from xbmctestcase import XBMCTestCase
 
 TEST_FOLDER = 'testlab'
 CACHE_FOLDER = os.path.join(TEST_FOLDER, 'cache')
 CACHE_FILE = os.path.join(TEST_FOLDER, 'cache.json')
 
-class TestURLCache(unittest.TestCase):    
+class TestURLCache(XBMCTestCase):
     def setUp(self):
-        #Mock up any calls to modules that cannot be imported
-        self.xbmc = Mock()
-        self.xbmcgui = Mock()
-        self.xbmcaddon = Mock()
-
-        modules = {
-            'xbmc' : self.xbmc,
-            'xbmcgui': self.xbmcgui,
-            'xbmcaddon': self.xbmcaddon
-            }
-        self.module_patcher = patch.dict('sys.modules', modules) #@UndefinedVariable
-        self.addon_patcher = patch('xbmcaddon.Addon')
-        self.translate_patcher = patch('xbmc.translatePath')
-        self.log_patcher = patch('xbmc.log')
-        self.module_patcher.start()
-        self.addon_patcher.start()
-        self.translate_patcher.start()
-
         #create a disposable area for testing
+        super(TestURLCache, self).setUp()
         try:
             os.mkdir(TEST_FOLDER)
         except OSError:
@@ -212,9 +197,7 @@ class TestURLCache(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree('testlab')
-        self.module_patcher.stop()
-        self.addon_patcher.stop()
-        self.translate_patcher.stop()
+        super(TestURLCache, self).tearDown()
 
 if __name__ == '__main__':
     unittest.main()
