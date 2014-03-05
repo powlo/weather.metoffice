@@ -39,4 +39,6 @@ class TestUtilities(XBMCTestCase):
         self.xbmcgui.Window.return_value.setProperty.assert_called_once_with('RightPanel.IsBusy', 'true')
         self.xbmcgui.Window.return_value.clearProperty.assert_called_once_with('RightPanel.IsBusy')
         mock_func.assert_called_with(1,2,3)
-        
+
+    def test_minutes_as_time(self):
+        self.assertEqual("03:00", self.utilities.minutes_as_time(180))
