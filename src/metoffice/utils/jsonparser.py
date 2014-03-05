@@ -76,7 +76,7 @@ def daily(data):
     dataDate = dv.get('dataDate').rstrip('Z')
     d['DailyForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_FORMAT))
     for p, period in enumerate(dv['Location']['Period']):
-        d['Day%d.Title' %p] = utilities.day_name(period.get('value'))
+        d['Day%d.Title' %p] = time.strftime(utilities.SHORT_DAY_FORMAT, time.strptime(period.get('value'), utilities.DATAPOINT_DATE_FORMAT))
         for rep in period['Rep']:
             weather_type = rep.get('W', 'na')
             if rep.get('$') == 'Day':
@@ -109,7 +109,7 @@ def threehourly(data):
             d['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
             d['3Hourly%d.Precipitation' % count] = rep.get('Pp')
             d['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
-            d['3Hourly%d.Day' % count] = utilities.day_name(period.get('value'))
+            d['3Hourly%d.Day' % count] = time.strftime(utilities.SHORT_DAY_FORMAT, time.strptime(period.get('value'), utilities.DATAPOINT_DATE_FORMAT))
             d['3Hourly%d.Time' % count] = utilities.minutes_as_time(int(rep.get('$')))
             d['3Hourly%d.Date' % count] = period.get('value')
             d['3Hourly%d.ActualTemp' % count] = rep.get('T', 'na')

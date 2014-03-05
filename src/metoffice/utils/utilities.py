@@ -11,6 +11,8 @@ WINDOW_SETTINGS_MYWEATHER = 10014
 WEATHER_WINDOW = xbmcgui.Window(WINDOW_WEATHER)
 
 DATAPOINT_FORMAT = '%Y-%m-%dT%H:%M:%S'
+DATAPOINT_DATE_FORMAT = '%Y-%m-%dZ'
+SHORT_DAY_FORMAT = "%a"
 MAPTIME_FORMAT = '%H%M %a'
 ISSUEDAT_FORMAT = '%H:%M %a %d %b %Y'
 
@@ -53,12 +55,6 @@ def panelbusy(pane):
                 WEATHER_WINDOW.clearProperty('{0}.IsBusy'.format(pane))
         return wrapper
     return decorate
-
-def day_name(date):
-    """
-    Takes a date and returns the day of the week as a string
-    """
-    return datetime.fromtimestamp(time.mktime(time.strptime(date, '%Y-%m-%dZ'))).strftime('%a')
 
 def minutes_as_time(minutes):
     """
