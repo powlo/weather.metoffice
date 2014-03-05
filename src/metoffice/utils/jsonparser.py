@@ -46,7 +46,7 @@ def observation(data):
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
-    d['HourlyObservation.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_FORMAT))
+    d['HourlyObservation.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_DATETIME_FORMAT))
 
     try:
         latest_period = dv['Location']['Period'][-1]
@@ -74,7 +74,7 @@ def daily(data):
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
-    d['DailyForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_FORMAT))
+    d['DailyForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_DATETIME_FORMAT))
     for p, period in enumerate(dv['Location']['Period']):
         d['Day%d.Title' %p] = time.strftime(utilities.SHORT_DAY_FORMAT, time.strptime(period.get('value'), utilities.DATAPOINT_DATE_FORMAT))
         for rep in period['Rep']:
@@ -96,7 +96,7 @@ def threehourly(data):
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
-    d['3HourlyForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_FORMAT))
+    d['3HourlyForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_DATETIME_FORMAT))
     count = 0
     for period in dv['Location']['Period']:
         for rep in period['Rep']:
@@ -124,7 +124,7 @@ def text(data):
     d = dict()
     rf = data['RegionalFcst']
     issuedat = rf['issuedAt'].rstrip('Z')
-    d['TextForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(issuedat, utilities.DATAPOINT_FORMAT))
+    d['TextForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(issuedat, utilities.DATAPOINT_DATETIME_FORMAT))
     count = 0
     for period in rf['FcstPeriods']['Period']:
         #have to check type because json can return list or dict here

@@ -54,7 +54,7 @@ def set_daily_forecast():
         utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, flid))
         url = datapoint.DAILY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
         data = cache.jsonretrieve(url)
-        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
+        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
         cache.setexpiry(url, expiry)
         report = jsonparser.daily(data)
         for field, value in report.iteritems():
@@ -69,7 +69,7 @@ def set_3hourly_forecast():
         utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, flid))
         url = datapoint.THREEHOURLY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
         data = cache.jsonretrieve(url)
-        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
+        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
         cache.setexpiry(url, expiry)
         report = jsonparser.threehourly(data)
         for field, value in report.iteritems():
@@ -84,7 +84,7 @@ def set_text_forecast():
         utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, rlid))
         url = datapoint.TEXT_FORECAST_URL.format(object=rlid, key=API_KEY)
         data = cache.jsonretrieve(url)
-        expiry = utilities.strptime(data['RegionalFcst']['issuedAt'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=12)
+        expiry = utilities.strptime(data['RegionalFcst']['issuedAt'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=12)
         cache.setexpiry(url, expiry)
         report = jsonparser.text(data)
         for field, value in report.iteritems():
@@ -99,7 +99,7 @@ def set_hourly_observation():
         utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, olid))
         url = datapoint.HOURLY_LOCATION_OBSERVATION_URL.format(object=olid, key=API_KEY)
         data = cache.jsonretrieve(url)
-        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_FORMAT) + timedelta(hours=1.5)
+        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
         cache.setexpiry(url, expiry)
         report = jsonparser.observation(data)
         for field, value in report.iteritems():
@@ -134,7 +134,7 @@ def set_forecast_layer():
         #get capabilities
         url = datapoint.FORECAST_LAYER_CAPABILITIES_URL.format(key=API_KEY)
         data = cache.jsonretrieve(url)
-        expiry = utilities.strptime(data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime'], utilities.DATAPOINT_FORMAT) + timedelta(hours=9)
+        expiry = utilities.strptime(data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime'], utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=9)
         cache.setexpiry(url, expiry)
 
         selection = WEATHER_WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER
@@ -150,7 +150,7 @@ def set_forecast_layer():
             utilities.log("Couldn't find layer '%s'" % selection)
             return
 
-        issuedat = utilities.strptime(default_time, utilities.DATAPOINT_FORMAT)
+        issuedat = utilities.strptime(default_time, utilities.DATAPOINT_DATETIME_FORMAT)
         timestepindex = WEATHER_WINDOW.getProperty('ForecastMap.SliderPosition') or '0'
 
         #allow the timestep to be modified by a second argument. Supports keyboard navigation in skin.
