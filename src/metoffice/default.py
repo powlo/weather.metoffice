@@ -27,24 +27,25 @@ CROP_WIDTH = 40
 CROP_HEIGHT = 20
 
 def auto_location(location):
-    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
-        GEOIP_PROVIDER = int(__addon__.getSetting('GeoIPProvider'))
-        if not GEOIP_PROVIDER:
-            utilities.log( 'No GeoIP Provider is set.')
-            GEOIP_PROVIDER = 0
+    utilities.log( "Auto-assigning '%s'..." % location)
+    GEOIP_PROVIDER = int(__addon__.getSetting('GeoIPProvider'))
+    if not GEOIP_PROVIDER:
+        utilities.log( 'No GeoIP Provider is set.')
+        GEOIP_PROVIDER = 0
+    url = {'ForecastLocation' : datapoint.FORECAST_SITELIST_URL,
+           'ObservationLocation': datapoint.OBSERVATION_SITELIST_URL}[location]
+    url = url.format(key=API_KEY)
 
-        utilities.log( "Auto-assigning '%s'..." % location)
-        url = {'ForecastLocation' : datapoint.FORECAST_SITELIST_URL,
-               'ObservationLocation': datapoint.OBSERVATION_SITELIST_URL}[location]
-        url = url.format(key=API_KEY)
+    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
         data = cache.jsonretrieve(url, datetime.now()+timedelta(weeks=1))
-        sitelist = data['Locations']['Location']
-        locator.distances(sitelist, GEOIP_PROVIDER)
-        sitelist.sort(key=itemgetter('distance'))
-        first = sitelist[0]
-        __addon__.setSetting(location, first['name'])
-        __addon__.setSetting('%sID' % location, first['id'])
-        utilities.log( "Location set to '%s'" % first['name'])
+
+    sitelist = data['Locations']['Location']
+    locator.distances(sitelist, GEOIP_PROVIDER)
+    sitelist.sort(key=itemgetter('distance'))
+    first = sitelist[0]
+    __addon__.setSetting(location, first['name'])
+    __addon__.setSetting('%sID' % location, first['id'])
+    utilities.log( "Location set to '%s'" % first['name'])
 
 @utilities.panelbusy('RightPane')
 def set_daily_forecast():
