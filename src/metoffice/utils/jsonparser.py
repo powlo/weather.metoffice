@@ -111,7 +111,6 @@ def threehourly(data):
             d['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
             d['3Hourly%d.Day' % count] = time.strftime(utilities.SHORT_DAY_FORMAT, time.strptime(period.get('value'), utilities.DATAPOINT_DATE_FORMAT))
             d['3Hourly%d.Time' % count] = utilities.minutes_as_time(int(rep.get('$')))
-            d['3Hourly%d.Date' % count] = period.get('value')
             d['3Hourly%d.ActualTemp' % count] = rep.get('T', 'na')
             d['3Hourly%d.FeelsLikeTemp' % count] = rep.get('F', 'na')
             count +=1

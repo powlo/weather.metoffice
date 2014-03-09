@@ -98,7 +98,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sat', result['3Hourly0.Day'])
         self.assertEqual('12:00', result['3Hourly0.Time'])
-        self.assertEqual('2014-03-01Z', result['3Hourly0.Date'])
         self.assertEqual('6', result['3Hourly0.ActualTemp'])
         self.assertEqual('4', result['3Hourly0.FeelsLikeTemp'])
         self.assertEqual('4', result['3Hourly0.WindSpeed'])
@@ -111,7 +110,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sat', result['3Hourly1.Day'])
         self.assertEqual('15:00', result['3Hourly1.Time'])
-        self.assertEqual('2014-03-01Z', result['3Hourly1.Date'])
         self.assertEqual('8', result['3Hourly1.ActualTemp'])
         self.assertEqual('6', result['3Hourly1.FeelsLikeTemp'])
         self.assertEqual('7', result['3Hourly1.WindSpeed'])
@@ -124,7 +122,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sat', result['3Hourly2.Day'])
         self.assertEqual('18:00', result['3Hourly2.Time'])
-        self.assertEqual('2014-03-01Z', result['3Hourly2.Date'])
         self.assertEqual('6', result['3Hourly2.ActualTemp'])
         self.assertEqual('5', result['3Hourly2.FeelsLikeTemp'])
         self.assertEqual('2', result['3Hourly2.WindSpeed'])
@@ -137,7 +134,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sat', result['3Hourly3.Day'])
         self.assertEqual('21:00', result['3Hourly3.Time'])
-        self.assertEqual('2014-03-01Z', result['3Hourly3.Date'])
         self.assertEqual('5', result['3Hourly3.ActualTemp'])
         self.assertEqual('3', result['3Hourly3.FeelsLikeTemp'])
         self.assertEqual('4', result['3Hourly3.WindSpeed'])
@@ -150,7 +146,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sun', result['3Hourly4.Day'])
         self.assertEqual('00:00', result['3Hourly4.Time'])
-        self.assertEqual('2014-03-02Z', result['3Hourly4.Date'])
         self.assertEqual('3', result['3Hourly4.ActualTemp'])
         self.assertEqual('1', result['3Hourly4.FeelsLikeTemp'])
         self.assertEqual('7', result['3Hourly4.WindSpeed'])
@@ -163,7 +158,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sun', result['3Hourly5.Day'])
         self.assertEqual('03:00', result['3Hourly5.Time'])
-        self.assertEqual('2014-03-02Z', result['3Hourly5.Date'])
         self.assertEqual('3', result['3Hourly5.ActualTemp'])
         self.assertEqual('0', result['3Hourly5.FeelsLikeTemp'])
         self.assertEqual('9', result['3Hourly5.WindSpeed'])
@@ -176,7 +170,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sun', result['3Hourly6.Day'])
         self.assertEqual('06:00', result['3Hourly6.Time'])
-        self.assertEqual('2014-03-02Z', result['3Hourly6.Date'])
         self.assertEqual('4', result['3Hourly6.ActualTemp'])
         self.assertEqual('0', result['3Hourly6.FeelsLikeTemp'])
         self.assertEqual('11', result['3Hourly6.WindSpeed'])
@@ -189,7 +182,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sun', result['3Hourly7.Day'])
         self.assertEqual('09:00', result['3Hourly7.Time'])
-        self.assertEqual('2014-03-02Z', result['3Hourly7.Date'])
         self.assertEqual('6', result['3Hourly7.ActualTemp'])
         self.assertEqual('3', result['3Hourly7.FeelsLikeTemp'])
         self.assertEqual('13', result['3Hourly7.WindSpeed'])
@@ -202,7 +194,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sun', result['3Hourly8.Day'])
         self.assertEqual('12:00', result['3Hourly8.Time'])
-        self.assertEqual('2014-03-02Z', result['3Hourly8.Date'])
         self.assertEqual('9', result['3Hourly8.ActualTemp'])
         self.assertEqual('5', result['3Hourly8.FeelsLikeTemp'])
         self.assertEqual('18', result['3Hourly8.WindSpeed'])
@@ -215,7 +206,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sun', result['3Hourly9.Day'])
         self.assertEqual('15:00', result['3Hourly9.Time'])
-        self.assertEqual('2014-03-02Z', result['3Hourly9.Date'])
         self.assertEqual('9', result['3Hourly9.ActualTemp'])
         self.assertEqual('5', result['3Hourly9.FeelsLikeTemp'])
         self.assertEqual('20', result['3Hourly9.WindSpeed'])
@@ -228,7 +218,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sun', result['3Hourly10.Day'])
         self.assertEqual('18:00', result['3Hourly10.Time'])
-        self.assertEqual('2014-03-02Z', result['3Hourly10.Date'])
         self.assertEqual('8', result['3Hourly10.ActualTemp'])
         self.assertEqual('3', result['3Hourly10.FeelsLikeTemp'])
         self.assertEqual('20', result['3Hourly10.WindSpeed'])
@@ -241,7 +230,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Sun', result['3Hourly11.Day'])
         self.assertEqual('21:00', result['3Hourly11.Time'])
-        self.assertEqual('2014-03-02Z', result['3Hourly11.Date'])
         self.assertEqual('7', result['3Hourly11.ActualTemp'])
         self.assertEqual('3', result['3Hourly11.FeelsLikeTemp'])
         self.assertEqual('16', result['3Hourly11.WindSpeed'])
@@ -254,7 +242,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Mon', result['3Hourly12.Day'])
         self.assertEqual('00:00', result['3Hourly12.Time'])
-        self.assertEqual('2014-03-03Z', result['3Hourly12.Date'])
         self.assertEqual('5', result['3Hourly12.ActualTemp'])
         self.assertEqual('1', result['3Hourly12.FeelsLikeTemp'])
         self.assertEqual('13', result['3Hourly12.WindSpeed'])
@@ -267,7 +254,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Mon', result['3Hourly13.Day'])
         self.assertEqual('03:00', result['3Hourly13.Time'])
-        self.assertEqual('2014-03-03Z', result['3Hourly13.Date'])
         self.assertEqual('3', result['3Hourly13.ActualTemp'])
         self.assertEqual('-1', result['3Hourly13.FeelsLikeTemp'])
         self.assertEqual('11', result['3Hourly13.WindSpeed'])
@@ -280,7 +266,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Mon', result['3Hourly14.Day'])
         self.assertEqual('06:00', result['3Hourly14.Time'])
-        self.assertEqual('2014-03-03Z', result['3Hourly14.Date'])
         self.assertEqual('2', result['3Hourly14.ActualTemp'])
         self.assertEqual('-2', result['3Hourly14.FeelsLikeTemp'])
         self.assertEqual('11', result['3Hourly14.WindSpeed'])
@@ -293,7 +278,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Mon', result['3Hourly15.Day'])
         self.assertEqual('09:00', result['3Hourly15.Time'])
-        self.assertEqual('2014-03-03Z', result['3Hourly15.Date'])
         self.assertEqual('5', result['3Hourly15.ActualTemp'])
         self.assertEqual('1', result['3Hourly15.FeelsLikeTemp'])
         self.assertEqual('11', result['3Hourly15.WindSpeed'])
@@ -306,7 +290,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Mon', result['3Hourly16.Day'])
         self.assertEqual('12:00', result['3Hourly16.Time'])
-        self.assertEqual('2014-03-03Z', result['3Hourly16.Date'])
         self.assertEqual('7', result['3Hourly16.ActualTemp'])
         self.assertEqual('4', result['3Hourly16.FeelsLikeTemp'])
         self.assertEqual('11', result['3Hourly16.WindSpeed'])
@@ -319,7 +302,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Mon', result['3Hourly17.Day'])
         self.assertEqual('15:00', result['3Hourly17.Time'])
-        self.assertEqual('2014-03-03Z', result['3Hourly17.Date'])
         self.assertEqual('7', result['3Hourly17.ActualTemp'])
         self.assertEqual('4', result['3Hourly17.FeelsLikeTemp'])
         self.assertEqual('7', result['3Hourly17.WindSpeed'])
@@ -332,7 +314,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Mon', result['3Hourly18.Day'])
         self.assertEqual('18:00', result['3Hourly18.Time'])
-        self.assertEqual('2014-03-03Z', result['3Hourly18.Date'])
         self.assertEqual('5', result['3Hourly18.ActualTemp'])
         self.assertEqual('3', result['3Hourly18.FeelsLikeTemp'])
         self.assertEqual('7', result['3Hourly18.WindSpeed'])
@@ -345,7 +326,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Mon', result['3Hourly19.Day'])
         self.assertEqual('21:00', result['3Hourly19.Time'])
-        self.assertEqual('2014-03-03Z', result['3Hourly19.Date'])
         self.assertEqual('4', result['3Hourly19.ActualTemp'])
         self.assertEqual('1', result['3Hourly19.FeelsLikeTemp'])
         self.assertEqual('9', result['3Hourly19.WindSpeed'])
@@ -358,7 +338,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Tue', result['3Hourly20.Day'])
         self.assertEqual('00:00', result['3Hourly20.Time'])
-        self.assertEqual('2014-03-04Z', result['3Hourly20.Date'])
         self.assertEqual('3', result['3Hourly20.ActualTemp'])
         self.assertEqual('0', result['3Hourly20.FeelsLikeTemp'])
         self.assertEqual('9', result['3Hourly20.WindSpeed'])
@@ -371,7 +350,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Tue', result['3Hourly21.Day'])
         self.assertEqual('03:00', result['3Hourly21.Time'])
-        self.assertEqual('2014-03-04Z', result['3Hourly21.Date'])
         self.assertEqual('3', result['3Hourly21.ActualTemp'])
         self.assertEqual('-1', result['3Hourly21.FeelsLikeTemp'])
         self.assertEqual('9', result['3Hourly21.WindSpeed'])
@@ -384,7 +362,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Tue', result['3Hourly22.Day'])
         self.assertEqual('06:00', result['3Hourly22.Time'])
-        self.assertEqual('2014-03-04Z', result['3Hourly22.Date'])
         self.assertEqual('2', result['3Hourly22.ActualTemp'])
         self.assertEqual('-1', result['3Hourly22.FeelsLikeTemp'])
         self.assertEqual('9', result['3Hourly22.WindSpeed'])
@@ -397,7 +374,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Tue', result['3Hourly23.Day'])
         self.assertEqual('09:00', result['3Hourly23.Time'])
-        self.assertEqual('2014-03-04Z', result['3Hourly23.Date'])
         self.assertEqual('5', result['3Hourly23.ActualTemp'])
         self.assertEqual('2', result['3Hourly23.FeelsLikeTemp'])
         self.assertEqual('11', result['3Hourly23.WindSpeed'])
@@ -410,7 +386,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Tue', result['3Hourly24.Day'])
         self.assertEqual('12:00', result['3Hourly24.Time'])
-        self.assertEqual('2014-03-04Z', result['3Hourly24.Date'])
         self.assertEqual('8', result['3Hourly24.ActualTemp'])
         self.assertEqual('5', result['3Hourly24.FeelsLikeTemp'])
         self.assertEqual('11', result['3Hourly24.WindSpeed'])
@@ -423,7 +398,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Tue', result['3Hourly25.Day'])
         self.assertEqual('15:00', result['3Hourly25.Time'])
-        self.assertEqual('2014-03-04Z', result['3Hourly25.Date'])
         self.assertEqual('8', result['3Hourly25.ActualTemp'])
         self.assertEqual('6', result['3Hourly25.FeelsLikeTemp'])
         self.assertEqual('11', result['3Hourly25.WindSpeed'])
@@ -436,7 +410,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Tue', result['3Hourly26.Day'])
         self.assertEqual('18:00', result['3Hourly26.Time'])
-        self.assertEqual('2014-03-04Z', result['3Hourly26.Date'])
         self.assertEqual('6', result['3Hourly26.ActualTemp'])
         self.assertEqual('4', result['3Hourly26.FeelsLikeTemp'])
         self.assertEqual('7', result['3Hourly26.WindSpeed'])
@@ -449,7 +422,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Tue', result['3Hourly27.Day'])
         self.assertEqual('21:00', result['3Hourly27.Time'])
-        self.assertEqual('2014-03-04Z', result['3Hourly27.Date'])
         self.assertEqual('5', result['3Hourly27.ActualTemp'])
         self.assertEqual('2', result['3Hourly27.FeelsLikeTemp'])
         self.assertEqual('7', result['3Hourly27.WindSpeed'])
@@ -462,7 +434,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Wed', result['3Hourly28.Day'])
         self.assertEqual('00:00', result['3Hourly28.Time'])
-        self.assertEqual('2014-03-05Z', result['3Hourly28.Date'])
         self.assertEqual('4', result['3Hourly28.ActualTemp'])
         self.assertEqual('1', result['3Hourly28.FeelsLikeTemp'])
         self.assertEqual('9', result['3Hourly28.WindSpeed'])
@@ -475,7 +446,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Wed', result['3Hourly29.Day'])
         self.assertEqual('03:00', result['3Hourly29.Time'])
-        self.assertEqual('2014-03-05Z', result['3Hourly29.Date'])
         self.assertEqual('4', result['3Hourly29.ActualTemp'])
         self.assertEqual('1', result['3Hourly29.FeelsLikeTemp'])
         self.assertEqual('9', result['3Hourly29.WindSpeed'])
@@ -488,7 +458,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Wed', result['3Hourly30.Day'])
         self.assertEqual('06:00', result['3Hourly30.Time'])
-        self.assertEqual('2014-03-05Z', result['3Hourly30.Date'])
         self.assertEqual('4', result['3Hourly30.ActualTemp'])
         self.assertEqual('1', result['3Hourly30.FeelsLikeTemp'])
         self.assertEqual('11', result['3Hourly30.WindSpeed'])
@@ -501,7 +470,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Wed', result['3Hourly31.Day'])
         self.assertEqual('09:00', result['3Hourly31.Time'])
-        self.assertEqual('2014-03-05Z', result['3Hourly31.Date'])
         self.assertEqual('6', result['3Hourly31.ActualTemp'])
         self.assertEqual('2', result['3Hourly31.FeelsLikeTemp'])
         self.assertEqual('13', result['3Hourly31.WindSpeed'])
@@ -514,7 +482,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Wed', result['3Hourly32.Day'])
         self.assertEqual('12:00', result['3Hourly32.Time'])
-        self.assertEqual('2014-03-05Z', result['3Hourly32.Date'])
         self.assertEqual('8', result['3Hourly32.ActualTemp'])
         self.assertEqual('3', result['3Hourly32.FeelsLikeTemp'])
         self.assertEqual('18', result['3Hourly32.WindSpeed'])
@@ -527,7 +494,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Wed', result['3Hourly33.Day'])
         self.assertEqual('15:00', result['3Hourly33.Time'])
-        self.assertEqual('2014-03-05Z', result['3Hourly33.Date'])
         self.assertEqual('8', result['3Hourly33.ActualTemp'])
         self.assertEqual('3', result['3Hourly33.FeelsLikeTemp'])
         self.assertEqual('18', result['3Hourly33.WindSpeed'])
@@ -540,7 +506,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Wed', result['3Hourly34.Day'])
         self.assertEqual('18:00', result['3Hourly34.Time'])
-        self.assertEqual('2014-03-05Z', result['3Hourly34.Date'])
         self.assertEqual('7', result['3Hourly34.ActualTemp'])
         self.assertEqual('2', result['3Hourly34.FeelsLikeTemp'])
         self.assertEqual('13', result['3Hourly34.WindSpeed'])
@@ -553,7 +518,6 @@ class TestJsonParser(XBMCTestCase):
 
         self.assertEqual('Wed', result['3Hourly35.Day'])
         self.assertEqual('21:00', result['3Hourly35.Time'])
-        self.assertEqual('2014-03-05Z', result['3Hourly35.Date'])
         self.assertEqual('5', result['3Hourly35.ActualTemp'])
         self.assertEqual('1', result['3Hourly35.FeelsLikeTemp'])
         self.assertEqual('13', result['3Hourly35.WindSpeed'])
