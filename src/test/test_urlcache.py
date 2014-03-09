@@ -42,7 +42,7 @@ class TestURLCache(XBMCTestCase):
         url = 'http://www.xbmc.org/'
         src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
         expiry = datetime.now() + timedelta(days=1)
-        dest = os.path.join(RESULTS_FOLDER, os.path.basename(src))
+        dest = os.path.join(RESULTS_FOLDER, 'cache', os.path.basename(src))
         with self.URLCache(RESULTS_FOLDER) as cache:
             cache.put(url, src, expiry)
             self.assertTrue(os.path.isfile(dest), 'File not copied into cache.')
@@ -81,11 +81,13 @@ class TestURLCache(XBMCTestCase):
             self.assertFalse(os.path.isfile(dest), 'File is still in cache.')
             self.assertFalse(url in cache._cache, 'Entry is still in cache.')
 
+            src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
             cache.put(url, src, expiry)
             cache.flush('.*xbmc.*')
             self.assertFalse(os.path.isfile(dest), 'File is still in cache.')
             self.assertFalse(url in cache._cache, 'Entry is still in cache.')
 
+            src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
             cache.put(url, src, expiry)
             cache.flush('.*google.*')
             self.assertTrue(os.path.isfile(dest), 'File removed from cache.')
@@ -99,6 +101,9 @@ class TestURLCache(XBMCTestCase):
             cache.put(url, src, expiry)
             entry = cache.get(url)
             self.assertFalse(cache.isexpired(entry), 'Entry identified as being expired')
+            os.remove(entry['resource'])
+
+            src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
             expiry = datetime.now() - timedelta(days=1)
             cache.put(url, src, expiry)
             entry = cache.get(url)
@@ -148,6 +153,7 @@ class TestURLCache(XBMCTestCase):
             self.assertFalse(urllib.urlretrieve.called) #@UndefinedVariable
 
             #check item is fetched because its expired
+            os.remove(dest)
             src = open(os.path.join(RESULTS_FOLDER, 'tmp_af54mPh'), 'w').name
             urllib.urlretrieve.reset_mock() #@UndefinedVariable
             cache.setexpiry(url, datetime.now() - timedelta(days=1))
@@ -155,8 +161,8 @@ class TestURLCache(XBMCTestCase):
             self.assertTrue(urllib.urlretrieve.called) #@UndefinedVariable
 
             #check item is fetched because its missing
-            src = open(os.path.join(RESULTS_FOLDER, 'tmp_af54mPh'), 'w').name
             os.remove(dest)
+            src = open(os.path.join(RESULTS_FOLDER, 'tmp_af54mPh'), 'w').name
             urllib.urlretrieve.reset_mock() #@UndefinedVariable
             cache.urlretrieve(url)
             self.assertTrue(urllib.urlretrieve.called) #@UndefinedVariable
@@ -170,16 +176,19 @@ class TestURLCache(XBMCTestCase):
     def test_jsonretrieve(self):
         with self.URLCache(RESULTS_FOLDER) as cache:
             url = 'http://www.xbmc.org/'
-            filename =os.path.join(RESULTS_FOLDER, 'tmp_af54mPh')
+            filename = os.path.join(RESULTS_FOLDER, 'tmp_af54mPh')
+            dest = os.path.join(RESULTS_FOLDER, 'cache', 'tmp_af54mPh')
             src = open(filename, 'w')
             src.write("{}")
             src.close()
-            cache.urlretrieve = Mock(return_value=src.name)
+            cache.put(url, filename, datetime.now()+timedelta(hours=1))
+            entry = cache.get(url)
+            cache.urlretrieve = Mock(return_value=entry['resource'])
             self.assertEqual(dict(), cache.jsonretrieve(url))
 
             #test exception
-            src = open(filename, 'w').close()
-            cache.put(url, filename, datetime.now()+timedelta(hours=1))
+            #filename = os.path.join(RESULTS_FOLDER, 'cache', 'tmp_af54mPh')
+            src = open(entry['resource'], 'w').close()
             with self.assertRaises(ValueError):
                 cache.jsonretrieve(url)
             with self.assertRaises(KeyError):

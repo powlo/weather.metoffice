@@ -46,7 +46,7 @@ class URLCache(object):
     def put(self, url, src, expiry):
         #takes a file and copies it into the cache
         #returns resource location in cache
-        shutil.copy(src, self._folder)
+        shutil.move(src, self._folder)
         resource = os.path.join(self._folder, os.path.basename(src))
         self._cache[url] = {'resource':resource, 'expiry': expiry.strftime(self.TIME_FORMAT)}
         return resource
