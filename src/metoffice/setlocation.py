@@ -17,16 +17,7 @@ from utils import datapoint, locator, urlcache, utilities
 
 __addon__ = xbmcaddon.Addon(id='weather.metoffice')
 API_KEY = __addon__.getSetting('ApiKey')
-if not API_KEY:
-    dialog = xbmcgui.Dialog()
-    dialog.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
-    utilities.log( 'No API Key', xbmc.LOGERROR)
-    sys.exit(1)
-
-GEOIP_PROVIDER = int(__addon__.getSetting('GeoIPProvider'))
-if not GEOIP_PROVIDER:
-    utilities.log( 'No GeoIP Provider is set.')
-    GEOIP_PROVIDER = 0
+GEOIP_PROVIDER = __addon__.getSetting('GeoIPProvider')
 
 @utilities.xbmcbusy
 def fetchandfilter(location, text):
@@ -52,7 +43,7 @@ def fetchandfilter(location, text):
             filtered.append(site)
 
     if location != 'RegionalLocation':
-        locator.distances(filtered, GEOIP_PROVIDER)
+        locator.distances(filtered, int(GEOIP_PROVIDER))
         for site in filtered:
             site['display'] = "{name} ({distance}km)".format(name=site['name'].encode('utf-8'),distance=site['distance'])
         filtered = sorted(filtered,key=itemgetter('distance'))
@@ -62,7 +53,10 @@ def fetchandfilter(location, text):
         filtered = sorted(filtered,key=itemgetter('name'))
     return filtered
 
+@utilities.failgracefully
 def main(location):
+    if not API_KEY:
+        raise Exception('No API Key. Enter your Met Office API Key under settings.')
 
     keyboard = xbmc.Keyboard()
     keyboard.doModal()

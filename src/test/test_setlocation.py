@@ -40,18 +40,12 @@ class TestSetLocation(XBMCTestCase):
         for site in sitelist:
             site['distance'] = 10
 
-    #setlocation on import will raise a sys.exit(1) if theres no API Key
-    #Is this a good thing? Probably not. 
-    #TODO: Put this stuff in setlocation.main()
-    def test_noapikey(self):    
+    def test_noapikey(self):
         addon = self.xbmcaddon.Addon.return_value
-        addon.getSetting.side_effect = lambda x: None
-        try:
-            from metoffice import setlocation #@UnusedImport
-            self.fail('Import did not raise SystemExit')
-        except SystemExit:
-            pass
-        self.assertTrue(self.xbmcgui.Dialog.return_value.ok.called)
+        addon.getSetting.side_effect = lambda x: {'ApiKey' : '', 'GeoIPProvider' : '0'}[x]
+        from metoffice import setlocation #@UnusedImport
+        self.assertRaises(Exception, setlocation.main('ForecastLocation'))
+
     #the fragility of this test probably indicates
     #a fragility in the target code.
     #TODO: Change code so that locator returns a list of distances, then zip them up with sitelist

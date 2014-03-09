@@ -1,13 +1,12 @@
 import xbmc #@UnresolvedImport
-import xbmcgui #@UnresolvedImport
 import xbmcaddon #@UnresolvedImport
 import sys
 import socket
+
 socket.setdefaulttimeout(20)
 
 from datetime import datetime, timedelta
 from PIL import Image
-from urllib2 import URLError
 from operator import itemgetter
 
 from utils import utilities, jsonparser, datapoint, urlcache, locator
@@ -206,56 +205,45 @@ WEATHER_WINDOW = utilities.WEATHER_WINDOW
 API_KEY = __addon__.getSetting('ApiKey')
 AUTOLOCATION = True if __addon__.getSetting('AutoLocation') == 'true' else False
 FORCEAUTOLOCATION = True if __addon__.getSetting('ForceAutoLocation') == 'true' else False
-POPUP = xbmcgui.Dialog()
 
+@utilities.failgracefully
 def main():
-    try:
-        if not API_KEY:
-            POPUP.ok('No API Key', 'Enter your Met Office API Key under weather settings.')
-            utilities.log( 'No API Key', xbmc.LOGERROR)
-            sys.exit(1)
+    if not API_KEY:
+        raise Exception('No API Key. Enter your Met Office API Key under settings.')
 
-        if sys.argv[1].isdigit():
-            #only autolocate when given a refresh command
-            if FORCEAUTOLOCATION:
+    if sys.argv[1].isdigit():
+        #only autolocate when given a refresh command
+        if FORCEAUTOLOCATION:
+            auto_location('ForecastLocation')
+            auto_location('ObservationLocation')
+        elif AUTOLOCATION:
+            if not __addon__.getSetting('ForecastLocation'):
                 auto_location('ForecastLocation')
+            if not __addon__.getSetting('ObservationLocation'):
                 auto_location('ObservationLocation')
-            elif AUTOLOCATION:
-                if not __addon__.getSetting('ForecastLocation'):
-                    auto_location('ForecastLocation')
-                if not __addon__.getSetting('ObservationLocation'):
-                    auto_location('ObservationLocation')
 
-            #fetch all?
-            #TODO: actually we want to do something smarter: look and see which panels are
-            #visible and only fetch data for them, so we'll pass a list into set_properties?...
-            set_hourly_observation()
-            set_daily_forecast()
-        elif sys.argv[1] == 'ForecastMap':
-            set_forecast_layer()
-        elif sys.argv[1] == 'DailyForecast':
-            set_daily_forecast()
-        elif sys.argv[1] == '3HourlyForecast':
-            set_3hourly_forecast()
-        elif sys.argv[1] == 'TextForecast':
-            set_text_forecast()
-        elif sys.argv[1] == 'HourlyObservation':
-            set_hourly_observation()
+        #fetch all?
+        #TODO: actually we want to do something smarter: look and see which panels are
+        #visible and only fetch data for them, so we'll pass a list into set_properties?...
+        set_hourly_observation()
+        set_daily_forecast()
+    elif sys.argv[1] == 'ForecastMap':
+        set_forecast_layer()
+    elif sys.argv[1] == 'DailyForecast':
+        set_daily_forecast()
+    elif sys.argv[1] == '3HourlyForecast':
+        set_3hourly_forecast()
+    elif sys.argv[1] == 'TextForecast':
+        set_text_forecast()
+    elif sys.argv[1] == 'HourlyObservation':
+        set_hourly_observation()
 
-        WEATHER_WINDOW.setProperty('WeatherProvider', __addon__.getAddonInfo('name'))
-        WEATHER_WINDOW.setProperty('ObservationLocation', __addon__.getSetting('ObservationLocation'))
-        WEATHER_WINDOW.setProperty('ForecastLocation', __addon__.getSetting('ForecastLocation'))
-        WEATHER_WINDOW.setProperty('RegionalLocation', __addon__.getSetting('RegionalLocation'))
-        WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ObservationLocation'))
-        WEATHER_WINDOW.setProperty('Locations', '1')
-    except (URLError, IOError) as e:
-        if xbmcgui.getCurrentWindowId() == utilities.WINDOW_WEATHER:
-            if type(e)==URLError:
-                line2 = e.reason
-            else:
-                line2 = e.filename if e.filename!=None else 'Check your internet connection'
-            POPUP.ok(str(e.errno), str(e.strerror), line2)
-            utilities.log( '{0} {1} {2}'.format(e.errno, str(e.strerror), line2), xbmc.LOGERROR)
+    WEATHER_WINDOW.setProperty('WeatherProvider', __addon__.getAddonInfo('name'))
+    WEATHER_WINDOW.setProperty('ObservationLocation', __addon__.getSetting('ObservationLocation'))
+    WEATHER_WINDOW.setProperty('ForecastLocation', __addon__.getSetting('ForecastLocation'))
+    WEATHER_WINDOW.setProperty('RegionalLocation', __addon__.getSetting('RegionalLocation'))
+    WEATHER_WINDOW.setProperty('Location1', __addon__.getSetting('ObservationLocation'))
+    WEATHER_WINDOW.setProperty('Locations', '1')
 
 if __name__ == '__main__':
     main()

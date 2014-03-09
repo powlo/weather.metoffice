@@ -1,7 +1,9 @@
 from functools import wraps
 from datetime import datetime
+import sys
 import os
 import time
+import traceback
 import xbmc #@UnresolvedImport
 import xbmcgui #@UnresolvedImport
 import xbmcaddon #@UnresolvedImport
@@ -25,6 +27,8 @@ CACHE_FILE = os.path.join(ADDON_DATA_PATH, 'cache.json')
 
 LOGPREFIX = "weather.metoffice: "
 
+POPUP = xbmcgui.Dialog()
+
 #by importing utilities all messages in xbmc log will be prepended with LOGPREFIX
 def log(msg, level=xbmc.LOGNOTICE):
     xbmc.log('weather.metoffice: {0}'.format(msg), level)
@@ -32,6 +36,17 @@ def log(msg, level=xbmc.LOGNOTICE):
 #python datetime.strptime is not thread safe: sometimes causes 'NoneType is not callable' error
 def strptime(dt, fmt):
     return datetime(*(time.strptime(dt, fmt)[0:6]))
+
+def failgracefully(f):
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        try:
+            return f(*args, **kwds)
+        except Exception as e:
+            log(traceback.format_exc(), xbmc.LOGSEVERE)
+            if xbmcgui.getCurrentWindowId() == WINDOW_WEATHER or xbmcgui.getCurrentWindowId() == WINDOW_SETTINGS_MYWEATHER:
+                POPUP.ok("An Error Occurred", "Check log file for details.", str(type(e)), str(e))
+    return wrapper
 
 def xbmcbusy(f):
     @wraps(f)
