@@ -59,7 +59,7 @@ def observation(data):
     d['Current.Condition'] = WEATHER_CODES[latest_obs.get('W', 'na')][1]
     d['Current.Visibility'] = latest_obs.get('V', 'n/a')
     d['Current.Pressure'] = latest_obs.get('P', 'n/a')
-    d['Current.Temperature'] = latest_obs.get('T', 'n/a').split('.')[0]
+    d['Current.Temperature'] = str(round(float(latest_obs.get('T', 'n/a')))).split('.')[0]
     d['Current.Wind'] = latest_obs.get('S', 'n/a')
     d['Current.WindDirection'] = latest_obs.get('D', 'n/a')
     d['Current.WindGust'] = latest_obs.get('G', 'n/a')
