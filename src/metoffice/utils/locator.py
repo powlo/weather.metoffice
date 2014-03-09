@@ -18,7 +18,7 @@ def distances(sitelist, n=0):
     url = provider['url']
     utilities.log("Calculating distances based on GeoIP data from %s" % url.split('/')[2].lstrip('www.'))
     utilities.log("URL: %s" % url)
-    with URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+    with URLCache(utilities.ADDON_DATA_PATH) as cache:
         geoip = cache.jsonretrieve(url, datetime.now()+timedelta(hours=1))
     #different geoip providers user different names for latitude, longitude
     providers_lat_name = provider['latitude']

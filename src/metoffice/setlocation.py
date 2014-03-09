@@ -26,7 +26,7 @@ def fetchandfilter(location, text):
            'RegionalLocation': datapoint.REGIONAL_SITELIST_URL}[location]
     url = url.format(key=API_KEY)
 
-    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+    with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
         data = cache.jsonretrieve(url, datetime.now()+timedelta(weeks=1))
     sitelist = data['Locations']['Location']
     if location == 'RegionalLocation':

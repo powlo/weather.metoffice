@@ -35,7 +35,7 @@ def auto_location(location):
            'ObservationLocation': datapoint.OBSERVATION_SITELIST_URL}[location]
     url = url.format(key=API_KEY)
 
-    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+    with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
         data = cache.jsonretrieve(url, datetime.now()+timedelta(weeks=1))
 
     sitelist = data['Locations']['Location']
@@ -48,7 +48,7 @@ def auto_location(location):
 
 @utilities.panelbusy('RightPane')
 def set_daily_forecast():
-    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+    with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
         name = __addon__.getSetting('ForecastLocation')
         flid = __addon__.getSetting('ForecastLocationID')
         utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, flid))
@@ -63,7 +63,7 @@ def set_daily_forecast():
 
 @utilities.panelbusy('RightPane')
 def set_3hourly_forecast():
-    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+    with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
         name = __addon__.getSetting('ForecastLocation')
         flid = __addon__.getSetting('ForecastLocationID')
         utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, flid))
@@ -78,7 +78,7 @@ def set_3hourly_forecast():
 
 @utilities.panelbusy('RightPane')
 def set_text_forecast():
-    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+    with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
         name = __addon__.getSetting('RegionalLocation')
         rlid = __addon__.getSetting('RegionalLocationID')
         utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, rlid))
@@ -93,7 +93,7 @@ def set_text_forecast():
 
 @utilities.panelbusy('LeftPane')
 def set_hourly_observation():
-    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+    with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
         name = __addon__.getSetting('ObservationLocation')
         olid = __addon__.getSetting('ObservationLocationID')
         utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, olid))
@@ -108,7 +108,7 @@ def set_hourly_observation():
 
 @utilities.panelbusy('RightPane')
 def set_forecast_layer():
-    with urlcache.URLCache(utilities.CACHE_FILE, utilities.CACHE_FOLDER) as cache:
+    with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
         #there are two kinds of fetches for this app, get a json file and get an image file.
         params = {'sensor':'false', 'center':'55,-3.5','zoom':'5','size':'323x472'}
         google_expiry = datetime.now() + timedelta(days=30)

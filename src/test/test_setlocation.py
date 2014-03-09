@@ -8,8 +8,6 @@ from mock import Mock, patch
 TEST_FOLDER = os.path.dirname(__file__)
 RESULTS_FOLDER = os.path.join(TEST_FOLDER, 'results')
 DATA_FOLDER = os.path.join(TEST_FOLDER, 'data')
-CACHE_FOLDER = os.path.join(RESULTS_FOLDER, 'cache')
-CACHE_FILE = os.path.join(RESULTS_FOLDER, 'cache.json')
 FORECASTSITELIST = os.path.join(DATA_FOLDER, 'forecastsitelist.json')
 TEXTSITELIST = os.path.join(DATA_FOLDER, 'textsitelist.json')
 

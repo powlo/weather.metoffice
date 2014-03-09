@@ -19,17 +19,13 @@ import utilities
 class URLCache(object):
     TIME_FORMAT = "%a %b %d %H:%M:%S %Y"
 
-    def __init__(self, fyle, folder):
-        file_folder = os.path.dirname(fyle)
-        if not os.path.exists(file_folder):
-            os.makedirs(file_folder)
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-
-        self._file = fyle
-        self._folder = folder
+    def __init__(self, folder):
+        self._folder = os.path.join(folder, 'cache')
+        self._file = os.path.join(folder, 'cache.json')
 
     def __enter__(self):
+        if not os.path.exists(self._folder):
+            os.makedirs(self._folder)
         try:
             fyle = open(self._file, 'r')
         except IOError:
