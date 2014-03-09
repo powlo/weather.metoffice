@@ -48,63 +48,63 @@ def auto_location(location):
 
 @utilities.panelbusy('RightPane')
 def set_daily_forecast():
+    name = __addon__.getSetting('ForecastLocation')
+    flid = __addon__.getSetting('ForecastLocationID')
+    utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, flid))
+    url = datapoint.DAILY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
-        name = __addon__.getSetting('ForecastLocation')
-        flid = __addon__.getSetting('ForecastLocationID')
-        utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, flid))
-        url = datapoint.DAILY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
         cache.setexpiry(url, expiry)
-        report = jsonparser.daily(data)
-        for field, value in report.iteritems():
-            WEATHER_WINDOW.setProperty(field, value)
-        WEATHER_WINDOW.setProperty('DailyForecast.IsFetched', 'true')
+    report = jsonparser.daily(data)
+    for field, value in report.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
+    WEATHER_WINDOW.setProperty('DailyForecast.IsFetched', 'true')
 
 @utilities.panelbusy('RightPane')
 def set_3hourly_forecast():
+    name = __addon__.getSetting('ForecastLocation')
+    flid = __addon__.getSetting('ForecastLocationID')
+    utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, flid))
+    url = datapoint.THREEHOURLY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
-        name = __addon__.getSetting('ForecastLocation')
-        flid = __addon__.getSetting('ForecastLocationID')
-        utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, flid))
-        url = datapoint.THREEHOURLY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
         cache.setexpiry(url, expiry)
-        report = jsonparser.threehourly(data)
-        for field, value in report.iteritems():
-            WEATHER_WINDOW.setProperty(field, value)
-        WEATHER_WINDOW.setProperty('3HourlyForecast.IsFetched', 'true')
+    report = jsonparser.threehourly(data)
+    for field, value in report.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
+    WEATHER_WINDOW.setProperty('3HourlyForecast.IsFetched', 'true')
 
 @utilities.panelbusy('RightPane')
 def set_text_forecast():
+    name = __addon__.getSetting('RegionalLocation')
+    rlid = __addon__.getSetting('RegionalLocationID')
+    utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, rlid))
+    url = datapoint.TEXT_FORECAST_URL.format(object=rlid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
-        name = __addon__.getSetting('RegionalLocation')
-        rlid = __addon__.getSetting('RegionalLocationID')
-        utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, rlid))
-        url = datapoint.TEXT_FORECAST_URL.format(object=rlid, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['RegionalFcst']['issuedAt'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=12)
         cache.setexpiry(url, expiry)
-        report = jsonparser.text(data)
-        for field, value in report.iteritems():
-            WEATHER_WINDOW.setProperty(field, value)
-        WEATHER_WINDOW.setProperty('TextForecast.IsFetched', 'true')
+    report = jsonparser.text(data)
+    for field, value in report.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
+    WEATHER_WINDOW.setProperty('TextForecast.IsFetched', 'true')
 
 @utilities.panelbusy('LeftPane')
 def set_hourly_observation():
+    name = __addon__.getSetting('ObservationLocation')
+    olid = __addon__.getSetting('ObservationLocationID')
+    utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, olid))
+    url = datapoint.HOURLY_LOCATION_OBSERVATION_URL.format(object=olid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
-        name = __addon__.getSetting('ObservationLocation')
-        olid = __addon__.getSetting('ObservationLocationID')
-        utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, olid))
-        url = datapoint.HOURLY_LOCATION_OBSERVATION_URL.format(object=olid, key=API_KEY)
         data = cache.jsonretrieve(url)
         expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
         cache.setexpiry(url, expiry)
-        report = jsonparser.observation(data)
-        for field, value in report.iteritems():
-            WEATHER_WINDOW.setProperty(field, value)
-        WEATHER_WINDOW.setProperty('HourlyObservation.IsFetched', 'true')
+    report = jsonparser.observation(data)
+    for field, value in report.iteritems():
+        WEATHER_WINDOW.setProperty(field, value)
+    WEATHER_WINDOW.setProperty('HourlyObservation.IsFetched', 'true')
 
 @utilities.panelbusy('RightPane')
 def set_forecast_layer():
