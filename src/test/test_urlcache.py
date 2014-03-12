@@ -81,6 +81,29 @@ class TestURLCache(XBMCTestCase):
         self.assertTrue(os.path.isfile(fyle), 'Cache file not created.')
         self.assertTrue(os.path.isdir(folder), 'Cache folder not created.')
 
+    def test_exit(self):
+        #Test flush happens on exit
+        url1 = 'http://www.xbmc.org/'
+        url2 = 'http://www.google.com/'
+        src1 = os.path.join(RESULTS_FOLDER, 'file1.txt')
+        src2 = os.path.join(RESULTS_FOLDER, 'file2.txt')
+        open(src1, 'w').close()
+        open(src2, 'w').close()
+        yesterday = datetime.now() - timedelta(days=1)
+        tomorrow = datetime.now() + timedelta(days=1)
+        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
+            cache.put(url1, src1, yesterday)
+            cache.put(url2, src2, tomorrow)
+
+        #Test file is written and contains only one entry
+        f = open(os.path.join(RESULTS_FOLDER, 'cache.json'))
+        cache_contents = json.load(f, object_hook=self.urlcache.entry_decoder)
+        self.assertEqual(1, len(cache_contents), "Unexpected item in bagging area")
+        self.assertTrue(cache_contents.has_key(url2))
+        entry = cache_contents[url2]
+        self.assertEqual(datetime.strptime(datetime.strftime(tomorrow, self.urlcache.Entry.TIME_FORMAT), self.urlcache.Entry.TIME_FORMAT), entry.expiry)
+        self.assertEqual(os.path.basename(src2), os.path.basename(entry.resource))
+
     def test_put(self):
         url = 'http://www.xbmc.org/'
         src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
@@ -123,18 +146,6 @@ class TestURLCache(XBMCTestCase):
             cache.flush()
             self.assertFalse(os.path.isfile(dest), 'File is still in cache.')
             self.assertFalse(url in cache._cache, 'Entry is still in cache.')
-
-            src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
-            cache.put(url, src, expiry)
-            cache.flush('.*xbmc.*')
-            self.assertFalse(os.path.isfile(dest), 'File is still in cache.')
-            self.assertFalse(url in cache._cache, 'Entry is still in cache.')
-
-            src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
-            cache.put(url, src, expiry)
-            cache.flush('.*google.*')
-            self.assertTrue(os.path.isfile(dest), 'File removed from cache.')
-            self.assertTrue(url in cache._cache, 'Entry removed from cache.')
 
     def test_urlretrieve(self):
         with self.urlcache.URLCache(RESULTS_FOLDER) as cache:

@@ -63,9 +63,11 @@ class URLCache(object):
         return self
 
     def __exit__(self, typ, value, traceback):
+        self.flush()
         with open(self._file, 'w+') as fyle:
             json.dump(self._cache, fyle, indent=2,cls=EntryEncoder)
 
+    #Todo: Make put take an Entry object
     def put(self, url, src, expiry):
         #takes a file and copies it into the cache
         #returns resource location in cache
@@ -84,16 +86,11 @@ class URLCache(object):
             utilities.log("Removing entry for '%s' from cache" % url)
             del self._cache[url]
 
-    def flush(self, pattern=None):
+    def flush(self):
         flushlist = list()
         for url, entry in self._cache.iteritems():
-            if pattern:
-                if not entry.isvalid():
-                    if re.match(pattern, url):
-                        flushlist.append(url)
-            else:
-                if not entry.isvalid():
-                        flushlist.append(url)
+            if not entry.isvalid():
+                    flushlist.append(url)
         for url in flushlist:
             self.remove(url)
 

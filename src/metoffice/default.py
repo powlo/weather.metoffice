@@ -129,9 +129,6 @@ def set_forecast_layer():
 
         #remove any marker that isn't the one we just fetched
         markers = '(?!{lat})(\d+),(?!{long})(\d+)'.format(lat=lat, long=long)
-        pattern = GOOGLE_MARKER.replace('?', '\?').format(sensor='false', center='55,-3.5',zoom='5',size='323x472',
-                                   style='feature:all|element:all|visibility:off', markers=markers)
-        cache.flush(pattern)
 
         #get capabilities
         url = datapoint.FORECAST_LAYER_CAPABILITIES_URL.format(key=API_KEY)
@@ -177,14 +174,6 @@ def set_forecast_layer():
                                  Timestep=timestep,
                                  key=API_KEY)
         layer = cache.urlretrieve(url, entry.expiry)
-
-        #flush any image with the same name and timestep that isnt the one we just fetched
-        pattern = LayerURL.replace('?', '\?').format(LayerName=layer_name,
-                             ImageFormat=image_format,
-                             DefaultTime="(?!%s)(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})" % default_time,
-                             Timestep=timestep,
-                             key="[a-z0-9-]+")
-        cache.flush(pattern)
 
         #remove the 'cone' from the image
         img = Image.open(layer.resource)
