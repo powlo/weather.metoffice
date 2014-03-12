@@ -29,22 +29,22 @@ class TestEntry(XBMCTestCase):
         self.assertEqual(src, e.resource)
         self.assertEqual(now, e.expiry)
 
-    def test_isexpired(self):
+    def test_isvalid(self):
+        #test what happens when the resource is expired
         src = os.path.join(RESULTS_FOLDER, 'file.txt')
+        open(src, 'w').close()
         yesterday = datetime.now() - timedelta(days=1)
         e = self.urlcache.Entry(src, yesterday)
-        self.assertTrue(e.isexpired())
+        self.assertFalse(e.isvalid())
         tomorrow = datetime.now() + timedelta(days=1)
         e.expiry = tomorrow
-        self.assertFalse(e.isexpired())
+        self.assertTrue(e.isvalid())
 
-    def test_ismissing(self):
-        src = os.path.join(RESULTS_FOLDER, 'file.txt')
-        now = datetime.now()
-        e = self.urlcache.Entry(src, now)
-        self.assertTrue(e.ismissing())
+        #test what happens when the resource is missing
+        os.remove(src)
+        self.assertFalse(e.isvalid())
         open(src, 'w').close()
-        self.assertFalse(e.ismissing())
+        self.assertTrue(e.isvalid())
 
     def tearDown(self):
         shutil.rmtree(RESULTS_FOLDER)
@@ -136,33 +136,6 @@ class TestURLCache(XBMCTestCase):
             self.assertTrue(os.path.isfile(dest), 'File removed from cache.')
             self.assertTrue(url in cache._cache, 'Entry removed from cache.')
 
-    def test_isexpired(self):
-        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
-            url = 'http://www.xbmc.org/'
-            src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
-            expiry = datetime.now() + timedelta(days=1)
-            cache.put(url, src, expiry)
-            entry = cache.get(url)
-            self.assertFalse(entry.isexpired(), 'Entry identified as being expired')
-            os.remove(entry.resource)
-
-            src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
-            expiry = datetime.now() - timedelta(days=1)
-            cache.put(url, src, expiry)
-            entry = cache.get(url)
-            self.assertTrue(entry.isexpired(), 'Entry not identified as being expired')
-
-    def test_ismissing(self):
-        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
-            url = 'http://www.xbmc.org/'
-            src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
-            expiry = datetime.now() - timedelta(days=2)
-            cache.put(url, src, expiry)
-            entry = cache.get(url)
-            self.assertFalse(entry.ismissing(), 'Entry identified as being missing')
-            os.remove(entry.resource)
-            self.assertTrue(entry.ismissing(), 'Entry identified as not missing')
-
     def test_urlretrieve(self):
         with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             url = 'http://www.xbmc.org/'
@@ -181,20 +154,12 @@ class TestURLCache(XBMCTestCase):
             cache.urlretrieve(url)
             self.assertFalse(urllib.urlretrieve.called) #@UndefinedVariable
 
-            #check item is fetched because its expired
+            #check item is fetched because its invalid
             src = open(os.path.join(RESULTS_FOLDER, 'tmp_af54mPh'), 'w').name
             urllib.urlretrieve.reset_mock() #@UndefinedVariable
             entry = cache.get(url)
             entry.expiry = datetime.now() - timedelta(days=1)
             os.remove(entry.resource)
-            cache.urlretrieve(url)
-            self.assertTrue(urllib.urlretrieve.called) #@UndefinedVariable
-
-            #check item is fetched because its missing
-            src = open(os.path.join(RESULTS_FOLDER, 'tmp_af54mPh'), 'w').name
-            entry = cache.get(url)
-            os.remove(entry.resource)
-            urllib.urlretrieve.reset_mock() #@UndefinedVariable
             cache.urlretrieve(url)
             self.assertTrue(urllib.urlretrieve.called) #@UndefinedVariable
 

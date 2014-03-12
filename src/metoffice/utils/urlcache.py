@@ -23,13 +23,9 @@ class Entry(object):
         self.resource = resource
         self.expiry = expiry
 
-    def isexpired(self):
-        #the entry has expired, according to the 'expiry' field.
-        return self.expiry < datetime.now()
-
-    def ismissing(self):
-        #the resource indicated by the entry no longer exists
-        return not os.path.exists(self.resource)
+    def isvalid(self):
+        #check the entry expiry and the resource exists.
+        return self.expiry > datetime.now() and os.path.exists(self.resource)
 
 class EntryEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -92,11 +88,11 @@ class URLCache(object):
         flushlist = list()
         for url, entry in self._cache.iteritems():
             if pattern:
-                if entry.isexpired():
+                if not entry.isvalid():
                     if re.match(pattern, url):
                         flushlist.append(url)
             else:
-                if entry.isexpired():
+                if not entry.isvalid():
                         flushlist.append(url)
         for url in flushlist:
             self.remove(url)
@@ -109,17 +105,14 @@ class URLCache(object):
         extension. This is true for application/json and image/png
         """
         try:
-            utilities.log("Checking cache for '%s'" % url)
             entry = self.get(url)
-            if entry.ismissing():
-                raise MissingError
-            elif entry.isexpired():
-                raise ExpiredError
+            if not entry.isvalid():
+                raise InvalidCacheError
             else:
-                utilities.log("Returning cached item.")
+                utilities.log("Returning cached item for '%s'" % url)
                 return entry
-        except (KeyError, MissingError):
-            utilities.log("Not in cache. Fetching from web.")
+        except (KeyError, InvalidCacheError):
+            utilities.log("Fetching '%s' from web." % url)
             (src, headers) = urllib.urlretrieve(url)
             if len(src.split('.')) == 1:
                 ext = headers.type.split('/')[1]
@@ -127,19 +120,6 @@ class URLCache(object):
                 src = src+'.'+ext
             self.put(url, src, expiry)
             return self.get(url)
-        except ExpiredError:
-            utilities.log("Cached item has expired. Fetching from web.")
-            try:
-                (src, headers) = urllib.urlretrieve(url)
-                if len(src.split('.')) == 1:
-                    ext = headers.type.split('/')[1]
-                    shutil.move(src, src+'.'+ext)
-                    src = src+'.'+ext
-                self.put(url, src, expiry)
-                return self.get(url)
-            except Exception:
-                utilities.log("Could not update cache.")
-                raise
 
     def jsonretrieve(self, url, expiry=datetime.now()+timedelta(days=1)):
         entry = self.urlretrieve(url, expiry)
@@ -151,8 +131,5 @@ class URLCache(object):
                 utilities.log('Couldn\'t load json data from %s' % fyle.name)
                 raise
 
-class MissingError(Exception):
-    pass
-
-class ExpiredError(Exception):
+class InvalidCacheError(Exception):
     pass
