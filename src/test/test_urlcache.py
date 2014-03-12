@@ -3,11 +3,52 @@ import shutil
 import unittest
 from datetime import datetime, timedelta
 import urllib
+import json
 from mock import Mock
 
 from xbmctestcase import XBMCTestCase
 
 RESULTS_FOLDER = 'results'
+
+class TestEntry(XBMCTestCase):
+    def setUp(self):
+        #create a disposable area for testing
+        super(TestEntry, self).setUp()
+        try:
+            os.mkdir(RESULTS_FOLDER)
+        except OSError:
+            pass
+
+        from metoffice.utils import urlcache
+        self.urlcache = urlcache
+
+    def test_init(self):
+        src = os.path.join(RESULTS_FOLDER, 'file.txt')
+        now = datetime.now()
+        e = self.urlcache.Entry(src, now)
+        self.assertEqual(src, e.resource)
+        self.assertEqual(now, e.expiry)
+
+    def test_isexpired(self):
+        src = os.path.join(RESULTS_FOLDER, 'file.txt')
+        yesterday = datetime.now() - timedelta(days=1)
+        e = self.urlcache.Entry(src, yesterday)
+        self.assertTrue(e.isexpired())
+        tomorrow = datetime.now() + timedelta(days=1)
+        e.expiry = tomorrow
+        self.assertFalse(e.isexpired())
+
+    def test_ismissing(self):
+        src = os.path.join(RESULTS_FOLDER, 'file.txt')
+        now = datetime.now()
+        e = self.urlcache.Entry(src, now)
+        self.assertTrue(e.ismissing())
+        open(src, 'w').close()
+        self.assertFalse(e.ismissing())
+
+    def tearDown(self):
+        shutil.rmtree(RESULTS_FOLDER)
+        super(TestEntry, self).tearDown()
 
 class TestURLCache(XBMCTestCase):
     def setUp(self):
@@ -18,20 +59,22 @@ class TestURLCache(XBMCTestCase):
         except OSError:
             pass
         
-        from metoffice.utils.urlcache import URLCache 
-        self.URLCache = URLCache
-    
+        from metoffice.utils import urlcache
+        self.urlcache = urlcache
+        from metoffice.utils import utilities
+        self.utilities = utilities
+
     def test_init(self):
         fyle = os.path.join(RESULTS_FOLDER, 'cache.json')
         folder = os.path.join(RESULTS_FOLDER, 'cache')
-        cache = self.URLCache(RESULTS_FOLDER)
+        cache = self.urlcache.URLCache(RESULTS_FOLDER)
         self.assertEqual(cache._file, fyle, 'Cache _file property not assigned')
         self.assertEqual(cache._folder, folder, 'Cache _folder property not assigned')
 
     def test_enter(self):
         fyle = os.path.join(RESULTS_FOLDER, 'cache.json')
         folder = os.path.join(RESULTS_FOLDER, 'cache')
-        with self.URLCache(RESULTS_FOLDER) as cache:
+        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             self.assertEqual(cache._file, fyle, 'Cache _file property not assigned')
             self.assertEqual(cache._folder, folder, 'Cache _folder property not assigned')
             self.assertEqual(cache._cache, dict(), 'Cache dictionary not created.')
@@ -43,7 +86,7 @@ class TestURLCache(XBMCTestCase):
         src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
         expiry = datetime.now() + timedelta(days=1)
         dest = os.path.join(RESULTS_FOLDER, 'cache', os.path.basename(src))
-        with self.URLCache(RESULTS_FOLDER) as cache:
+        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             cache.put(url, src, expiry)
             self.assertTrue(os.path.isfile(dest), 'File not copied into cache.')
             self.assertTrue(url in cache._cache, 'Entry not created in cache.')
@@ -53,25 +96,25 @@ class TestURLCache(XBMCTestCase):
         src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
         dest = os.path.join(RESULTS_FOLDER, 'cache', os.path.basename(src))
         expiry = datetime.now() + timedelta(days=2)
-        with self.URLCache(RESULTS_FOLDER) as cache:
+        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             cache.put(url, src, expiry)
             entry = cache.get(url)
-            self.assertEqual(dest, entry['resource'], 'Cache resource mismatch.')
-            self.assertEqual(expiry.strftime(cache.TIME_FORMAT), entry['expiry'], 'Cache expiry mismatch.')
+            self.assertEqual(dest, entry.resource, 'Cache resource mismatch.')
+            self.assertEqual(expiry, entry.expiry, 'Cache expiry mismatch.')
     
     def test_remove(self):
         url = 'http://www.xbmc.org/'
         src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
         expiry = datetime.now() + timedelta(days=1)
         dest = os.path.join(RESULTS_FOLDER, 'cache', os.path.basename(src))
-        with self.URLCache(RESULTS_FOLDER) as cache:
+        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             cache.put(url, src, expiry)
             cache.remove(url)
             self.assertFalse(os.path.isfile(dest), 'File is still in cache.')
             self.assertFalse(url in cache._cache, 'Entry is still in cache.')
     
     def test_flush(self):
-        with self.URLCache(RESULTS_FOLDER) as cache:
+        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             url = 'http://www.xbmc.org/'
             src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
             expiry = datetime.now() - timedelta(days=1)
@@ -92,50 +135,36 @@ class TestURLCache(XBMCTestCase):
             cache.flush('.*google.*')
             self.assertTrue(os.path.isfile(dest), 'File removed from cache.')
             self.assertTrue(url in cache._cache, 'Entry removed from cache.')
-    
+
     def test_isexpired(self):
-        with self.URLCache(RESULTS_FOLDER) as cache:
+        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             url = 'http://www.xbmc.org/'
             src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
             expiry = datetime.now() + timedelta(days=1)
             cache.put(url, src, expiry)
             entry = cache.get(url)
-            self.assertFalse(cache.isexpired(entry), 'Entry identified as being expired')
-            os.remove(entry['resource'])
+            self.assertFalse(entry.isexpired(), 'Entry identified as being expired')
+            os.remove(entry.resource)
 
             src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
             expiry = datetime.now() - timedelta(days=1)
             cache.put(url, src, expiry)
             entry = cache.get(url)
-            self.assertTrue(cache.isexpired(entry), 'Entry not identified as being expired')
+            self.assertTrue(entry.isexpired(), 'Entry not identified as being expired')
 
     def test_ismissing(self):
-        with self.URLCache(RESULTS_FOLDER) as cache:
+        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             url = 'http://www.xbmc.org/'
             src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
-            dest = os.path.join(RESULTS_FOLDER, 'cache', os.path.basename(src))
             expiry = datetime.now() - timedelta(days=2)
             cache.put(url, src, expiry)
             entry = cache.get(url)
-            self.assertFalse(cache.ismissing(entry), 'Entry identified as being missing')
-            os.remove(dest)
-            self.assertTrue(cache.ismissing(entry), 'Entry identified as not missing')
+            self.assertFalse(entry.ismissing(), 'Entry identified as being missing')
+            os.remove(entry.resource)
+            self.assertTrue(entry.ismissing(), 'Entry identified as not missing')
 
-    def test_setexpiry(self):
-        with self.URLCache(RESULTS_FOLDER) as cache:
-            url = 'http://www.xbmc.org/'
-            src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
-            expiry = datetime.now() - timedelta(days=1)
-            cache.put(url, src, expiry)
-            expiry = datetime.now()
-            entry = cache.get(url)
-            self.assertNotEqual(expiry.strftime(cache.TIME_FORMAT), entry['expiry'], "Expiry shouldn't equal new expiry.")
-            cache.setexpiry(url, expiry)
-            entry = cache.get(url)
-            self.assertEqual(expiry.strftime(cache.TIME_FORMAT), entry['expiry'], "Expiry was not updated.")
-    
     def test_urlretrieve(self):
-        with self.URLCache(RESULTS_FOLDER) as cache:
+        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             url = 'http://www.xbmc.org/'
             src = open(os.path.join(RESULTS_FOLDER, 'tmp_af54mPh'), 'w').name
             dest = os.path.join(RESULTS_FOLDER, 'cache', os.path.basename(src)+".json")
@@ -153,28 +182,31 @@ class TestURLCache(XBMCTestCase):
             self.assertFalse(urllib.urlretrieve.called) #@UndefinedVariable
 
             #check item is fetched because its expired
-            os.remove(dest)
             src = open(os.path.join(RESULTS_FOLDER, 'tmp_af54mPh'), 'w').name
             urllib.urlretrieve.reset_mock() #@UndefinedVariable
-            cache.setexpiry(url, datetime.now() - timedelta(days=1))
+            entry = cache.get(url)
+            entry.expiry = datetime.now() - timedelta(days=1)
+            os.remove(entry.resource)
             cache.urlretrieve(url)
             self.assertTrue(urllib.urlretrieve.called) #@UndefinedVariable
 
             #check item is fetched because its missing
-            os.remove(dest)
             src = open(os.path.join(RESULTS_FOLDER, 'tmp_af54mPh'), 'w').name
+            entry = cache.get(url)
+            os.remove(entry.resource)
             urllib.urlretrieve.reset_mock() #@UndefinedVariable
             cache.urlretrieve(url)
             self.assertTrue(urllib.urlretrieve.called) #@UndefinedVariable
 
             #check exception code
-            cache.setexpiry(url, datetime.now() - timedelta(days=1))
+            entry = cache.get(url)
+            entry.expiry = datetime.now() - timedelta(days=1)
             urllib.urlretrieve = Mock(side_effect=IOError)
             with self.assertRaises(IOError):
                 cache.urlretrieve(url)
 
     def test_jsonretrieve(self):
-        with self.URLCache(RESULTS_FOLDER) as cache:
+        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             url = 'http://www.xbmc.org/'
             filename = os.path.join(RESULTS_FOLDER, 'tmp_af54mPh')
             dest = os.path.join(RESULTS_FOLDER, 'cache', 'tmp_af54mPh')
@@ -183,20 +215,35 @@ class TestURLCache(XBMCTestCase):
             src.close()
             cache.put(url, filename, datetime.now()+timedelta(hours=1))
             entry = cache.get(url)
-            cache.urlretrieve = Mock(return_value=entry['resource'])
+            cache.urlretrieve = Mock(return_value=entry)
             self.assertEqual(dict(), cache.jsonretrieve(url))
 
             #test exception
             #filename = os.path.join(RESULTS_FOLDER, 'cache', 'tmp_af54mPh')
-            src = open(entry['resource'], 'w').close()
+            src = open(entry.resource, 'w').close()
             with self.assertRaises(ValueError):
                 cache.jsonretrieve(url)
             with self.assertRaises(KeyError):
                 cache.get(url)
 
+    def test_entry_decoder(self):
+        #test basic decoding
+        json_str= '{"cat":"dog"}'
+        obj = json.loads(json_str, object_hook=self.urlcache.entry_decoder)
+        self.assertEqual({'cat':'dog'}, obj)
+        
+        #test Entry decoding
+        json_str = '{"resource": "/path/to/something", "expiry": "Wed Mar 12 18:31:44 2014"}'
+        obj = json.loads(json_str, object_hook=self.urlcache.entry_decoder)
+        self.assertIsInstance(obj, self.urlcache.Entry)
+        self.assertEqual('/path/to/something', obj.resource)
+        self.assertEqual(self.utilities.strptime("Wed Mar 12 18:31:44 2014", self.urlcache.Entry.TIME_FORMAT), obj.expiry)
+
     def tearDown(self):
         shutil.rmtree(RESULTS_FOLDER)
         super(TestURLCache, self).tearDown()
 
+
+        
 if __name__ == '__main__':
     unittest.main()

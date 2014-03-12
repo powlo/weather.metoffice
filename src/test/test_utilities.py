@@ -21,7 +21,7 @@ class TestUtilities(XBMCTestCase):
 
     def test_xbmcbusy(self):
         mock_func = Mock()
-        mock_func.__name__ = "Percy"
+        mock_func.__name__ = "Mock"
         self.xbmcgui.getCurrentWindowId = Mock(return_value=self.utilities.WINDOW_WEATHER)
         decorated_func = self.utilities.xbmcbusy(mock_func)
         decorated_func(1,2,3)
@@ -29,16 +29,27 @@ class TestUtilities(XBMCTestCase):
         self.assertEqual(self.xbmc.executebuiltin.call_args_list[0], (("ActivateWindow(busydialog)",),))
         self.assertEqual(self.xbmc.executebuiltin.call_args_list[1], (("Dialog.Close(busydialog)",),))
         mock_func.assert_called_with(1,2,3)
-    
+
     def test_panelbusy(self):
         mock_func = Mock()
-        mock_func.__name__ = "Percy"
+        mock_func.__name__ = "Mock"
         rightbusy = self.utilities.panelbusy("RightPanel")
         decorated_func = rightbusy(mock_func)
         decorated_func(1,2,3)
         self.xbmcgui.Window.return_value.setProperty.assert_called_once_with('RightPanel.IsBusy', 'true')
         self.xbmcgui.Window.return_value.clearProperty.assert_called_once_with('RightPanel.IsBusy')
         mock_func.assert_called_with(1,2,3)
+
+    def test_failgracefully(self):
+        mock_func = Mock()
+        mock_func.__name__ = "Mock"
+        mock_func.side_effect = IOError
+        self.xbmcgui.getCurrentWindowId = Mock(return_value=self.utilities.WINDOW_WEATHER)
+        decorated_func = self.utilities.failgracefully(mock_func)
+        decorated_func(1,2,3)
+        mock_func.assert_called_once_with(1,2,3)
+        self.assertTrue(self.xbmc.log.called)
+        self.assertTrue(self.xbmcgui.Dialog.return_value.ok.called)
 
     def test_minutes_as_time(self):
         self.assertEqual("03:00", self.utilities.minutes_as_time(180))

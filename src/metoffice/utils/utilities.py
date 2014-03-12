@@ -1,7 +1,5 @@
 from functools import wraps
 from datetime import datetime
-import sys
-import os
 import time
 import traceback
 import xbmc #@UnresolvedImport

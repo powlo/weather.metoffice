@@ -7,7 +7,6 @@ Ie filter out any expired Rainfall Timestep 0.
 """
 
 from datetime import datetime, timedelta
-import time
 import os
 import shutil
 import urllib
@@ -16,8 +15,36 @@ import re
 
 import utilities
 
-class URLCache(object):
+
+class Entry(object):
     TIME_FORMAT = "%a %b %d %H:%M:%S %Y"
+
+    def __init__(self, resource, expiry):
+        self.resource = resource
+        self.expiry = expiry
+
+    def isexpired(self):
+        #the entry has expired, according to the 'expiry' field.
+        return self.expiry < datetime.now()
+
+    def ismissing(self):
+        #the resource indicated by the entry no longer exists
+        return not os.path.exists(self.resource)
+
+class EntryEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Entry):
+            return {'resource' : obj.resource,
+                 'expiry' : obj.expiry.strftime(Entry.TIME_FORMAT)}
+        else:
+            return json.JSONEncoder.default(self, obj)
+
+def entry_decoder(obj):
+    if 'expiry' in obj and 'resource' in obj:
+        return Entry(obj['resource'], utilities.strptime(obj['expiry'], Entry.TIME_FORMAT))
+    return obj
+
+class URLCache(object):
 
     def __init__(self, folder):
         self._folder = os.path.join(folder, 'cache')
@@ -33,7 +60,7 @@ class URLCache(object):
             open(self._file, 'a').close()
             fyle = open(self._file, 'r')
         try:
-            self._cache = json.load(fyle)
+            self._cache = json.load(fyle, object_hook=entry_decoder)
         except ValueError:
             self._cache = dict()
         fyle.close()
@@ -41,52 +68,38 @@ class URLCache(object):
 
     def __exit__(self, typ, value, traceback):
         with open(self._file, 'w+') as fyle:
-            json.dump(self._cache, fyle, indent=2)
+            json.dump(self._cache, fyle, indent=2,cls=EntryEncoder)
 
     def put(self, url, src, expiry):
         #takes a file and copies it into the cache
         #returns resource location in cache
         shutil.move(src, self._folder)
         resource = os.path.join(self._folder, os.path.basename(src))
-        self._cache[url] = {'resource':resource, 'expiry': expiry.strftime(self.TIME_FORMAT)}
-        return resource
+        self._cache[url] = Entry(resource, expiry)
 
     def get(self, url):
         return self._cache[url]
 
     def remove(self, url):
-        utilities.log("Deleting file '%s'" % self._cache[url]['resource'])
-        os.remove(self._cache[url]['resource'])
-        utilities.log("Removing entry for '%s' from cache" % url)
-        del self._cache[url]
+        if url in self._cache:
+            entry = self._cache[url]
+            utilities.log("Deleting file '%s'" % entry.resource)
+            os.remove(entry.resource)
+            utilities.log("Removing entry for '%s' from cache" % url)
+            del self._cache[url]
 
     def flush(self, pattern=None):
         flushlist = list()
-        for url in self._cache:
+        for url, entry in self._cache.iteritems():
             if pattern:
-                if self.isexpired(self._cache[url]):
+                if entry.isexpired():
                     if re.match(pattern, url):
                         flushlist.append(url)
             else:
-                if self.isexpired(self._cache[url]):
+                if entry.isexpired():
                         flushlist.append(url)
         for url in flushlist:
             self.remove(url)
-
-    def isexpired(self, entry):
-        #the entry has expired, according to the 'expiry' field.
-        expiry = datetime.fromtimestamp(time.mktime(time.strptime(entry['expiry'], self.TIME_FORMAT)))
-        return expiry < datetime.now()
-
-    def ismissing(self, entry):
-        #the resource indicated by the entry no longer exists
-        return not os.path.exists(entry['resource'])
-
-    def setexpiry(self, url, expiry):
-        """
-        Sets the expiry of a given url
-        """
-        self._cache[url]['expiry'] = expiry.strftime(self.TIME_FORMAT)
 
     def urlretrieve(self, url, expiry=datetime.now()+timedelta(days=1)):
         """
@@ -98,13 +111,13 @@ class URLCache(object):
         try:
             utilities.log("Checking cache for '%s'" % url)
             entry = self.get(url)
-            if self.ismissing(entry):
+            if entry.ismissing():
                 raise MissingError
-            elif self.isexpired(entry):
+            elif entry.isexpired():
                 raise ExpiredError
             else:
                 utilities.log("Returning cached item.")
-                return entry['resource']
+                return entry
         except (KeyError, MissingError):
             utilities.log("Not in cache. Fetching from web.")
             (src, headers) = urllib.urlretrieve(url)
@@ -112,7 +125,8 @@ class URLCache(object):
                 ext = headers.type.split('/')[1]
                 shutil.move(src, src+'.'+ext)
                 src = src+'.'+ext
-            return self.put(url, src, expiry)
+            self.put(url, src, expiry)
+            return self.get(url)
         except ExpiredError:
             utilities.log("Cached item has expired. Fetching from web.")
             try:
@@ -121,13 +135,15 @@ class URLCache(object):
                     ext = headers.type.split('/')[1]
                     shutil.move(src, src+'.'+ext)
                     src = src+'.'+ext
-                return self.put(url, src, expiry)
+                self.put(url, src, expiry)
+                return self.get(url)
             except Exception:
                 utilities.log("Could not update cache.")
                 raise
 
     def jsonretrieve(self, url, expiry=datetime.now()+timedelta(days=1)):
-        with open(self.urlretrieve(url, expiry)) as fyle:
+        entry = self.urlretrieve(url, expiry)
+        with open(entry.resource) as fyle:
             try:
                 return json.load(fyle)
             except ValueError:

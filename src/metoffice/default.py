@@ -53,9 +53,11 @@ def set_daily_forecast():
     utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, flid))
     url = datapoint.DAILY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
+        #TODO: remove what are effectively two calls to cache. Move jsonretrieve outside cache
         data = cache.jsonretrieve(url)
-        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
-        cache.setexpiry(url, expiry)
+        entry = cache.get(url)
+        dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
+        entry.expiry = utilities.strptime(dataDate, utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
     report = jsonparser.daily(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
@@ -69,8 +71,8 @@ def set_3hourly_forecast():
     url = datapoint.THREEHOURLY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
         data = cache.jsonretrieve(url)
-        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
-        cache.setexpiry(url, expiry)
+        entry = cache.get(url)
+        entry.expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
     report = jsonparser.threehourly(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
@@ -84,8 +86,8 @@ def set_text_forecast():
     url = datapoint.TEXT_FORECAST_URL.format(object=rlid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
         data = cache.jsonretrieve(url)
-        expiry = utilities.strptime(data['RegionalFcst']['issuedAt'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=12)
-        cache.setexpiry(url, expiry)
+        entry = cache.get(url)
+        entry.expiry = utilities.strptime(data['RegionalFcst']['issuedAt'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=12)
     report = jsonparser.text(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
@@ -99,8 +101,8 @@ def set_hourly_observation():
     url = datapoint.HOURLY_LOCATION_OBSERVATION_URL.format(object=olid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
         data = cache.jsonretrieve(url)
-        expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
-        cache.setexpiry(url, expiry)
+        entry = cache.get(url)
+        entry.expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
     report = jsonparser.observation(data)
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
@@ -134,9 +136,8 @@ def set_forecast_layer():
         #get capabilities
         url = datapoint.FORECAST_LAYER_CAPABILITIES_URL.format(key=API_KEY)
         data = cache.jsonretrieve(url)
-        expiry = utilities.strptime(data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime'], utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=9)
-        cache.setexpiry(url, expiry)
-
+        entry = cache.get(url)
+        entry.expiry = utilities.strptime(data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime'], utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=9)
         selection = WEATHER_WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER
         #pull parameters out of capabilities file - consider using jsonpath here
         for thislayer in data['Layers']['Layer']:
@@ -175,7 +176,7 @@ def set_forecast_layer():
                                  DefaultTime=default_time,
                                  Timestep=timestep,
                                  key=API_KEY)
-        layer = cache.urlretrieve(url, expiry)
+        layer = cache.urlretrieve(url, entry.expiry)
 
         #flush any image with the same name and timestep that isnt the one we just fetched
         pattern = LayerURL.replace('?', '\?').format(LayerName=layer_name,
@@ -186,17 +187,17 @@ def set_forecast_layer():
         cache.flush(pattern)
 
         #remove the 'cone' from the image
-        img = Image.open(layer)
+        img = Image.open(layer.resource)
         (width, height) = img.size
         if width == RAW_DATAPOINT_IMG_WIDTH:
-            img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(layer)
+            img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(layer.resource)
 
-        WEATHER_WINDOW.setProperty('ForecastMap.Surface', surface)
-        WEATHER_WINDOW.setProperty('ForecastMap.Marker', marker)
+        WEATHER_WINDOW.setProperty('ForecastMap.Surface', surface.resource)
+        WEATHER_WINDOW.setProperty('ForecastMap.Marker', marker.resource)
         WEATHER_WINDOW.setProperty('ForecastMap.SliderPosition', timestepindex)
         WEATHER_WINDOW.setProperty('ForecastMap.IssuedAt', issuedat.strftime(utilities.ISSUEDAT_FORMAT))
         WEATHER_WINDOW.setProperty('ForecastMap.MapTime', maptime.strftime(utilities.MAPTIME_FORMAT))
-        WEATHER_WINDOW.setProperty('ForecastMap.Layer', layer)
+        WEATHER_WINDOW.setProperty('ForecastMap.Layer', layer.resource)
         WEATHER_WINDOW.setProperty('ForecastMap.IsFetched', 'true')
 
 #MAIN CODE

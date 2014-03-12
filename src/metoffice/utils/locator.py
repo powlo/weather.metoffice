@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 import utilities
 from urlcache import URLCache
-
 #This list must appear in the same order as it appears in 
 #the settings.xml in order for the indexes to align.
 GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitude':'lon'},
