@@ -173,7 +173,7 @@ def set_forecast_layer():
                                  DefaultTime=default_time,
                                  Timestep=timestep,
                                  key=API_KEY)
-        layer = cache.urlretrieve(url, entry.expiry)
+        layer = cache.urlretrieve(url)
 
         #remove the 'cone' from the image
         img = Image.open(layer.resource)
