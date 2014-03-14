@@ -111,10 +111,6 @@ class URLCache(object):
         except (KeyError, InvalidCacheError):
             utilities.log("Fetching '%s' from web." % url)
             (src, headers) = urllib.urlretrieve(url)
-            if len(src.split('.')) == 1:
-                ext = headers.type.split('/')[1]
-                shutil.move(src, src+'.'+ext)
-                src = src+'.'+ext
             self.put(url, src, expiry)
             return self.get(url)
 

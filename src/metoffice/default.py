@@ -179,7 +179,7 @@ def set_forecast_layer():
         img = Image.open(layer.resource)
         (width, height) = img.size
         if width == RAW_DATAPOINT_IMG_WIDTH:
-            img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(layer.resource)
+            img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(layer.resource, image_format)
 
         WEATHER_WINDOW.setProperty('ForecastMap.Surface', surface.resource)
         WEATHER_WINDOW.setProperty('ForecastMap.Marker', marker.resource)
