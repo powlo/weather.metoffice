@@ -27,13 +27,12 @@ class Entry(object):
         #check the entry expiry and the resource exists.
         return self.expiry > datetime.now() and os.path.exists(self.resource)
 
-class EntryEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Entry):
-            return {'resource' : obj.resource,
-                 'expiry' : obj.expiry.strftime(Entry.TIME_FORMAT)}
-        else:
-            return json.JSONEncoder.default(self, obj)
+def entry_encoder(obj):
+    if isinstance(obj, Entry):
+        return {'resource' : obj.resource,
+             'expiry' : obj.expiry.strftime(Entry.TIME_FORMAT)}
+    else:
+        return json.JSONEncoder.default(self, obj)
 
 def entry_decoder(obj):
     if 'expiry' in obj and 'resource' in obj:
@@ -65,7 +64,7 @@ class URLCache(object):
     def __exit__(self, typ, value, traceback):
         self.flush()
         with open(self._file, 'w+') as fyle:
-            json.dump(self._cache, fyle, indent=2,cls=EntryEncoder)
+            json.dump(self._cache, fyle, indent=2,default=entry_encoder)
 
     #Todo: Make put take an Entry object
     def put(self, url, src, expiry):
