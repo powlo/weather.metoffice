@@ -49,14 +49,14 @@ class TestSetLocation(XBMCTestCase):
     #TODO: Change code so that locator returns a list of distances, then zip them up with sitelist
     def test_fetchandfilter(self):
         from metoffice import setlocation
-        with patch.object(self.URLCache, 'jsonretrieve', return_value=json.load(open(FORECASTSITELIST))):#@UndefinedVariable
+        with patch.object(self.URLCache, 'get', return_value=open(FORECASTSITELIST)):#@UndefinedVariable
             fetchandfilter = setlocation.fetchandfilter('ForecastLocation', 'Cairn')
             first = [json.load(open(FORECASTSITELIST))['Locations']['Location'][0]]
             first[0]['distance'] = 10
             first[0]['display'] = 'Cairnwell (10km)'
             self.assertEqual(first, fetchandfilter)
 
-        with patch.object(self.URLCache, 'jsonretrieve', return_value=json.load(open(TEXTSITELIST))):#@UndefinedVariable
+        with patch.object(self.URLCache, 'get', return_value=open(TEXTSITELIST)):#@UndefinedVariable
             result = setlocation.fetchandfilter('RegionalLocation', 'East Of England')
             expect = [{'display': 'East of England', u'id': u'512', u'name': 'East of England'}]
             self.assertEqual(expect, result)

@@ -15,7 +15,7 @@ class TestLocator(XBMCTestCase):
     def test_distances(self, MockCache):
         from metoffice.utils import locator
         mock_instance = MockCache.return_value
-        mock_instance.__enter__.return_value.jsonretrieve.return_value = json.load(open(TELIZE_DATA))
+        mock_instance.__enter__.return_value.get.return_value = open(TELIZE_DATA)
         sitelist = json.load(open(SITELIST_DATA))['Locations']['Location']
         locator.distances(sitelist, 2) #2 = Telize
         for site in sitelist:

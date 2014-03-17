@@ -2,7 +2,7 @@ import xbmc #@UnresolvedImport
 import xbmcaddon #@UnresolvedImport
 import sys
 import socket
-
+import json
 socket.setdefaulttimeout(20)
 
 from datetime import datetime, timedelta
@@ -36,7 +36,8 @@ def auto_location(location):
     url = url.format(key=API_KEY)
 
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
-        data = cache.jsonretrieve(url, datetime.now()+timedelta(weeks=1))
+        with cache.get(url, lambda x: datetime.now()+timedelta(weeks=1)) as fyle:
+            data = json.load(fyle)
 
     sitelist = data['Locations']['Location']
     locator.distances(sitelist, GEOIP_PROVIDER)
@@ -46,6 +47,42 @@ def auto_location(location):
     __addon__.setSetting('%sID' % location, first['id'])
     utilities.log( "Location set to '%s'" % first['name'])
 
+def daily_expiry(fyle):
+    with open(fyle) as f:
+        data = json.load(f)
+        dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
+        return utilities.strptime(dataDate, utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
+
+def threehourly_expiry(fyle):
+    with open(fyle) as f:
+        data = json.load(f)
+        dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
+        return utilities.strptime(dataDate, utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
+
+def text_expiry(fyle):
+    with open(fyle) as f:
+        data = json.load(f)
+        issuedAt = data['RegionalFcst']['issuedAt'].rstrip('Z')
+        return utilities.strptime(issuedAt, utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=12)
+
+def observation_expiry(fyle):
+    with open(fyle) as f:
+        data = json.load(f)
+        dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
+        return utilities.strptime(dataDate, utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
+
+def layer_capabilities_expiry(fyle):
+    with open(fyle) as f:
+        data = json.load(f)
+        defaultTime = data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime']
+        return utilities.strptime(defaultTime, utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=9)
+
+def layer_image_expiry(fyle):
+    return datetime.now() + timedelta(days=1)
+
+def google_expiry(fyle):
+    return datetime.now() + timedelta(days=30)
+
 @utilities.panelbusy('RightPane')
 def set_daily_forecast():
     name = __addon__.getSetting('ForecastLocation')
@@ -53,12 +90,8 @@ def set_daily_forecast():
     utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, flid))
     url = datapoint.DAILY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
-        #TODO: remove what are effectively two calls to cache. Move jsonretrieve outside cache
-        data = cache.jsonretrieve(url)
-        entry = cache.get(url)
-        dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
-        entry.expiry = utilities.strptime(dataDate, utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
-    report = jsonparser.daily(data)
+        with cache.get(url, daily_expiry) as fyle:
+            report = jsonparser.daily(json.load(fyle))
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
     WEATHER_WINDOW.setProperty('DailyForecast.IsFetched', 'true')
@@ -70,10 +103,8 @@ def set_3hourly_forecast():
     utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, flid))
     url = datapoint.THREEHOURLY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
-        data = cache.jsonretrieve(url)
-        entry = cache.get(url)
-        entry.expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
-    report = jsonparser.threehourly(data)
+        with cache.get(url, threehourly_expiry) as fyle:
+            report = jsonparser.threehourly(json.load(fyle))
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
     WEATHER_WINDOW.setProperty('3HourlyForecast.IsFetched', 'true')
@@ -85,10 +116,8 @@ def set_text_forecast():
     utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, rlid))
     url = datapoint.TEXT_FORECAST_URL.format(object=rlid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
-        data = cache.jsonretrieve(url)
-        entry = cache.get(url)
-        entry.expiry = utilities.strptime(data['RegionalFcst']['issuedAt'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=12)
-    report = jsonparser.text(data)
+        with cache.get(url, text_expiry) as fyle:
+            report = jsonparser.text(json.load(fyle))
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
     WEATHER_WINDOW.setProperty('TextForecast.IsFetched', 'true')
@@ -100,10 +129,8 @@ def set_hourly_observation():
     utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, olid))
     url = datapoint.HOURLY_LOCATION_OBSERVATION_URL.format(object=olid, key=API_KEY)
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
-        data = cache.jsonretrieve(url)
-        entry = cache.get(url)
-        entry.expiry = utilities.strptime(data['SiteRep']['DV']['dataDate'].rstrip('Z'), utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
-    report = jsonparser.observation(data)
+        with cache.get(url, observation_expiry) as fyle:
+            report = jsonparser.observation(json.load(fyle))
     for field, value in report.iteritems():
         WEATHER_WINDOW.setProperty(field, value)
     WEATHER_WINDOW.setProperty('HourlyObservation.IsFetched', 'true')
@@ -113,28 +140,28 @@ def set_forecast_layer():
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
         #there are two kinds of fetches for this app, get a json file and get an image file.
         params = {'sensor':'false', 'center':'55,-3.5','zoom':'5','size':'323x472'}
-        google_expiry = datetime.now() + timedelta(days=30)
 
         #get underlay map
         url=GOOGLE_SURFACE.format(maptype='satellite', **params)
-        surface = cache.urlretrieve(url, google_expiry)
-
+        with cache.get(url, google_expiry) as fyle:
+            surface = fyle.name
         #get marker map
         lat = __addon__.getSetting('ForecastLocationLatitude')
         lng = __addon__.getSetting('ForecastLocationLongitude')
 
         markers = '{lat},{lng}'.format(lat=lat, lng=lng)
         url = GOOGLE_MARKER.format(style='feature:all|element:all|visibility:off', markers=markers, **params)
-        marker = cache.urlretrieve(url, google_expiry)
+        with cache.get(url, google_expiry) as fyle:
+            marker = fyle.name
 
         #remove any marker that isn't the one we just fetched
         markers = '(?!{lat})(\d+),(?!{long})(\d+)'.format(lat=lat, long=long)
 
         #get capabilities
         url = datapoint.FORECAST_LAYER_CAPABILITIES_URL.format(key=API_KEY)
-        data = cache.jsonretrieve(url)
-        entry = cache.get(url)
-        entry.expiry = utilities.strptime(data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime'], utilities.DATAPOINT_DATETIME_FORMAT) + timedelta(hours=9)
+        
+        with cache.get(url, layer_capabilities_expiry) as fyle:
+            data = json.load(fyle)
         selection = WEATHER_WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER
         #pull parameters out of capabilities file - consider using jsonpath here
         for thislayer in data['Layers']['Layer']:
@@ -173,20 +200,21 @@ def set_forecast_layer():
                                  DefaultTime=default_time,
                                  Timestep=timestep,
                                  key=API_KEY)
-        layer = cache.urlretrieve(url)
+        with cache.get(url, layer_image_expiry) as fyle:
+            layer = fyle.name
 
         #remove the 'cone' from the image
-        img = Image.open(layer.resource)
+        img = Image.open(layer)
         (width, height) = img.size
         if width == RAW_DATAPOINT_IMG_WIDTH:
-            img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(layer.resource, image_format)
+            img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(layer, image_format)
 
-        WEATHER_WINDOW.setProperty('ForecastMap.Surface', surface.resource)
-        WEATHER_WINDOW.setProperty('ForecastMap.Marker', marker.resource)
+        WEATHER_WINDOW.setProperty('ForecastMap.Surface', surface)
+        WEATHER_WINDOW.setProperty('ForecastMap.Marker', marker)
         WEATHER_WINDOW.setProperty('ForecastMap.SliderPosition', timestepindex)
         WEATHER_WINDOW.setProperty('ForecastMap.IssuedAt', issuedat.strftime(utilities.ISSUEDAT_FORMAT))
         WEATHER_WINDOW.setProperty('ForecastMap.MapTime', maptime.strftime(utilities.MAPTIME_FORMAT))
-        WEATHER_WINDOW.setProperty('ForecastMap.Layer', layer.resource)
+        WEATHER_WINDOW.setProperty('ForecastMap.Layer', layer)
         WEATHER_WINDOW.setProperty('ForecastMap.IsFetched', 'true')
 
 #MAIN CODE

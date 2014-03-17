@@ -2,13 +2,14 @@ import os
 import shutil
 import unittest
 from datetime import datetime, timedelta
-import urllib
+import urllib2
 import json
+import tempfile
 from mock import Mock
 
 from xbmctestcase import XBMCTestCase
 
-RESULTS_FOLDER = 'results'
+RESULTS_FOLDER = os.path.join(os.path.dirname(__file__), 'results')
 
 class TestEntry(XBMCTestCase):
     def setUp(self):
@@ -51,7 +52,7 @@ class TestEntry(XBMCTestCase):
         super(TestEntry, self).tearDown()
 
 class TestURLCache(XBMCTestCase):
-    def setUp(self):
+    def setUp(self): 
         #create a disposable area for testing
         super(TestURLCache, self).setUp()
         try:
@@ -92,8 +93,8 @@ class TestURLCache(XBMCTestCase):
         yesterday = datetime.now() - timedelta(days=1)
         tomorrow = datetime.now() + timedelta(days=1)
         with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
-            cache.put(url1, src1, yesterday)
-            cache.put(url2, src2, tomorrow)
+            cache._cache[url1] = self.urlcache.Entry(src1, yesterday)
+            cache._cache[url2] = self.urlcache.Entry(src2, tomorrow)
 
         #Test file is written and contains only one entry
         f = open(os.path.join(RESULTS_FOLDER, 'cache.json'))
@@ -104,103 +105,47 @@ class TestURLCache(XBMCTestCase):
         self.assertEqual(datetime.strptime(datetime.strftime(tomorrow, self.urlcache.Entry.TIME_FORMAT), self.urlcache.Entry.TIME_FORMAT), entry.expiry)
         self.assertEqual(os.path.basename(src2), os.path.basename(entry.resource))
 
-    def test_put(self):
-        url = 'http://www.xbmc.org/'
-        src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
-        expiry = datetime.now() + timedelta(days=1)
-        dest = os.path.join(RESULTS_FOLDER, 'cache', os.path.basename(src))
-        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
-            cache.put(url, src, expiry)
-            self.assertTrue(os.path.isfile(dest), 'File not copied into cache.')
-            self.assertTrue(url in cache._cache, 'Entry not created in cache.')
-            
-    def test_get(self):    
-        url = 'http://www.xbmc.org/'
-        src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
-        dest = os.path.join(RESULTS_FOLDER, 'cache', os.path.basename(src))
-        expiry = datetime.now() + timedelta(days=2)
-        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
-            cache.put(url, src, expiry)
-            entry = cache.get(url)
-            self.assertEqual(dest, entry.resource, 'Cache resource mismatch.')
-            self.assertEqual(expiry, entry.expiry, 'Cache expiry mismatch.')
-    
     def test_remove(self):
         url = 'http://www.xbmc.org/'
-        src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
-        expiry = datetime.now() + timedelta(days=1)
-        dest = os.path.join(RESULTS_FOLDER, 'cache', os.path.basename(src))
+        urllib2.urlopen = Mock(side_effect=lambda x: tempfile.NamedTemporaryFile(dir=RESULTS_FOLDER))
         with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
-            cache.put(url, src, expiry)
+            with cache.get(url, lambda x: datetime.now()+timedelta(hours=1)) as f:
+                filename = f.name
+            self.assertTrue(os.path.isfile(filename), 'File should exist before removal.')
             cache.remove(url)
-            self.assertFalse(os.path.isfile(dest), 'File is still in cache.')
+            self.assertFalse(os.path.isfile(filename), 'File is still in cache.')
             self.assertFalse(url in cache._cache, 'Entry is still in cache.')
     
     def test_flush(self):
+        url = 'http://www.xbmc.org/'
+        urllib2.urlopen = Mock(side_effect=lambda x: tempfile.NamedTemporaryFile(dir=RESULTS_FOLDER))
         with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
-            url = 'http://www.xbmc.org/'
-            src = open(os.path.join(RESULTS_FOLDER, 'putfile.txt'), 'w').name
-            expiry = datetime.now() - timedelta(days=1)
-            dest = os.path.join(cache._folder, os.path.basename(src))
-            cache.put(url, src, expiry)
+            with cache.get(url, lambda x: datetime.now() - timedelta(days=1)) as f:
+                filename = f.name
+            self.assertTrue(os.path.isfile(filename), 'File should exist before flush.')
             cache.flush()
-            self.assertFalse(os.path.isfile(dest), 'File is still in cache.')
+            self.assertFalse(os.path.isfile(filename), 'File is still in cache.')
             self.assertFalse(url in cache._cache, 'Entry is still in cache.')
 
-    def test_urlretrieve(self):
+    def test_get(self):
+        url = 'http://www.xbmc.org/'
+        urllib2.urlopen = Mock(side_effect=lambda x: tempfile.NamedTemporaryFile(dir=RESULTS_FOLDER))
         with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
-            url = 'http://www.xbmc.org/'
-            src = open(os.path.join(RESULTS_FOLDER, 'tmp_af54mPh'), 'w').name
-            dest = os.path.join(RESULTS_FOLDER, 'cache', os.path.basename(src)+".json")
-            header = Mock()
-            header.type = 'application/json'
-            urllib.urlretrieve = Mock(return_value=(src, header))
-
             #check item is fetched from the internet
-            cache.urlretrieve(url)
-            self.assertTrue(urllib.urlretrieve.called) #@UndefinedVariable
+            cache.get(url, lambda x: datetime.now()+timedelta(hours=1)).close()
+            self.assertTrue(urllib2.urlopen.called) #@UndefinedVariable
 
             #check item is not fetched from internet
-            urllib.urlretrieve.reset_mock() #@UndefinedVariable
-            cache.urlretrieve(url)
-            self.assertFalse(urllib.urlretrieve.called) #@UndefinedVariable
+            urllib2.urlopen.reset_mock() #@UndefinedVariable
+            f = cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
+            f.close()
+            self.assertFalse(urllib2.urlopen.called) #@UndefinedVariable
 
             #check item is fetched because its invalid
-            src = open(os.path.join(RESULTS_FOLDER, 'tmp_af54mPh'), 'w').name
-            urllib.urlretrieve.reset_mock() #@UndefinedVariable
-            entry = cache.get(url)
-            entry.expiry = datetime.now() - timedelta(days=1)
-            os.remove(entry.resource)
-            cache.urlretrieve(url)
-            self.assertTrue(urllib.urlretrieve.called) #@UndefinedVariable
-
-            #check exception code
-            entry = cache.get(url)
-            entry.expiry = datetime.now() - timedelta(days=1)
-            urllib.urlretrieve = Mock(side_effect=IOError)
-            with self.assertRaises(IOError):
-                cache.urlretrieve(url)
-
-    def test_jsonretrieve(self):
-        with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
-            url = 'http://www.xbmc.org/'
-            filename = os.path.join(RESULTS_FOLDER, 'tmp_af54mPh')
-            dest = os.path.join(RESULTS_FOLDER, 'cache', 'tmp_af54mPh')
-            src = open(filename, 'w')
-            src.write("{}")
-            src.close()
-            cache.put(url, filename, datetime.now()+timedelta(hours=1))
-            entry = cache.get(url)
-            cache.urlretrieve = Mock(return_value=entry)
-            self.assertEqual(dict(), cache.jsonretrieve(url))
-
-            #test exception
-            #filename = os.path.join(RESULTS_FOLDER, 'cache', 'tmp_af54mPh')
-            src = open(entry.resource, 'w').close()
-            with self.assertRaises(ValueError):
-                cache.jsonretrieve(url)
-            with self.assertRaises(KeyError):
-                cache.get(url)
+            os.remove(f.name)
+            urllib2.urlopen.reset_mock() #@UndefinedVariable
+            cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
+            self.assertTrue(urllib2.urlopen.called) #@UndefinedVariable
 
     def test_entry_decoder(self):
         #test basic decoding

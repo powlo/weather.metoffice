@@ -6,12 +6,11 @@ Add filter parameter to flush so that urls can be cleaned out according to patte
 Ie filter out any expired Rainfall Timestep 0.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
-import shutil
-import urllib
+import urllib2
+import tempfile
 import json
-import re
 
 import utilities
 
@@ -66,17 +65,6 @@ class URLCache(object):
         with open(self._file, 'w+') as fyle:
             json.dump(self._cache, fyle, indent=2,default=entry_encoder)
 
-    #Todo: Make put take an Entry object
-    def put(self, url, src, expiry):
-        #takes a file and copies it into the cache
-        #returns resource location in cache
-        shutil.move(src, self._folder)
-        resource = os.path.join(self._folder, os.path.basename(src))
-        self._cache[url] = Entry(resource, expiry)
-
-    def get(self, url):
-        return self._cache[url]
-
     def remove(self, url):
         if url in self._cache:
             entry = self._cache[url]
@@ -93,35 +81,29 @@ class URLCache(object):
         for url in flushlist:
             self.remove(url)
 
-    def urlretrieve(self, url, expiry=datetime.now()+timedelta(days=1)):
+    def get(self, url, expiry_callback):
         """
         Checks to see if an item is in cache
-        Uses urllib.urlretrieve to fetch the item
-        NB. Assumes the url header type contains a valid file
-        extension. This is true for application/json and image/png
         """
         try:
-            entry = self.get(url)
+            entry = self._cache[url]
             if not entry.isvalid():
                 raise InvalidCacheError
             else:
                 utilities.log("Returning cached item for '%s'" % url)
-                return entry
+                return open(entry.resource)
         except (KeyError, InvalidCacheError):
             utilities.log("Fetching '%s' from web." % url)
-            (src, headers) = urllib.urlretrieve(url)
-            self.put(url, src, expiry)
-            return self.get(url)
-
-    def jsonretrieve(self, url, expiry=datetime.now()+timedelta(days=1)):
-        entry = self.urlretrieve(url, expiry)
-        with open(entry.resource) as fyle:
-            try:
-                return json.load(fyle)
-            except ValueError:
-                self.remove(url)
-                utilities.log('Couldn\'t load json data from %s' % fyle.name)
-                raise
+            #(src, headers) = urllib.urlretrieve(url)
+            response = urllib2.urlopen(url)
+            page = response.read()
+            response.close()
+            tmp = tempfile.NamedTemporaryFile(dir=self._folder, delete=False)
+            tmp.write(page)
+            tmp.close()
+            expiry = expiry_callback(tmp.name)
+            self._cache[url] = Entry(tmp.name, expiry)
+            return open(self._cache[url].resource)
 
 class InvalidCacheError(Exception):
     pass

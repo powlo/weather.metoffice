@@ -6,6 +6,7 @@ the user. On successful selection internal addon setting
 is set.
 """
 import sys
+import json
 from datetime import datetime, timedelta
 from operator import itemgetter
 
@@ -27,7 +28,8 @@ def fetchandfilter(location, text):
     url = url.format(key=API_KEY)
 
     with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
-        data = cache.jsonretrieve(url, datetime.now()+timedelta(weeks=1))
+        with cache.get(url, lambda x: datetime.now()+timedelta(weeks=1)) as fyle:
+            data = json.load(fyle)
     sitelist = data['Locations']['Location']
     if location == 'RegionalLocation':
         for site in sitelist:

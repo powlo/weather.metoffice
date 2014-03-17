@@ -1,4 +1,5 @@
 import math
+import json
 from datetime import datetime, timedelta
 
 import utilities
@@ -18,7 +19,8 @@ def distances(sitelist, n=0):
     utilities.log("Calculating distances based on GeoIP data from %s" % url.split('/')[2].lstrip('www.'))
     utilities.log("URL: %s" % url)
     with URLCache(utilities.ADDON_DATA_PATH) as cache:
-        geoip = cache.jsonretrieve(url, datetime.now()+timedelta(hours=1))
+        with cache.get(url, lambda x: datetime.now()+timedelta(hours=1)) as fyle:
+            geoip = json.load(fyle)
     #different geoip providers user different names for latitude, longitude
     providers_lat_name = provider['latitude']
     providers_long_name = provider['longitude']
