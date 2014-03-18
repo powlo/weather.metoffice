@@ -14,31 +14,8 @@ import json
 
 import utilities
 
-
-class Entry(object):
-    TIME_FORMAT = "%a %b %d %H:%M:%S %Y"
-
-    def __init__(self, resource, expiry):
-        self.resource = resource
-        self.expiry = expiry
-
-    def isvalid(self):
-        #check the entry expiry and the resource exists.
-        return self.expiry > datetime.now() and os.path.exists(self.resource)
-
-def entry_encoder(obj):
-    if isinstance(obj, Entry):
-        return {'resource' : obj.resource,
-             'expiry' : obj.expiry.strftime(Entry.TIME_FORMAT)}
-    else:
-        return json.JSONEncoder.default(self, obj)
-
-def entry_decoder(obj):
-    if 'expiry' in obj and 'resource' in obj:
-        return Entry(obj['resource'], utilities.strptime(obj['expiry'], Entry.TIME_FORMAT))
-    return obj
-
 class URLCache(object):
+    TIME_FORMAT = "%a %b %d %H:%M:%S %Y"
 
     def __init__(self, folder):
         self._folder = os.path.join(folder, 'cache')
@@ -54,7 +31,7 @@ class URLCache(object):
             open(self._file, 'a').close()
             fyle = open(self._file, 'r')
         try:
-            self._cache = json.load(fyle, object_hook=entry_decoder)
+            self._cache = json.load(fyle)
         except ValueError:
             self._cache = dict()
         fyle.close()
@@ -63,20 +40,20 @@ class URLCache(object):
     def __exit__(self, typ, value, traceback):
         self.flush()
         with open(self._file, 'w+') as fyle:
-            json.dump(self._cache, fyle, indent=2,default=entry_encoder)
+            json.dump(self._cache, fyle, indent=2)
 
     def remove(self, url):
         if url in self._cache:
             entry = self._cache[url]
-            utilities.log("Deleting file '%s'" % entry.resource)
-            os.remove(entry.resource)
+            utilities.log("Deleting file '%s'" % entry['resource'])
+            os.remove(entry['resource'])
             utilities.log("Removing entry for '%s' from cache" % url)
             del self._cache[url]
 
     def flush(self):
         flushlist = list()
         for url, entry in self._cache.iteritems():
-            if not entry.isvalid():
+            if not os.path.isfile(entry['resource']) or utilities.strptime(entry['expiry'], self.TIME_FORMAT) < datetime.now():
                     flushlist.append(url)
         for url in flushlist:
             self.remove(url)
@@ -87,11 +64,11 @@ class URLCache(object):
         """
         try:
             entry = self._cache[url]
-            if not entry.isvalid():
+            if not os.path.isfile(entry['resource']) or utilities.strptime(entry['expiry'], self.TIME_FORMAT) < datetime.now():
                 raise InvalidCacheError
             else:
                 utilities.log("Returning cached item for '%s'" % url)
-                return open(entry.resource)
+                return open(entry['resource'])
         except (KeyError, InvalidCacheError):
             utilities.log("Fetching '%s' from web." % url)
             #(src, headers) = urllib.urlretrieve(url)
@@ -102,8 +79,8 @@ class URLCache(object):
             tmp.write(page)
             tmp.close()
             expiry = expiry_callback(tmp.name)
-            self._cache[url] = Entry(tmp.name, expiry)
-            return open(self._cache[url].resource)
+            self._cache[url] = {'resource': tmp.name, 'expiry': expiry.strftime(self.TIME_FORMAT)}
+            return open(tmp.name)
 
 class InvalidCacheError(Exception):
     pass
