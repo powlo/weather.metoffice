@@ -31,7 +31,7 @@ def log(msg, level=xbmc.LOGNOTICE):
 
 #python datetime.strptime is not thread safe: sometimes causes 'NoneType is not callable' error
 def strptime(dt, fmt):
-    return datetime(*(time.strptime(dt, fmt)[0:6]))
+    return datetime.fromtimestamp(time.mktime(time.strptime(dt, fmt)))
 
 def failgracefully(f):
     @wraps(f)
