@@ -26,9 +26,10 @@ class TestSetLocation(XBMCTestCase):
 
         from metoffice import locator
         locator.distances = Mock(side_effect=self.mock_distances)
-
         from metoffice.urlcache import URLCache
         self.URLCache = URLCache
+        from metoffice import constants
+        self.constants = constants
         
     def mock_getSetting(self, s):
         return {'ApiKey' : '12345',
@@ -39,8 +40,7 @@ class TestSetLocation(XBMCTestCase):
             site['distance'] = 10
 
     def test_noapikey(self):
-        addon = self.xbmcaddon.Addon.return_value
-        addon.getSetting.side_effect = lambda x: {'ApiKey' : '', 'GeoIPProvider' : '0'}[x]
+        self.constants.API_KEY = ''
         from metoffice import setlocation #@UnusedImport
         self.assertRaises(Exception, setlocation.main('ForecastLocation'))
 
