@@ -1,4 +1,5 @@
 import time
+from datetime import timedelta
 import utilities
 import json
 from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT, \
@@ -106,3 +107,28 @@ def text(fyle):
             d['Text.Paragraph%d.Content' % count] = period['Paragraph']['$']
             count+=1
     return d
+
+def daily_expiry(fyle):
+    data = json.load(fyle)
+    dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
+    return utilities.strptime(dataDate, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
+
+def threehourly_expiry(fyle):
+    data = json.load(fyle)
+    dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
+    return utilities.strptime(dataDate, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
+
+def text_expiry(fyle):
+    data = json.load(fyle)
+    issuedAt = data['RegionalFcst']['issuedAt'].rstrip('Z')
+    return utilities.strptime(issuedAt, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=12)
+
+def observation_expiry(fyle):
+    data = json.load(fyle)
+    dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
+    return utilities.strptime(dataDate, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
+
+def layer_capabilities_expiry(fyle):
+    data = json.load(fyle)
+    defaultTime = data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime']
+    return utilities.strptime(defaultTime, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=9)

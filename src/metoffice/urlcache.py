@@ -78,7 +78,7 @@ class URLCache(object):
             tmp = tempfile.NamedTemporaryFile(dir=self._folder, delete=False)
             tmp.write(page)
             tmp.close()
-            expiry = expiry_callback(tmp.name)
+            expiry = expiry_callback(open(tmp.name))
             self._cache[url] = {'resource': tmp.name, 'expiry': expiry.strftime(self.TIME_FORMAT)}
             return open(tmp.name)
 

@@ -1,5 +1,5 @@
 import os
-import json
+import datetime
 from xbmctestcase import XBMCTestCase
 
 TEST_FOLDER = os.path.dirname(__file__)
@@ -10,6 +10,7 @@ OBSERVATIONREPORT2 = os.path.join(DATA_FOLDER, 'observationhourly2.json')
 FORECASTDAILY = os.path.join(DATA_FOLDER, 'forecastdaily.json')
 FORECAST3HOURLY = os.path.join(DATA_FOLDER, 'forecast3hourly.json')
 FORECASTTEXT = os.path.join(DATA_FOLDER, 'forecasttext.json')
+LAYERCAPABILITIES = os.path.join(DATA_FOLDER, 'layercapabilities.json')
 
 class TestJsonParser(XBMCTestCase):
     def setUp(self):
@@ -540,3 +541,23 @@ class TestJsonParser(XBMCTestCase):
         self.assertEqual('The weekend will start unsettled with showers or longer spells of rain, with some heavier bursts at first. This will be most persistent in the far southeast and far north, with a risk of hill snow in the north. There will be some drier slots too, especially on Sunday with a risk of local frost and icy surfaces. Temperatures near normal. Through the next week it will remain unsettled in northern parts, with further rain or showers, and some hill snow. It will be mainly dry but fairly cloudy towards the south with isolated patchy frost. During the middle part of the week rain may spread southwards for a time, before turning wet and windy in the northwest again later, with a risk of gales.', result['Text.Paragraph4.Content'])
         self.assertEqual('Tuesday 11 Mar 2014 to Tuesday 25 Mar 2014', result['Text.Paragraph5.Title'])
         self.assertEqual('Current indications suggest a more typically unsettled pattern across the United Kingdom through much of March. Through this period we can expect to see fairly average conditions, which would mean spells of wet and windy weather, mostly in the north and west, but still some decent sunny spells in between. The best of the drier, brighter conditions is most likely in the south and east of the UK. Temperatures are likely to be around average, which may lead to more frequent incidences of frost compared to recent weeks.', result['Text.Paragraph5.Content'])
+
+    def test_daily_expiry(self):
+        result = self.jsonparser.daily_expiry(open(FORECASTDAILY))
+        self.assertEqual(datetime.datetime(2014, 2, 24, 15, 30), result)
+
+    def test_threehourly_expiry(self):
+        result = self.jsonparser.threehourly_expiry(open(FORECAST3HOURLY))
+        self.assertEqual(datetime.datetime(2014, 3, 1, 17, 30), result)
+
+    def test_text_expiry(self):
+        result = self.jsonparser.text_expiry(open(FORECASTTEXT))
+        self.assertEqual(datetime.datetime(2014, 2, 25, 4, 0), result)
+
+    def test_observation_expiry(self):
+        result = self.jsonparser.observation_expiry(open(OBSERVATIONREPORT))
+        self.assertEqual(datetime.datetime(2014, 3, 6, 18, 30), result)
+
+    def test_layer_capabilities_expiry(self):
+        result = self.jsonparser.layer_capabilities_expiry(open(LAYERCAPABILITIES))
+        self.assertEqual(datetime.datetime(2014, 3, 19, 18, 0), result)

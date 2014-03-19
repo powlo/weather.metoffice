@@ -36,42 +36,6 @@ def auto_location(location):
     ADDON.setSetting('%sID' % location, first['id'])#@UndefinedVariable
     utilities.log( "Location set to '%s'" % first['name'])
 
-def daily_expiry(fyle):
-    with open(fyle) as f:
-        data = json.load(f)
-        dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
-        return utilities.strptime(dataDate, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
-
-def threehourly_expiry(fyle):
-    with open(fyle) as f:
-        data = json.load(f)
-        dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
-        return utilities.strptime(dataDate, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
-
-def text_expiry(fyle):
-    with open(fyle) as f:
-        data = json.load(f)
-        issuedAt = data['RegionalFcst']['issuedAt'].rstrip('Z')
-        return utilities.strptime(issuedAt, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=12)
-
-def observation_expiry(fyle):
-    with open(fyle) as f:
-        data = json.load(f)
-        dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
-        return utilities.strptime(dataDate, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
-
-def layer_capabilities_expiry(fyle):
-    with open(fyle) as f:
-        data = json.load(f)
-        defaultTime = data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime']
-        return utilities.strptime(defaultTime, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=9)
-
-def layer_image_expiry(fyle):
-    return datetime.now() + timedelta(days=1)
-
-def google_expiry(fyle):
-    return datetime.now() + timedelta(days=30)
-
 @utilities.panelbusy('RightPane')
 def set_daily_forecast():
     name = ADDON.getSetting('ForecastLocation')
@@ -79,7 +43,7 @@ def set_daily_forecast():
     utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, flid))
     url = DAILY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        with cache.get(url, daily_expiry) as fyle:
+        with cache.get(url, jsonparser.daily_expiry) as fyle:
             report = jsonparser.daily(fyle)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
@@ -92,7 +56,7 @@ def set_3hourly_forecast():
     utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, flid))
     url = THREEHOURLY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        with cache.get(url, threehourly_expiry) as fyle:
+        with cache.get(url, jsonparser.threehourly_expiry) as fyle:
             report = jsonparser.threehourly(fyle)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
@@ -105,7 +69,7 @@ def set_text_forecast():
     utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, rlid))
     url = TEXT_FORECAST_URL.format(object=rlid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        with cache.get(url, text_expiry) as fyle:
+        with cache.get(url, jsonparser.text_expiry) as fyle:
             report = jsonparser.text(fyle)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
@@ -118,7 +82,7 @@ def set_hourly_observation():
     utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, olid))
     url = HOURLY_LOCATION_OBSERVATION_URL.format(object=olid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        with cache.get(url, observation_expiry) as fyle:
+        with cache.get(url, jsonparser.observation_expiry) as fyle:
             report = jsonparser.observation(fyle)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
@@ -132,7 +96,7 @@ def set_forecast_layer():
 
         #get underlay map
         url=GOOGLE_SURFACE.format(maptype='satellite', **params)#@UndefinedVariable
-        with cache.get(url, google_expiry) as fyle:
+        with cache.get(url, lambda x:  datetime.now() + timedelta(days=30)) as fyle:
             surface = fyle.name
         #get marker map
         lat = ADDON.getSetting('ForecastLocationLatitude')
@@ -140,7 +104,7 @@ def set_forecast_layer():
 
         markers = '{lat},{lng}'.format(lat=lat, lng=lng)
         url = GOOGLE_MARKER.format(style='feature:all|element:all|visibility:off', markers=markers, **params)#@UndefinedVariable
-        with cache.get(url, google_expiry) as fyle:
+        with cache.get(url, lambda x:  datetime.now() + timedelta(days=30)) as fyle:
             marker = fyle.name
 
         #remove any marker that isn't the one we just fetched
@@ -149,7 +113,7 @@ def set_forecast_layer():
         #get capabilities
         url = FORECAST_LAYER_CAPABILITIES_URL.format(key=API_KEY)
         
-        with cache.get(url, layer_capabilities_expiry) as fyle:
+        with cache.get(url, jsonparser.layer_capabilities_expiry) as fyle:
             data = json.load(fyle)
         selection = WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER#@UndefinedVariable
         #pull parameters out of capabilities file - consider using jsonpath here
@@ -189,7 +153,7 @@ def set_forecast_layer():
                                  DefaultTime=default_time,
                                  Timestep=timestep,
                                  key=API_KEY)
-        with cache.get(url, layer_image_expiry) as fyle:
+        with cache.get(url, lambda x: datetime.now() + timedelta(days=1)) as fyle:
             layer = fyle.name
 
         #remove the 'cone' from the image
