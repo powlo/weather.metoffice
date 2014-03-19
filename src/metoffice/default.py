@@ -12,7 +12,7 @@ from constants import ADDON, ADDON_DATA_PATH, DATAPOINT_DATETIME_FORMAT, GOOGLE_
                         DEFAULT_INITIAL_LAYER, RAW_DATAPOINT_IMG_WIDTH, CROP_WIDTH, CROP_HEIGHT,\
                         ISSUEDAT_FORMAT, MAPTIME_FORMAT, WINDOW, FORECAST_SITELIST_URL, OBSERVATION_SITELIST_URL,\
                         DAILY_LOCATION_FORECAST_URL, THREEHOURLY_LOCATION_FORECAST_URL, TEXT_FORECAST_URL,\
-                        HOURLY_LOCATION_OBSERVATION_URL, FORECAST_LAYER_CAPABILITIES_URL
+                        HOURLY_LOCATION_OBSERVATION_URL, FORECAST_LAYER_CAPABILITIES_URL, API_KEY
 
 def auto_location(location):
     utilities.log( "Auto-assigning '%s'..." % location)
@@ -172,10 +172,6 @@ def set_forecast_layer():
 
 #MAIN CODE
 
-API_KEY = ADDON.getSetting('ApiKey')
-AUTOLOCATION = True if ADDON.getSetting('AutoLocation') == 'true' else False
-FORCEAUTOLOCATION = True if ADDON.getSetting('ForceAutoLocation') == 'true' else False
-
 @utilities.failgracefully
 def main():
     if not API_KEY:
@@ -183,10 +179,10 @@ def main():
 
     if sys.argv[1].isdigit():
         #only autolocate when given a refresh command
-        if FORCEAUTOLOCATION:
+        if ADDON.getSetting('ForceAutoLocation') == 'true':
             auto_location('ForecastLocation')
             auto_location('ObservationLocation')
-        elif AUTOLOCATION:
+        elif ADDON.getSetting('AutoLocation') == 'true':
             if not ADDON.getSetting('ForecastLocation'):
                 auto_location('ForecastLocation')
             if not ADDON.getSetting('ObservationLocation'):
