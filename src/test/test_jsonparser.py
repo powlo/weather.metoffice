@@ -16,12 +16,11 @@ class TestJsonParser(XBMCTestCase):
         super(TestJsonParser, self).setUp()
         self.xbmc.translatePath.side_effect = lambda x : x
 
-        from metoffice.utils import jsonparser
+        from metoffice import jsonparser
         self.jsonparser = jsonparser
 
     def test_observation(self):
-        observation_data = json.load(open(OBSERVATIONREPORT))
-        result = self.jsonparser.observation(observation_data)
+        result = self.jsonparser.observation(open(OBSERVATIONREPORT))
         self.assertEqual('17:00 Thu 06 Mar 2014', result['HourlyObservation.IssuedAt'])
         self.assertEqual('Cloudy', result['Current.Condition'])
         self.assertEqual('45000', result['Current.Visibility'])
@@ -34,8 +33,7 @@ class TestJsonParser(XBMCTestCase):
         self.assertEqual('26.png', result['Current.FanartCode'])
 
         #Test exceptions when reports don't contain list items.
-        observation_data = json.load(open(OBSERVATIONREPORT2))
-        result = self.jsonparser.observation(observation_data)
+        result = self.jsonparser.observation(open(OBSERVATIONREPORT2))
         self.assertEqual('17:00 Thu 06 Mar 2014', result['HourlyObservation.IssuedAt'])
         self.assertEqual('Sunny', result['Current.Condition'])
         self.assertEqual('45000', result['Current.Visibility'])
@@ -48,8 +46,7 @@ class TestJsonParser(XBMCTestCase):
         self.assertEqual('32.png', result['Current.FanartCode'])
         
     def test_daily(self):
-        forecast_data = json.load(open(FORECASTDAILY))
-        result = self.jsonparser.daily(forecast_data)
+        result = self.jsonparser.daily(open(FORECASTDAILY))
         self.assertEqual('14:00 Mon 24 Feb 2014', result['DailyForecast.IssuedAt'])
         self.assertEqual('Mon', result['Day0.Title'])
         self.assertEqual('13', result['Day0.HighTemp'])
@@ -92,8 +89,7 @@ class TestJsonParser(XBMCTestCase):
         self.assertEqual('special://temp/weather/11.png', result['Day4.OutlookIcon'])
         
     def test_threehourly(self):
-        forecast_data = json.load(open(FORECAST3HOURLY))
-        result = self.jsonparser.threehourly(forecast_data)
+        result = self.jsonparser.threehourly(open(FORECAST3HOURLY))
         self.assertEqual('16:00 Sat 01 Mar 2014', result['3HourlyForecast.IssuedAt'])
 
         self.assertEqual('Sat', result['3Hourly0.Day'])
@@ -529,8 +525,7 @@ class TestJsonParser(XBMCTestCase):
         self.assertEqual('special://temp/weather/29.png', result['3Hourly35.OutlookIcon'])
         
     def test_text(self):
-        forecast_data = json.load(open(FORECASTTEXT))
-        result = self.jsonparser.text(forecast_data)
+        result = self.jsonparser.text(open(FORECASTTEXT))
         self.assertEqual('16:00 Mon 24 Feb 2014', result['TextForecast.IssuedAt'])
 
         self.assertEqual('Headline', result['Text.Paragraph0.Title'])

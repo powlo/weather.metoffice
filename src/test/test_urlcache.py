@@ -20,9 +20,9 @@ class TestURLCache(XBMCTestCase):
         except OSError:
             pass
         
-        from metoffice.utils import urlcache
+        from metoffice import urlcache
         self.urlcache = urlcache
-        from metoffice.utils import utilities
+        from metoffice import utilities
         self.utilities = utilities
 
     def test_init(self):

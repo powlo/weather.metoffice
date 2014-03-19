@@ -11,9 +11,9 @@ TELIZE_DATA = os.path.join(DATA_FOLDER, 'telize.json')
 SITELIST_DATA = os.path.join(DATA_FOLDER, 'forecastsitelist.json')
 
 class TestLocator(XBMCTestCase):
-    @patch('metoffice.utils.locator.URLCache')
+    @patch('metoffice.locator.URLCache')
     def test_distances(self, MockCache):
-        from metoffice.utils import locator
+        from metoffice import locator
         mock_instance = MockCache.return_value
         mock_instance.__enter__.return_value.get.return_value = open(TELIZE_DATA)
         sitelist = json.load(open(SITELIST_DATA))['Locations']['Location']

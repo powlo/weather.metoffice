@@ -24,10 +24,10 @@ class TestSetLocation(XBMCTestCase):
         addon = self.xbmcaddon.Addon.return_value
         addon.getSetting.side_effect = self.mock_getSetting
 
-        from metoffice.utils import locator
+        from metoffice import locator
         locator.distances = Mock(side_effect=self.mock_distances)
 
-        from metoffice.utils.urlcache import URLCache
+        from metoffice.urlcache import URLCache
         self.URLCache = URLCache
         
     def mock_getSetting(self, s):

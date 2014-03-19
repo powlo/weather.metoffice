@@ -6,7 +6,9 @@ class TestUtilities(XBMCTestCase):
 
     def setUp(self):
         super(TestUtilities, self).setUp()
-        from metoffice.utils import utilities
+        from metoffice import constants
+        self.constants = constants
+        from metoffice import utilities
         self.utilities = utilities
 
     def test_strptime(self):
@@ -22,7 +24,7 @@ class TestUtilities(XBMCTestCase):
     def test_xbmcbusy(self):
         mock_func = Mock()
         mock_func.__name__ = "Mock"
-        self.xbmcgui.getCurrentWindowId = Mock(return_value=self.utilities.WINDOW_WEATHER)
+        self.xbmcgui.getCurrentWindowId = Mock(return_value=self.constants.WEATHER_WINDOW_ID)
         decorated_func = self.utilities.xbmcbusy(mock_func)
         decorated_func(1,2,3)
         self.assertEqual(2, len(self.xbmc.executebuiltin.call_args_list))
@@ -44,7 +46,7 @@ class TestUtilities(XBMCTestCase):
         mock_func = Mock()
         mock_func.__name__ = "Mock"
         mock_func.side_effect = IOError
-        self.xbmcgui.getCurrentWindowId = Mock(return_value=self.utilities.WINDOW_WEATHER)
+        self.xbmcgui.getCurrentWindowId = Mock(return_value=self.utilities.WEATHER_WINDOW_ID)
         decorated_func = self.utilities.failgracefully(mock_func)
         decorated_func(1,2,3)
         mock_func.assert_called_once_with(1,2,3)
