@@ -80,7 +80,7 @@ def set_daily_forecast():
     url = DAILY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
         with cache.get(url, daily_expiry) as fyle:
-            report = jsonparser.daily(json.load(fyle))
+            report = jsonparser.daily(fyle)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
     WINDOW.setProperty('DailyForecast.IsFetched', 'true')#@UndefinedVariable
@@ -93,7 +93,7 @@ def set_3hourly_forecast():
     url = THREEHOURLY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
         with cache.get(url, threehourly_expiry) as fyle:
-            report = jsonparser.threehourly(json.load(fyle))
+            report = jsonparser.threehourly(fyle)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
     WINDOW.setProperty('3HourlyForecast.IsFetched', 'true')#@UndefinedVariable
@@ -106,7 +106,7 @@ def set_text_forecast():
     url = TEXT_FORECAST_URL.format(object=rlid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
         with cache.get(url, text_expiry) as fyle:
-            report = jsonparser.text(json.load(fyle))
+            report = jsonparser.text(fyle)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
     WINDOW.setProperty('TextForecast.IsFetched', 'true')#@UndefinedVariable
@@ -119,7 +119,7 @@ def set_hourly_observation():
     url = HOURLY_LOCATION_OBSERVATION_URL.format(object=olid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
         with cache.get(url, observation_expiry) as fyle:
-            report = jsonparser.observation(json.load(fyle))
+            report = jsonparser.observation(fyle)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
     WINDOW.setProperty('HourlyObservation.IsFetched', 'true')#@UndefinedVariable

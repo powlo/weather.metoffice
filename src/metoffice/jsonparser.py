@@ -1,13 +1,14 @@
 import time
 import utilities
-
+import json
 from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT, \
                                 SHORT_DAY_FORMAT, DATAPOINT_DATE_FORMAT, WEATHER_ICON_PATH, WEATHER_CODES
 
-def observation(data):
+def observation(fyle):
     """
     Parse data to produce observation (current) data
     """
+    data=json.load(fyle)
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
@@ -32,10 +33,11 @@ def observation(data):
     d['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','na')][0]
     return d
 
-def daily(data):
+def daily(fyle):
     """
     Parse data to produce daily forecast data
     """
+    data=json.load(fyle)
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
@@ -54,10 +56,11 @@ def daily(data):
                 d['Day%d.LowTemp' %p] = rep.get('Nm', 'na')
     return d
 
-def threehourly(data):
+def threehourly(fyle):
     """
     Parse data to produce three hourly data
     """
+    data=json.load(fyle)
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
@@ -81,10 +84,11 @@ def threehourly(data):
             count +=1
     return d
 
-def text(data):
+def text(fyle):
     """
     Parse data to produce text forecast data
     """
+    data=json.load(fyle)
     d = dict()
     rf = data['RegionalFcst']
     issuedat = rf['issuedAt'].rstrip('Z')
