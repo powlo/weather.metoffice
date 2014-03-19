@@ -2,29 +2,11 @@ from functools import wraps
 from datetime import datetime
 import time
 import traceback
+import math
 import xbmc #@UnresolvedImport
 import xbmcgui #@UnresolvedImport
-import xbmcaddon #@UnresolvedImport
 
-WINDOW_WEATHER = 12600
-WINDOW_SETTINGS_MYWEATHER = 10014
-WEATHER_WINDOW = xbmcgui.Window(WINDOW_WEATHER)
-
-DATAPOINT_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
-DATAPOINT_DATE_FORMAT = '%Y-%m-%dZ'
-SHORT_DAY_FORMAT = "%a"
-MAPTIME_FORMAT = '%H%M %a'
-ISSUEDAT_FORMAT = '%H:%M %a %d %b %Y'
-
-__addon__       = xbmcaddon.Addon(id="weather.metoffice")
-__addonid__     = __addon__.getAddonInfo('id')
-
-ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % __addon__.getAddonInfo('id'))
-
-LOGPREFIX = "weather.metoffice: "
-
-POPUP = xbmcgui.Dialog()
-
+from constants import WEATHER_WINDOW_ID, SETTINGS_WINDOW_ID, DIALOG, WINDOW
 #by importing utilities all messages in xbmc log will be prepended with LOGPREFIX
 def log(msg, level=xbmc.LOGNOTICE):
     xbmc.log('weather.metoffice: {0}'.format(msg), level)
@@ -40,14 +22,14 @@ def failgracefully(f):
             return f(*args, **kwds)
         except Exception as e:
             log(traceback.format_exc(), xbmc.LOGSEVERE)
-            if xbmcgui.getCurrentWindowId() == WINDOW_WEATHER or xbmcgui.getCurrentWindowId() == WINDOW_SETTINGS_MYWEATHER:
-                POPUP.ok("An Error Occurred", "Check log file for details.", str(type(e)), str(e))
+            if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or xbmcgui.getCurrentWindowId() == SETTINGS_WINDOW_ID:
+                DIALOG.ok("An Error Occurred", "Check log file for details.", str(type(e)), str(e))#@UndefinedVariable
     return wrapper
 
 def xbmcbusy(f):
     @wraps(f)
     def wrapper(*args, **kwds):
-        if xbmcgui.getCurrentWindowId() == WINDOW_WEATHER or xbmcgui.getCurrentWindowId() == WINDOW_SETTINGS_MYWEATHER:
+        if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or xbmcgui.getCurrentWindowId() == SETTINGS_WINDOW_ID:
             xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             return f(*args, **kwds)
@@ -59,11 +41,11 @@ def panelbusy(pane):
     def decorate(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            WEATHER_WINDOW.setProperty('{0}.IsBusy'.format(pane), 'true')
+            WINDOW.setProperty('{0}.IsBusy'.format(pane), 'true')#@UndefinedVariable
             try:
                 return f(*args, **kwargs)
             finally:
-                WEATHER_WINDOW.clearProperty('{0}.IsBusy'.format(pane))
+                WINDOW.clearProperty('{0}.IsBusy'.format(pane))#@UndefinedVariable
         return wrapper
     return decorate
 
@@ -73,3 +55,19 @@ def minutes_as_time(minutes):
     as a time, starting at midnight.
     """
     return time.strftime('%H:%M', time.gmtime(minutes*60))
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    """
+    Calculate the distance between two coords
+    using the haversine formula
+    http://en.wikipedia.org/wiki/Haversine_formula
+    """
+    EARTH_RADIUS = 6371
+    lon1, lat1, lon2, lat2 = map(math.radians, [lon1, lat1, lon2, lat2])
+    dlat = lat2-lat1
+    dlon = lon2-lon1
+    a = math.sin(dlat/2)**2 + \
+        math.cos(lat1) * math.cos(lat2) * \
+        math.sin(dlon/2)**2
+    c = 2 * math.asin(math.sqrt(a))
+    return EARTH_RADIUS * c

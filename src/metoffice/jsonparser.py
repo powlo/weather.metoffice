@@ -1,43 +1,8 @@
 import time
-import xbmc #@UnresolvedImport
 import utilities
 
-WEATHER_CODES = {
-    'na': ('na', 'Not Available'),
-    '0': ('31', 'Clear'), #night
-    '1': ('32', 'Sunny'),
-    '2': ('29', 'Partly Cloudy'), #night
-    '3': ('30', 'Partly Cloudy'),
-#   '4': ('na', 'Not available'),
-    '5': ('21', 'Mist'),
-    '6': ('20', 'Fog'),
-    '7': ('26', 'Cloudy'),
-    '8': ('26', 'Overcast'),
-    '9': ('45', 'Light Rain'), #night
-    '10': ('11', 'Light Rain'),
-    '11': ('9', 'Drizzle'),
-    '12': ('11', 'Light Rain'),
-    '13': ('45', 'Heavy Rain'), #night
-    '14': ('40', 'Heavy Rain'),
-    '15': ('40', 'Heavy Rain'),
-    '16': ('46', 'Sleet'), #night
-    '17': ('6', 'Sleet'),
-    '18': ('6', 'Sleet'),
-    '19': ('45', 'Hail'), #night
-    '20': ('18', 'Hail'),
-    '21': ('18', 'Hail'),
-    '22': ('46', 'Light Snow'), #night
-    '23': ('14', 'Light snow'),
-    '24': ('14', 'Light Snow'),
-    '25': ('46', 'Heavy Snow'), #night
-    '26': ('16', 'Heavy Snow'),
-    '27': ('16', 'Heavy Snow'),
-    '28': ('47', 'Thunder'), #night
-    '29': ('17', 'Thunder'),
-    '30': ('17', 'Thunder')
-}
-
-WEATHER_ICON = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
+from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT, \
+                                SHORT_DAY_FORMAT, DATAPOINT_DATE_FORMAT, WEATHER_ICON_PATH, WEATHER_CODES
 
 def observation(data):
     """
@@ -46,7 +11,7 @@ def observation(data):
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
-    d['HourlyObservation.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_DATETIME_FORMAT))
+    d['HourlyObservation.IssuedAt'] = time.strftime(ISSUEDAT_FORMAT, time.strptime(dataDate, DATAPOINT_DATETIME_FORMAT))
 
     try:
         latest_period = dv['Location']['Period'][-1]
@@ -74,15 +39,15 @@ def daily(data):
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
-    d['DailyForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_DATETIME_FORMAT))
+    d['DailyForecast.IssuedAt'] = time.strftime(ISSUEDAT_FORMAT, time.strptime(dataDate, DATAPOINT_DATETIME_FORMAT))
     for p, period in enumerate(dv['Location']['Period']):
-        d['Day%d.Title' %p] = time.strftime(utilities.SHORT_DAY_FORMAT, time.strptime(period.get('value'), utilities.DATAPOINT_DATE_FORMAT))
+        d['Day%d.Title' %p] = time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT))
         for rep in period['Rep']:
             weather_type = rep.get('W', 'na')
             if rep.get('$') == 'Day':
                 d['Day%d.HighTemp' %p] = rep.get('Dm', 'na')
                 d['Day%d.Outlook' %p] = WEATHER_CODES.get(weather_type)[1]
-                d['Day%d.OutlookIcon' % p] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
+                d['Day%d.OutlookIcon' % p] = WEATHER_ICON_PATH % WEATHER_CODES.get(weather_type, 'na')[0]
                 d['Day%d.WindSpeed' % p] = rep.get('S', 'na')
                 d['Day%d.WindDirection' % p] = rep.get('D', 'na').lower()
             elif rep.get('$') == 'Night':
@@ -96,7 +61,7 @@ def threehourly(data):
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
-    d['3HourlyForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(dataDate, utilities.DATAPOINT_DATETIME_FORMAT))
+    d['3HourlyForecast.IssuedAt'] = time.strftime(ISSUEDAT_FORMAT, time.strptime(dataDate, DATAPOINT_DATETIME_FORMAT))
     count = 0
     for period in dv['Location']['Period']:
         for rep in period['Rep']:
@@ -108,8 +73,8 @@ def threehourly(data):
             d['3Hourly%d.GustSpeed' % count] = rep.get('G', 'n/a')
             d['3Hourly%d.UVIndex' % count] = rep.get('U', 'n/a')
             d['3Hourly%d.Precipitation' % count] = rep.get('Pp')
-            d['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON % WEATHER_CODES.get(weather_type, 'na')[0]
-            d['3Hourly%d.Day' % count] = time.strftime(utilities.SHORT_DAY_FORMAT, time.strptime(period.get('value'), utilities.DATAPOINT_DATE_FORMAT))
+            d['3Hourly%d.OutlookIcon' % count] = WEATHER_ICON_PATH % WEATHER_CODES.get(weather_type, 'na')[0]
+            d['3Hourly%d.Day' % count] = time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT))
             d['3Hourly%d.Time' % count] = utilities.minutes_as_time(int(rep.get('$')))
             d['3Hourly%d.ActualTemp' % count] = rep.get('T', 'na')
             d['3Hourly%d.FeelsLikeTemp' % count] = rep.get('F', 'na')
@@ -123,7 +88,7 @@ def text(data):
     d = dict()
     rf = data['RegionalFcst']
     issuedat = rf['issuedAt'].rstrip('Z')
-    d['TextForecast.IssuedAt'] = time.strftime(utilities.ISSUEDAT_FORMAT, time.strptime(issuedat, utilities.DATAPOINT_DATETIME_FORMAT))
+    d['TextForecast.IssuedAt'] = time.strftime(ISSUEDAT_FORMAT, time.strptime(issuedat, DATAPOINT_DATETIME_FORMAT))
     count = 0
     for period in rf['FcstPeriods']['Period']:
         #have to check type because json can return list or dict here

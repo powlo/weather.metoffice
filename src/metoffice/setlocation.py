@@ -10,24 +10,19 @@ import json
 from datetime import datetime, timedelta
 from operator import itemgetter
 
-import xbmc #@UnresolvedImport
-import xbmcgui #@UnresolvedImport
-import xbmcaddon #@UnresolvedImport
+import locator, urlcache, utilities
 
-from utils import datapoint, locator, urlcache, utilities
-
-__addon__ = xbmcaddon.Addon(id='weather.metoffice')
-API_KEY = __addon__.getSetting('ApiKey')
-GEOIP_PROVIDER = __addon__.getSetting('GeoIPProvider')
+from constants import API_KEY, ADDON_DATA_PATH, GEOIP_PROVIDER, KEYBOARD, DIALOG, ADDON, FORECAST_SITELIST_URL,\
+                        OBSERVATION_SITELIST_URL, REGIONAL_SITELIST_URL, LONG_REGIONAL_NAMES
 
 @utilities.xbmcbusy
 def fetchandfilter(location, text):
-    url = {'ForecastLocation' : datapoint.FORECAST_SITELIST_URL,
-           'ObservationLocation': datapoint.OBSERVATION_SITELIST_URL,
-           'RegionalLocation': datapoint.REGIONAL_SITELIST_URL}[location]
+    url = {'ForecastLocation' : FORECAST_SITELIST_URL,
+           'ObservationLocation': OBSERVATION_SITELIST_URL,
+           'RegionalLocation': REGIONAL_SITELIST_URL}[location]
     url = url.format(key=API_KEY)
 
-    with urlcache.URLCache(utilities.ADDON_DATA_PATH) as cache:
+    with urlcache.URLCache(ADDON_DATA_PATH) as cache:
         with cache.get(url, lambda x: datetime.now()+timedelta(weeks=1)) as fyle:
             data = json.load(fyle)
     sitelist = data['Locations']['Location']
@@ -37,7 +32,7 @@ def fetchandfilter(location, text):
             for key in site:
                 if key.startswith('@'):
                     site[key[1:]] = site.pop(key)
-            site['name'] = datapoint.LONG_REGIONAL_NAMES[site['name']]
+            site['name'] = LONG_REGIONAL_NAMES[site['name']]
 
     filtered = list()
     for site in sitelist:
@@ -60,22 +55,20 @@ def main(location):
     if not API_KEY:
         raise Exception('No API Key. Enter your Met Office API Key under settings.')
 
-    keyboard = xbmc.Keyboard()
-    keyboard.doModal()
-    text= keyboard.isConfirmed() and keyboard.getText()
-    dialog = xbmcgui.Dialog()
+    KEYBOARD.doModal()#@UndefinedVariable
+    text= KEYBOARD.isConfirmed() and KEYBOARD.getText()#@UndefinedVariable
     sitelist = fetchandfilter(location, text)
     if sitelist == []:
-        dialog.ok("No Matches", "No locations found containing '%s'" % text)
+        DIALOG.ok("No Matches", "No locations found containing '%s'" % text)#@UndefinedVariable
         utilities.log( "No locations found containing '%s'" % text)
         return
     display_list = [site['display'] for site in sitelist]
-    selected = dialog.select("Matching Sites", display_list)
+    selected = DIALOG.select("Matching Sites", display_list)#@UndefinedVariable
     if selected != -1:
-        __addon__.setSetting(location, sitelist[selected]['name'])
-        __addon__.setSetting("%sID" % location, sitelist[selected]['id'])
-        __addon__.setSetting("%sLatitude" % location, str(sitelist[selected].get('latitude')))
-        __addon__.setSetting("%sLongitude" % location, str(sitelist[selected].get('longitude')))
+        ADDON.setSetting(location, sitelist[selected]['name'])#@UndefinedVariable
+        ADDON.setSetting("%sID" % location, sitelist[selected]['id'])#@UndefinedVariable
+        ADDON.setSetting("%sLatitude" % location, str(sitelist[selected].get('latitude')))#@UndefinedVariable
+        ADDON.setSetting("%sLongitude" % location, str(sitelist[selected].get('longitude')))#@UndefinedVariable
         utilities.log( "Setting '{location}' to '{name} ({distance})'".format(location=location,
                                                                      name=sitelist[selected]['name'].encode('utf-8'),
                                                                      distance=sitelist[selected]['id']))
