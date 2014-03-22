@@ -2,14 +2,16 @@ import time
 from datetime import timedelta
 import utilities
 import json
-from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT, \
-                                SHORT_DAY_FORMAT, DATAPOINT_DATE_FORMAT, WEATHER_ICON_PATH, WEATHER_CODES
+from operator import itemgetter
 
-def observation(fyle):
+from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT, SHORT_DAY_FORMAT, DATAPOINT_DATE_FORMAT,\
+                        WEATHER_ICON_PATH, WEATHER_CODES, LONG_REGIONAL_NAMES, GEOIP_PROVIDER
+
+def observation(filename):
     """
     Parse data to produce observation (current) data
     """
-    data=json.load(fyle)
+    data=json.load(open(filename))
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
@@ -34,11 +36,11 @@ def observation(fyle):
     d['Current.FanartCode'] = '%s.png' % WEATHER_CODES[latest_obs.get('W','na')][0]
     return d
 
-def daily(fyle):
+def daily(filename):
     """
     Parse data to produce daily forecast data
     """
-    data=json.load(fyle)
+    data=json.load(open(filename))
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
@@ -57,11 +59,11 @@ def daily(fyle):
                 d['Day%d.LowTemp' %p] = rep.get('Nm', 'na')
     return d
 
-def threehourly(fyle):
+def threehourly(filename):
     """
     Parse data to produce three hourly data
     """
-    data=json.load(fyle)
+    data=json.load(open(filename))
     d = dict()
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
@@ -85,11 +87,11 @@ def threehourly(fyle):
             count +=1
     return d
 
-def text(fyle):
+def text(filename):
     """
     Parse data to produce text forecast data
     """
-    data=json.load(fyle)
+    data=json.load(open(filename))
     d = dict()
     rf = data['RegionalFcst']
     issuedat = rf['issuedAt'].rstrip('Z')
@@ -108,27 +110,58 @@ def text(fyle):
             count+=1
     return d
 
-def daily_expiry(fyle):
-    data = json.load(fyle)
+def sitelist(filename):
+    data = json.load(open(filename))
+    sitelist = data['Locations']['Location']
+    for site in sitelist:
+        #fix datapoint bug where keys start with @. Usually in Regional Sitelist
+        for key in site:
+            if key.startswith('@'):
+                site[key[1:]] = site.pop(key)
+        #Change regional names to long versions. Untouched otherwise.
+        site['name'] = LONG_REGIONAL_NAMES.get(site['name'], site['name'])
+    return sitelist
+
+def layercapabilities(filename, selection):
+    d = {}
+    #pull parameters out of capabilities file - consider using jsonpath here
+    data = json.load(open(filename))
+    d['BaseUrl'] = data['Layers']['BaseUrl']['$']
+    for thislayer in data['Layers']['Layer']:
+        if thislayer['@displayName'] == selection:
+            d['layer_name'] = thislayer['Service']['LayerName']
+            d['image_format'] = thislayer['Service']['ImageFormat']
+            d['default_time'] = thislayer['Service']['Timesteps']['@defaultTime']
+            d['timesteps'] = thislayer['Service']['Timesteps']['Timestep']
+            return d
+    else:
+        raise Exception("Couldn't find layer '%s'" % selection)
+
+def geoip(filename):
+    data = json.load(open(filename))
+    return (float(data[GEOIP_PROVIDER['latitude']]), float(data[GEOIP_PROVIDER['longitude']]))
+
+def daily_expiry(filename):
+    data = json.load(open(filename))
     dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
     return utilities.strptime(dataDate, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
 
-def threehourly_expiry(fyle):
-    data = json.load(fyle)
+def threehourly_expiry(filename):
+    data = json.load(open(filename))
     dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
     return utilities.strptime(dataDate, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
 
-def text_expiry(fyle):
-    data = json.load(fyle)
+def text_expiry(filename):
+    data = json.load(open(filename))
     issuedAt = data['RegionalFcst']['issuedAt'].rstrip('Z')
     return utilities.strptime(issuedAt, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=12)
 
-def observation_expiry(fyle):
-    data = json.load(fyle)
+def observation_expiry(filename):
+    data = json.load(open(filename))
     dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
     return utilities.strptime(dataDate, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
 
-def layer_capabilities_expiry(fyle):
-    data = json.load(fyle)
+def layer_capabilities_expiry(filename):
+    data = json.load(open(filename))
     defaultTime = data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime']
     return utilities.strptime(defaultTime, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=9)

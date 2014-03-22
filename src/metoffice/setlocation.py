@@ -6,49 +6,13 @@ the user. On successful selection internal addon setting
 is set.
 """
 import sys
-import json
 from datetime import datetime, timedelta
 from operator import itemgetter
-
-import locator, urlcache, utilities
+from itertools import ifilter
+import urlcache, utilities, jsonparser
 
 from constants import API_KEY, ADDON_DATA_PATH, GEOIP_PROVIDER, KEYBOARD, DIALOG, ADDON, FORECAST_SITELIST_URL,\
-                        OBSERVATION_SITELIST_URL, REGIONAL_SITELIST_URL, LONG_REGIONAL_NAMES
-
-@utilities.xbmcbusy
-def fetchandfilter(location, text):
-    url = {'ForecastLocation' : FORECAST_SITELIST_URL,
-           'ObservationLocation': OBSERVATION_SITELIST_URL,
-           'RegionalLocation': REGIONAL_SITELIST_URL}[location]
-    url = url.format(key=API_KEY)
-
-    with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        with cache.get(url, lambda x: datetime.now()+timedelta(weeks=1)) as fyle:
-            data = json.load(fyle)
-    sitelist = data['Locations']['Location']
-    if location == 'RegionalLocation':
-        for site in sitelist:
-            #fix datapoint bug where keys start with @
-            for key in site:
-                if key.startswith('@'):
-                    site[key[1:]] = site.pop(key)
-            site['name'] = LONG_REGIONAL_NAMES[site['name']]
-
-    filtered = list()
-    for site in sitelist:
-        if site['name'].lower().find(text.lower()) != -1:
-            filtered.append(site)
-
-    if location != 'RegionalLocation':
-        locator.distances(filtered, int(GEOIP_PROVIDER))
-        for site in filtered:
-            site['display'] = "{name} ({distance}km)".format(name=site['name'].encode('utf-8'),distance=site['distance'])
-        filtered = sorted(filtered,key=itemgetter('distance'))
-    else:
-        for site in filtered:
-            site['display'] = site['name']
-        filtered = sorted(filtered,key=itemgetter('name'))
-    return filtered
+                        OBSERVATION_SITELIST_URL, REGIONAL_SITELIST_URL
 
 @utilities.failgracefully
 def main(location):
@@ -57,21 +21,45 @@ def main(location):
 
     KEYBOARD.doModal()#@UndefinedVariable
     text= KEYBOARD.isConfirmed() and KEYBOARD.getText()#@UndefinedVariable
-    sitelist = fetchandfilter(location, text)
+    with urlcache.URLCache(ADDON_DATA_PATH) as cache:
+        url = {'ForecastLocation' : FORECAST_SITELIST_URL,
+               'ObservationLocation': OBSERVATION_SITELIST_URL,
+               'RegionalLocation': REGIONAL_SITELIST_URL}[location]
+        url = url.format(key=API_KEY)
+        filename = cache.get(url, lambda x: datetime.now()+timedelta(weeks=1))
+        sitelist = jsonparser.sitelist(filename)
+        sitelist[:] = ifilter(lambda x: x['name'].lower().find(text.lower()) >= 0, sitelist)
+
+        url = GEOIP_PROVIDER['url'] 
+        filename = cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
+        (geoip_lat, geoip_long) = jsonparser.geoip(filename)
+
+        for site in sitelist:
+            try:
+                site['distance'] = int(utilities.haversine_distance(geoip_lat, geoip_long, float(site['latitude']), float(site['longitude'])))
+                site['display'] = "{0} ({1}km)".format(site['name'].encode('utf-8'),site['distance'])
+            except KeyError:
+                site['display'] = site['name']
+
+        try:
+            sitelist = sorted(sitelist,key=itemgetter('distance'))
+        except KeyError:
+            sitelist = sorted(sitelist,key=itemgetter('name'))
+
     if sitelist == []:
         DIALOG.ok("No Matches", "No locations found containing '%s'" % text)#@UndefinedVariable
         utilities.log( "No locations found containing '%s'" % text)
-        return
-    display_list = [site['display'] for site in sitelist]
-    selected = DIALOG.select("Matching Sites", display_list)#@UndefinedVariable
-    if selected != -1:
-        ADDON.setSetting(location, sitelist[selected]['name'])#@UndefinedVariable
-        ADDON.setSetting("%sID" % location, sitelist[selected]['id'])#@UndefinedVariable
-        ADDON.setSetting("%sLatitude" % location, str(sitelist[selected].get('latitude')))#@UndefinedVariable
-        ADDON.setSetting("%sLongitude" % location, str(sitelist[selected].get('longitude')))#@UndefinedVariable
-        utilities.log( "Setting '{location}' to '{name} ({distance})'".format(location=location,
-                                                                     name=sitelist[selected]['name'].encode('utf-8'),
-                                                                     distance=sitelist[selected]['id']))
+    else:
+        display_list = [site['display'] for site in sitelist]
+        selected = DIALOG.select("Matching Sites", display_list)#@UndefinedVariable
+        if selected != -1:
+            ADDON.setSetting(location, sitelist[selected]['name'])#@UndefinedVariable
+            ADDON.setSetting("%sID" % location, sitelist[selected]['id'])#@UndefinedVariable
+            ADDON.setSetting("%sLatitude" % location, str(sitelist[selected].get('latitude')))#@UndefinedVariable
+            ADDON.setSetting("%sLongitude" % location, str(sitelist[selected].get('longitude')))#@UndefinedVariable
+            utilities.log( "Setting '{location}' to '{name} ({distance})'".format(location=location,
+                                                                         name=sitelist[selected]['name'].encode('utf-8'),
+                                                                         distance=sitelist[selected]['id']))
 
 if __name__ == '__main__':
     #check sys.argv

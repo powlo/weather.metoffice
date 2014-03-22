@@ -68,7 +68,7 @@ class URLCache(object):
                 raise InvalidCacheError
             else:
                 utilities.log("Returning cached item for '%s'" % url)
-                return open(entry['resource'])
+                return entry['resource']
         except (KeyError, InvalidCacheError):
             utilities.log("Fetching '%s' from web." % url)
             #(src, headers) = urllib.urlretrieve(url)
@@ -78,9 +78,9 @@ class URLCache(object):
             tmp = tempfile.NamedTemporaryFile(dir=self._folder, delete=False)
             tmp.write(page)
             tmp.close()
-            expiry = expiry_callback(open(tmp.name))
+            expiry = expiry_callback(tmp.name)
             self._cache[url] = {'resource': tmp.name, 'expiry': expiry.strftime(self.TIME_FORMAT)}
-            return open(tmp.name)
+            return tmp.name
 
 class InvalidCacheError(Exception):
     pass

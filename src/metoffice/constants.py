@@ -13,7 +13,6 @@ KEYBOARD = xbmc.Keyboard()
 ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % ADDON.getAddonInfo('id'))
 WEATHER_ICON_PATH = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
 API_KEY = ADDON.getSetting('ApiKey')
-GEOIP_PROVIDER = ADDON.getSetting('GeoIPProvider')
 
 DATAPOINT_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 DATAPOINT_DATE_FORMAT = '%Y-%m-%dZ'
@@ -75,6 +74,7 @@ GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitud
              {'url':'http://api.hostip.info/get_json.php?position=true','latitude':'lat', 'longitude':'lng'},
              {'url':'http://geoiplookup.net/geoapi.php?output=json', 'latitude':'latitude', 'longitude':'longitude'}
                    ]
+GEOIP_PROVIDER = GEOIP_PROVIDERS[int(ADDON.getSetting('GeoIPProvider'))]
 
 URL_TEMPLATE = "http://datapoint.metoffice.gov.uk/public/data/{format}/{resource}/{group}/{datatype}/{object}?{get}"
 

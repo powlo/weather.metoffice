@@ -69,8 +69,7 @@ class TestURLCache(XBMCTestCase):
         url = 'http://www.xbmc.org/'
         urllib2.urlopen = Mock(side_effect=lambda x: tempfile.NamedTemporaryFile(dir=RESULTS_FOLDER))
         with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
-            with cache.get(url, lambda x: datetime.now()+timedelta(hours=1)) as f:
-                filename = f.name
+            filename = cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
             self.assertTrue(os.path.isfile(filename), 'File should exist before removal.')
             cache.remove(url)
             self.assertFalse(os.path.isfile(filename), 'File is still in cache.')
@@ -80,8 +79,7 @@ class TestURLCache(XBMCTestCase):
         url = 'http://www.xbmc.org/'
         urllib2.urlopen = Mock(side_effect=lambda x: tempfile.NamedTemporaryFile(dir=RESULTS_FOLDER))
         with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
-            with cache.get(url, lambda x: datetime.now() - timedelta(days=1)) as f:
-                filename = f.name
+            filename = cache.get(url, lambda x: datetime.now() - timedelta(days=1))
             self.assertTrue(os.path.isfile(filename), 'File should exist before flush.')
             cache.flush()
             self.assertFalse(os.path.isfile(filename), 'File is still in cache.')
@@ -92,17 +90,16 @@ class TestURLCache(XBMCTestCase):
         urllib2.urlopen = Mock(side_effect=lambda x: tempfile.NamedTemporaryFile(dir=RESULTS_FOLDER))
         with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             #check item is fetched from the internet
-            cache.get(url, lambda x: datetime.now()+timedelta(hours=1)).close()
+            cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
             self.assertTrue(urllib2.urlopen.called) #@UndefinedVariable
 
             #check item is not fetched from internet
             urllib2.urlopen.reset_mock() #@UndefinedVariable
-            f = cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
-            f.close()
+            filename = cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
             self.assertFalse(urllib2.urlopen.called) #@UndefinedVariable
 
             #check item is fetched because its invalid
-            os.remove(f.name)
+            os.remove(filename)
             urllib2.urlopen.reset_mock() #@UndefinedVariable
             cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
             self.assertTrue(urllib2.urlopen.called) #@UndefinedVariable

@@ -21,7 +21,7 @@ class TestJsonParser(XBMCTestCase):
         self.jsonparser = jsonparser
 
     def test_observation(self):
-        result = self.jsonparser.observation(open(OBSERVATIONREPORT))
+        result = self.jsonparser.observation(OBSERVATIONREPORT)
         self.assertEqual('17:00 Thu 06 Mar 2014', result['HourlyObservation.IssuedAt'])
         self.assertEqual('Cloudy', result['Current.Condition'])
         self.assertEqual('45000', result['Current.Visibility'])
@@ -34,7 +34,7 @@ class TestJsonParser(XBMCTestCase):
         self.assertEqual('26.png', result['Current.FanartCode'])
 
         #Test exceptions when reports don't contain list items.
-        result = self.jsonparser.observation(open(OBSERVATIONREPORT2))
+        result = self.jsonparser.observation(OBSERVATIONREPORT2)
         self.assertEqual('17:00 Thu 06 Mar 2014', result['HourlyObservation.IssuedAt'])
         self.assertEqual('Sunny', result['Current.Condition'])
         self.assertEqual('45000', result['Current.Visibility'])
@@ -47,7 +47,7 @@ class TestJsonParser(XBMCTestCase):
         self.assertEqual('32.png', result['Current.FanartCode'])
         
     def test_daily(self):
-        result = self.jsonparser.daily(open(FORECASTDAILY))
+        result = self.jsonparser.daily(FORECASTDAILY)
         self.assertEqual('14:00 Mon 24 Feb 2014', result['DailyForecast.IssuedAt'])
         self.assertEqual('Mon', result['Day0.Title'])
         self.assertEqual('13', result['Day0.HighTemp'])
@@ -90,7 +90,7 @@ class TestJsonParser(XBMCTestCase):
         self.assertEqual('special://temp/weather/11.png', result['Day4.OutlookIcon'])
         
     def test_threehourly(self):
-        result = self.jsonparser.threehourly(open(FORECAST3HOURLY))
+        result = self.jsonparser.threehourly(FORECAST3HOURLY)
         self.assertEqual('16:00 Sat 01 Mar 2014', result['3HourlyForecast.IssuedAt'])
 
         self.assertEqual('Sat', result['3Hourly0.Day'])
@@ -526,7 +526,7 @@ class TestJsonParser(XBMCTestCase):
         self.assertEqual('special://temp/weather/29.png', result['3Hourly35.OutlookIcon'])
         
     def test_text(self):
-        result = self.jsonparser.text(open(FORECASTTEXT))
+        result = self.jsonparser.text(FORECASTTEXT)
         self.assertEqual('16:00 Mon 24 Feb 2014', result['TextForecast.IssuedAt'])
 
         self.assertEqual('Headline', result['Text.Paragraph0.Title'])
@@ -543,21 +543,21 @@ class TestJsonParser(XBMCTestCase):
         self.assertEqual('Current indications suggest a more typically unsettled pattern across the United Kingdom through much of March. Through this period we can expect to see fairly average conditions, which would mean spells of wet and windy weather, mostly in the north and west, but still some decent sunny spells in between. The best of the drier, brighter conditions is most likely in the south and east of the UK. Temperatures are likely to be around average, which may lead to more frequent incidences of frost compared to recent weeks.', result['Text.Paragraph5.Content'])
 
     def test_daily_expiry(self):
-        result = self.jsonparser.daily_expiry(open(FORECASTDAILY))
+        result = self.jsonparser.daily_expiry(FORECASTDAILY)
         self.assertEqual(datetime.datetime(2014, 2, 24, 15, 30), result)
 
     def test_threehourly_expiry(self):
-        result = self.jsonparser.threehourly_expiry(open(FORECAST3HOURLY))
+        result = self.jsonparser.threehourly_expiry(FORECAST3HOURLY)
         self.assertEqual(datetime.datetime(2014, 3, 1, 17, 30), result)
 
     def test_text_expiry(self):
-        result = self.jsonparser.text_expiry(open(FORECASTTEXT))
+        result = self.jsonparser.text_expiry(FORECASTTEXT)
         self.assertEqual(datetime.datetime(2014, 2, 25, 4, 0), result)
 
     def test_observation_expiry(self):
-        result = self.jsonparser.observation_expiry(open(OBSERVATIONREPORT))
+        result = self.jsonparser.observation_expiry(OBSERVATIONREPORT)
         self.assertEqual(datetime.datetime(2014, 3, 6, 18, 30), result)
 
     def test_layer_capabilities_expiry(self):
-        result = self.jsonparser.layer_capabilities_expiry(open(LAYERCAPABILITIES))
+        result = self.jsonparser.layer_capabilities_expiry(LAYERCAPABILITIES)
         self.assertEqual(datetime.datetime(2014, 3, 19, 18, 0), result)

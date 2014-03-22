@@ -6,31 +6,44 @@ socket.setdefaulttimeout(20)
 from datetime import datetime, timedelta
 from PIL import Image
 from operator import itemgetter
+from itertools import ifilter
 
-import utilities, jsonparser, urlcache, locator
+import utilities, jsonparser, urlcache
 from constants import ADDON, ADDON_DATA_PATH, DATAPOINT_DATETIME_FORMAT, GOOGLE_SURFACE, GOOGLE_MARKER,\
                         DEFAULT_INITIAL_LAYER, RAW_DATAPOINT_IMG_WIDTH, CROP_WIDTH, CROP_HEIGHT,\
-                        ISSUEDAT_FORMAT, MAPTIME_FORMAT, WINDOW, FORECAST_SITELIST_URL, OBSERVATION_SITELIST_URL,\
+                        ISSUEDAT_FORMAT, MAPTIME_FORMAT, WINDOW, FORECAST_SITELIST_URL, OBSERVATION_SITELIST_URL, REGIONAL_SITELIST_URL,\
                         DAILY_LOCATION_FORECAST_URL, THREEHOURLY_LOCATION_FORECAST_URL, TEXT_FORECAST_URL,\
-                        HOURLY_LOCATION_OBSERVATION_URL, FORECAST_LAYER_CAPABILITIES_URL, API_KEY
+                        HOURLY_LOCATION_OBSERVATION_URL, FORECAST_LAYER_CAPABILITIES_URL, API_KEY, GEOIP_PROVIDER
 
 def auto_location(location):
     utilities.log( "Auto-assigning '%s'..." % location)
-    GEOIP_PROVIDER = int(ADDON.getSetting('GeoIPProvider'))
-    if not GEOIP_PROVIDER:
-        utilities.log( 'No GeoIP Provider is set.')
-        GEOIP_PROVIDER = 0
-    url = {'ForecastLocation' : FORECAST_SITELIST_URL,
-           'ObservationLocation': OBSERVATION_SITELIST_URL}[location]
-    url = url.format(key=API_KEY)
 
+    #copy paste from setlocation. Need to create a seperate func for this.
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        with cache.get(url, lambda x: datetime.now()+timedelta(weeks=1)) as fyle:
-            data = json.load(fyle)
+        url = {'ForecastLocation' : FORECAST_SITELIST_URL,
+               'ObservationLocation': OBSERVATION_SITELIST_URL,
+               'RegionalLocation': REGIONAL_SITELIST_URL}[location]
+        url = url.format(key=API_KEY)
+        filename = cache.get(url, lambda x: datetime.now()+timedelta(weeks=1))
+        sitelist = jsonparser.sitelist(filename)
 
-    sitelist = data['Locations']['Location']
-    locator.distances(sitelist, GEOIP_PROVIDER)
-    sitelist.sort(key=itemgetter('distance'))
+        url = GEOIP_PROVIDER['url']
+        filename = cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
+        (geoip_lat, geoip_long) = jsonparser.geoip(filename)
+
+        for site in sitelist:
+            try:
+                site['distance'] = int(utilities.haversine_distance(geoip_lat, geoip_long, float(site['latitude']), float(site['longitude'])))
+                site['display'] = "{0} ({1}km)".format(site['name'].encode('utf-8'),site['distance'])
+            except KeyError:
+                site['display'] = site['name']
+
+        try:
+            sitelist = sorted(sitelist,key=itemgetter('distance'))
+        except KeyError:
+            sitelist = sorted(sitelist,key=itemgetter('name'))
+    #end copypaste
+
     first = sitelist[0]
     ADDON.setSetting(location, first['name'])#@UndefinedVariable
     ADDON.setSetting('%sID' % location, first['id'])#@UndefinedVariable
@@ -43,8 +56,8 @@ def set_daily_forecast():
     utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, flid))
     url = DAILY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        with cache.get(url, jsonparser.daily_expiry) as fyle:
-            report = jsonparser.daily(fyle)
+        filename = cache.get(url, jsonparser.daily_expiry)
+        report = jsonparser.daily(filename)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
     WINDOW.setProperty('DailyForecast.IsFetched', 'true')#@UndefinedVariable
@@ -56,8 +69,8 @@ def set_3hourly_forecast():
     utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, flid))
     url = THREEHOURLY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        with cache.get(url, jsonparser.threehourly_expiry) as fyle:
-            report = jsonparser.threehourly(fyle)
+        filename = cache.get(url, jsonparser.threehourly_expiry)
+        report = jsonparser.threehourly(filename)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
     WINDOW.setProperty('3HourlyForecast.IsFetched', 'true')#@UndefinedVariable
@@ -69,8 +82,8 @@ def set_text_forecast():
     utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, rlid))
     url = TEXT_FORECAST_URL.format(object=rlid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        with cache.get(url, jsonparser.text_expiry) as fyle:
-            report = jsonparser.text(fyle)
+        filename = cache.get(url, jsonparser.text_expiry)
+        report = jsonparser.text(filename)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
     WINDOW.setProperty('TextForecast.IsFetched', 'true')#@UndefinedVariable
@@ -82,8 +95,8 @@ def set_hourly_observation():
     utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, olid))
     url = HOURLY_LOCATION_OBSERVATION_URL.format(object=olid, key=API_KEY)
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        with cache.get(url, jsonparser.observation_expiry) as fyle:
-            report = jsonparser.observation(fyle)
+        filename = cache.get(url, jsonparser.observation_expiry)
+        report = jsonparser.observation(filename)
     for field, value in report.iteritems():
         WINDOW.setProperty(field, value)#@UndefinedVariable
     WINDOW.setProperty('HourlyObservation.IsFetched', 'true')#@UndefinedVariable
@@ -96,16 +109,14 @@ def set_forecast_layer():
 
         #get underlay map
         url=GOOGLE_SURFACE.format(maptype='satellite', **params)#@UndefinedVariable
-        with cache.get(url, lambda x:  datetime.now() + timedelta(days=30)) as fyle:
-            surface = fyle.name
+        surface = cache.get(url, lambda x:  datetime.now() + timedelta(days=30))
         #get marker map
         lat = ADDON.getSetting('ForecastLocationLatitude')
         lng = ADDON.getSetting('ForecastLocationLongitude')
 
         markers = '{lat},{lng}'.format(lat=lat, lng=lng)
         url = GOOGLE_MARKER.format(style='feature:all|element:all|visibility:off', markers=markers, **params)#@UndefinedVariable
-        with cache.get(url, lambda x:  datetime.now() + timedelta(days=30)) as fyle:
-            marker = fyle.name
+        marker = cache.get(url, lambda x:  datetime.now() + timedelta(days=30))
 
         #remove any marker that isn't the one we just fetched
         markers = '(?!{lat})(\d+),(?!{long})(\d+)'.format(lat=lat, long=long)
@@ -113,8 +124,8 @@ def set_forecast_layer():
         #get capabilities
         url = FORECAST_LAYER_CAPABILITIES_URL.format(key=API_KEY)
         
-        with cache.get(url, jsonparser.layer_capabilities_expiry) as fyle:
-            data = json.load(fyle)
+        filename = cache.get(url, jsonparser.layer_capabilities_expiry)
+        data = json.load(open(filename))
         selection = WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER#@UndefinedVariable
         #pull parameters out of capabilities file - consider using jsonpath here
         for thislayer in data['Layers']['Layer']:
@@ -153,10 +164,10 @@ def set_forecast_layer():
                                  DefaultTime=default_time,
                                  Timestep=timestep,
                                  key=API_KEY)
-        with cache.get(url, lambda x: datetime.now() + timedelta(days=1)) as fyle:
-            layer = fyle.name
+        layer = cache.get(url, lambda x: datetime.now() + timedelta(days=1))
 
         #remove the 'cone' from the image
+        #TODO: Turn this into a callback for the cache
         img = Image.open(layer)
         (width, height) = img.size
         if width == RAW_DATAPOINT_IMG_WIDTH:
@@ -188,9 +199,6 @@ def main():
             if not ADDON.getSetting('ObservationLocation'):
                 auto_location('ObservationLocation')
 
-        #fetch all?
-        #TODO: actually we want to do something smarter: look and see which panels are
-        #visible and only fetch data for them, so we'll pass a list into set_properties?...
         set_hourly_observation()
         set_daily_forecast()
     elif sys.argv[1] == 'ForecastMap':
