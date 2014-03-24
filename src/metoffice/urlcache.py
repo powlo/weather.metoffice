@@ -1,10 +1,4 @@
 #A basic way of caching files associated with URLs
-#with emphasis on caching results from urlretrieve.
-
-"""
-Add filter parameter to flush so that urls can be cleaned out according to pattern matching
-Ie filter out any expired Rainfall Timestep 0.
-"""
 
 from datetime import datetime
 import os
@@ -45,10 +39,8 @@ class URLCache(object):
     def remove(self, url):
         if url in self._cache:
             entry = self._cache[url]
-            utilities.log("Deleting file '%s'" % entry['resource'])
             if os.path.isfile(entry['resource']):
                 os.remove(entry['resource'])
-            utilities.log("Removing entry for '%s' from cache" % url)
             del self._cache[url]
 
     def flush(self):
@@ -68,10 +60,8 @@ class URLCache(object):
             if not os.path.isfile(entry['resource']) or utilities.strptime(entry['expiry'], self.TIME_FORMAT) < datetime.now():
                 raise InvalidCacheError
             else:
-                utilities.log("Returning cached item for '%s'" % url)
                 return entry['resource']
         except (KeyError, InvalidCacheError):
-            utilities.log("Fetching '%s' from web." % url)
             #(src, headers) = urllib.urlretrieve(url)
             response = urllib2.urlopen(url)
             page = response.read()
