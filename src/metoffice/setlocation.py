@@ -15,7 +15,14 @@ import urlcache, utilities
 from constants import API_KEY, ADDON_DATA_PATH, GEOIP_PROVIDER, KEYBOARD, DIALOG, ADDON, FORECAST_SITELIST_URL,\
                         OBSERVATION_SITELIST_URL, REGIONAL_SITELIST_URL, LONG_REGIONAL_NAMES
 
-def getsitelist(location, text=""):
+@utilities.failgracefully
+def main(location):
+    if not API_KEY:
+        raise Exception('No API Key. Enter your Met Office API Key under settings.')
+
+    KEYBOARD.doModal()#@UndefinedVariable
+    text= KEYBOARD.isConfirmed() and KEYBOARD.getText()#@UndefinedVariable
+
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
         url = {'ForecastLocation' : FORECAST_SITELIST_URL,
                'ObservationLocation': OBSERVATION_SITELIST_URL,
@@ -48,16 +55,7 @@ def getsitelist(location, text=""):
             sitelist = sorted(sitelist,key=itemgetter('distance'))
         except KeyError:
             sitelist = sorted(sitelist,key=itemgetter('name'))
-        return sitelist
-
-@utilities.failgracefully
-def main(location):
-    if not API_KEY:
-        raise Exception('No API Key. Enter your Met Office API Key under settings.')
-
-    KEYBOARD.doModal()#@UndefinedVariable
-    text= KEYBOARD.isConfirmed() and KEYBOARD.getText()#@UndefinedVariable
-    sitelist = getsitelist(location, text)
+    
     if sitelist == []:
         DIALOG.ok("No Matches", "No locations found containing '%s'" % text)#@UndefinedVariable
         utilities.log( "No locations found containing '%s'" % text)
