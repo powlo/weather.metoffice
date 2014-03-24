@@ -1,7 +1,7 @@
 import sys
 import socket
 socket.setdefaulttimeout(20)
-import utilities, jsonparser, setlocation
+import utilities, properties, setlocation
 from constants import WINDOW, ADDON, API_KEY
 
 def auto_location(location):
@@ -28,18 +28,18 @@ def main():
             if not ADDON.getSetting('ObservationLocation'):
                 auto_location('ObservationLocation')
 
-        jsonparser.observation()
-        jsonparser.daily()
+        properties.observation()
+        properties.daily()
     elif sys.argv[1] == 'ForecastMap':
-        jsonparser.forecastlayer()
+        properties.forecastlayer()
     elif sys.argv[1] == 'DailyForecast':
-        jsonparser.daily()
+        properties.daily()
     elif sys.argv[1] == '3HourlyForecast':
-        jsonparser.threehourly()
+        properties.threehourly()
     elif sys.argv[1] == 'TextForecast':
-        jsonparser.text()
+        properties.text()
     elif sys.argv[1] == 'HourlyObservation':
-        jsonparser.observation()
+        properties.observation()
 
     WINDOW.setProperty('WeatherProvider', ADDON.getAddonInfo('name'))#@UndefinedVariable
     WINDOW.setProperty('ObservationLocation', ADDON.getSetting('ObservationLocation'))#@UndefinedVariable
