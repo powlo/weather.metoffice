@@ -46,7 +46,8 @@ class URLCache(object):
         if url in self._cache:
             entry = self._cache[url]
             utilities.log("Deleting file '%s'" % entry['resource'])
-            os.remove(entry['resource'])
+            if os.path.isfile(entry['resource']):
+                os.remove(entry['resource'])
             utilities.log("Removing entry for '%s' from cache" % url)
             del self._cache[url]
 
