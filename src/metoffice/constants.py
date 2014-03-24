@@ -14,6 +14,7 @@ ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % ADDON.
 WEATHER_ICON_PATH = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
 
 API_KEY = ADDON.getSetting('ApiKey')
+GEOLOCATION = ADDON.getSetting('GeoLocation')
 GEOIP = ADDON.getSetting('GeoIPProvider')
 FORECAST_LOCATION = ADDON.getSetting('ForecastLocation')
 FORECAST_LOCATION_ID = ADDON.getSetting('ForecastLocationID')
