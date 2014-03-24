@@ -6,19 +6,18 @@ import sys
 from PIL import Image
 import urlcache
 from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT, SHORT_DAY_FORMAT, DATAPOINT_DATE_FORMAT,\
-                        WEATHER_ICON_PATH, WEATHER_CODES, ADDON, WINDOW,\
+                        WEATHER_ICON_PATH, WEATHER_CODES, WINDOW,\
                         DAILY_LOCATION_FORECAST_URL, API_KEY, ADDON_DATA_PATH, THREEHOURLY_LOCATION_FORECAST_URL,\
                         TEXT_FORECAST_URL, HOURLY_LOCATION_OBSERVATION_URL, FORECAST_LAYER_CAPABILITIES_URL,\
-                        RAW_DATAPOINT_IMG_WIDTH, CROP_WIDTH, CROP_HEIGHT, GOOGLE_SURFACE, GOOGLE_MARKER, DEFAULT_INITIAL_LAYER, MAPTIME_FORMAT
+                        RAW_DATAPOINT_IMG_WIDTH, CROP_WIDTH, CROP_HEIGHT, GOOGLE_SURFACE, GOOGLE_MARKER,\
+                        DEFAULT_INITIAL_LAYER, MAPTIME_FORMAT, REGIONAL_LOCATION, REGIONAL_LOCATION_ID,\
+                        FORECAST_LOCATION, FORECAST_LOCATION_ID, OBSERVATION_LOCATION, OBSERVATION_LOCATION_ID
 
 @utilities.panelbusy('LeftPane')
 def observation():
-    name = ADDON.getSetting('ObservationLocation')
-    olid = ADDON.getSetting('ObservationLocationID')
-    utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (name, olid))
-    url = HOURLY_LOCATION_OBSERVATION_URL.format(object=olid, key=API_KEY)
+    utilities.log( "Fetching Hourly Observation for '%s (%s)' from the Met Office..." % (OBSERVATION_LOCATION, OBSERVATION_LOCATION_ID))
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        filename = cache.get(url, observation_expiry)
+        filename = cache.get(HOURLY_LOCATION_OBSERVATION_URL, observation_expiry)
         data=json.load(open(filename))
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
@@ -44,12 +43,9 @@ def observation():
 
 @utilities.panelbusy('RightPane')
 def daily():
-    name = ADDON.getSetting('ForecastLocation')
-    flid = ADDON.getSetting('ForecastLocationID')
-    utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (name, flid))
-    url = DAILY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
+    utilities.log( "Fetching Daily Forecast for '%s (%s)' from the Met Office..." % (FORECAST_LOCATION, FORECAST_LOCATION_ID))
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        filename = cache.get(url, daily_expiry)
+        filename = cache.get(DAILY_LOCATION_FORECAST_URL, daily_expiry)
         data=json.load(open(filename))
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
@@ -70,12 +66,9 @@ def daily():
 
 @utilities.panelbusy('RightPane')
 def threehourly():
-    name = ADDON.getSetting('ForecastLocation')
-    flid = ADDON.getSetting('ForecastLocationID')
-    utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (name, flid))
-    url = THREEHOURLY_LOCATION_FORECAST_URL.format(object=flid, key=API_KEY)
+    utilities.log( "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..." % (FORECAST_LOCATION, FORECAST_LOCATION_ID))
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        filename = cache.get(url, threehourly_expiry)
+        filename = cache.get(THREEHOURLY_LOCATION_FORECAST_URL, threehourly_expiry)
         data=json.load(open(filename))
     dv = data['SiteRep']['DV']
     dataDate = dv.get('dataDate').rstrip('Z')
@@ -101,12 +94,9 @@ def threehourly():
 
 @utilities.panelbusy('RightPane')
 def text():
-    name = ADDON.getSetting('RegionalLocation')
-    rlid = ADDON.getSetting('RegionalLocationID')
-    utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (name, rlid))
-    url = TEXT_FORECAST_URL.format(object=rlid, key=API_KEY)
+    utilities.log( "Fetching Text Forecast for '%s (%s)' from the Met Office..." % (REGIONAL_LOCATION, REGIONAL_LOCATION_ID))
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        filename = cache.get(url, text_expiry)
+        filename = cache.get(TEXT_FORECAST_URL, text_expiry)
         data=json.load(open(filename))
     rf = data['RegionalFcst']
     issuedat = rf['issuedAt'].rstrip('Z')
@@ -128,27 +118,10 @@ def text():
 @utilities.panelbusy('RightPane')
 def forecastlayer():
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        #there are two kinds of fetches for this app, get a json file and get an image file.
-        params = {'sensor':'false', 'center':'55,-3.5','zoom':'5','size':'323x472'}
+        surface = cache.get(GOOGLE_SURFACE, lambda x:  datetime.now() + timedelta(days=30))
+        marker = cache.get(GOOGLE_MARKER, lambda x:  datetime.now() + timedelta(days=30))
 
-        #get underlay map
-        url=GOOGLE_SURFACE.format(maptype='satellite', **params)#@UndefinedVariable
-        surface = cache.get(url, lambda x:  datetime.now() + timedelta(days=30))
-        #get marker map
-        lat = ADDON.getSetting('ForecastLocationLatitude')
-        lng = ADDON.getSetting('ForecastLocationLongitude')
-
-        markers = '{lat},{lng}'.format(lat=lat, lng=lng)
-        url = GOOGLE_MARKER.format(style='feature:all|element:all|visibility:off', markers=markers, **params)#@UndefinedVariable
-        marker = cache.get(url, lambda x:  datetime.now() + timedelta(days=30))
-
-        #remove any marker that isn't the one we just fetched
-        markers = '(?!{lat})(\d+),(?!{long})(\d+)'.format(lat=lat, long=long)
-
-        #get capabilities
-        url = FORECAST_LAYER_CAPABILITIES_URL.format(key=API_KEY)
-        
-        filename = cache.get(url, layer_capabilities_expiry)
+        filename = cache.get(FORECAST_LAYER_CAPABILITIES_URL, layer_capabilities_expiry)
         data = json.load(open(filename))
         selection = WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER#@UndefinedVariable
         #pull parameters out of capabilities file - consider using jsonpath here

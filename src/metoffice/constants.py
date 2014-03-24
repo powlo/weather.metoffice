@@ -12,7 +12,17 @@ DIALOG = xbmcgui.Dialog()
 KEYBOARD = xbmc.Keyboard()
 ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % ADDON.getAddonInfo('id'))
 WEATHER_ICON_PATH = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
+
 API_KEY = ADDON.getSetting('ApiKey')
+GEOIP = ADDON.getSetting('GeoIPProvider')
+FORECAST_LOCATION = ADDON.getSetting('ForecastLocation')
+FORECAST_LOCATION_ID = ADDON.getSetting('ForecastLocationID')
+OBSERVATION_LOCATION = ADDON.getSetting('ObservationLocation')
+OBSERVATION_LOCATION_ID = ADDON.getSetting('ObservationLocationID')
+REGIONAL_LOCATION = ADDON.getSetting('RegionalLocation')
+REGIONAL_LOCATION_ID = ADDON.getSetting('RegionalLocationID')
+LATITUDE = ADDON.getSetting('ForecastLocationLatitude')
+LONGITUDE = ADDON.getSetting('ForecastLocationLongitude')
 
 DATAPOINT_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 DATAPOINT_DATE_FORMAT = '%Y-%m-%dZ'
@@ -23,9 +33,9 @@ ISSUEDAT_FORMAT = '%H:%M %a %d %b %Y'
 DEFAULT_INITIAL_LAYER = 'Rainfall'
 
 GOOGLE_BASE = 'http://maps.googleapis.com/maps/api/staticmap'
-GOOGLE_GLOBAL = GOOGLE_BASE + '?sensor={sensor}&center={center}&zoom={zoom}&size={size}'
-GOOGLE_SURFACE = GOOGLE_GLOBAL + '&maptype={maptype}'
-GOOGLE_MARKER = GOOGLE_GLOBAL + '&style={style}&markers={markers}'
+GOOGLE_GLOBAL = GOOGLE_BASE + "?sensor=false&center=55,-3.5&zoom=5&size=323x472"
+GOOGLE_SURFACE = GOOGLE_GLOBAL + "&maptype=satellite"
+GOOGLE_MARKER = GOOGLE_GLOBAL + '&style=feature:all|element:all|visibility:off&markers={0},{1}'.format(LATITUDE, LONGITUDE)
 
 RAW_DATAPOINT_IMG_WIDTH = 500
 CROP_WIDTH = 40
@@ -74,27 +84,27 @@ GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitud
              {'url':'http://api.hostip.info/get_json.php?position=true','latitude':'lat', 'longitude':'lng'},
              {'url':'http://geoiplookup.net/geoapi.php?output=json', 'latitude':'latitude', 'longitude':'longitude'}
                    ]
-GEOIP_PROVIDER = GEOIP_PROVIDERS[int(ADDON.getSetting('GeoIPProvider'))]
+GEOIP_PROVIDER = GEOIP_PROVIDERS[int(GEOIP)]
 
 URL_TEMPLATE = "http://datapoint.metoffice.gov.uk/public/data/{format}/{resource}/{group}/{datatype}/{object}?{get}"
 
 FORECAST_SITELIST_URL = URL_TEMPLATE.format(format='val', resource='wxfcs', group='all', datatype='json', object='sitelist', 
-                                            get=urllib.unquote(urllib.urlencode((('key','{key}'),))))
+                                            get=urllib.unquote(urllib.urlencode((('key',API_KEY),))))
 OBSERVATION_SITELIST_URL = URL_TEMPLATE.format(format='val', resource='wxobs', group='all', datatype='json', object='sitelist',
-                                            get=urllib.unquote(urllib.urlencode((('key','{key}'),))))
+                                            get=urllib.unquote(urllib.urlencode((('key',API_KEY),))))
 REGIONAL_SITELIST_URL = URL_TEMPLATE.format(format='txt', resource='wxfcs', group='regionalforecast', datatype='json', object='sitelist',
-                                            get=urllib.unquote(urllib.urlencode((('key','{key}'),))))
+                                            get=urllib.unquote(urllib.urlencode((('key',API_KEY),))))
 
-DAILY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(format='val', resource='wxfcs', group='all', datatype='json', object='{object}',
-                                            get=urllib.unquote(urllib.urlencode((('res', 'daily'),('key','{key}')))))
-THREEHOURLY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(format='val', resource='wxfcs', group='all', datatype='json', object='{object}',
-                                            get=urllib.unquote(urllib.urlencode((('res', '3hourly'),('key','{key}')))))
-HOURLY_LOCATION_OBSERVATION_URL = URL_TEMPLATE.format(format='val', resource='wxobs', group='all', datatype='json', object='{object}',
-                                            get=urllib.unquote(urllib.urlencode((('res', 'hourly'),('key','{key}')))))
-TEXT_FORECAST_URL = URL_TEMPLATE.format(format='txt', resource='wxfcs', group='regionalforecast', datatype='json', object='{object}',
-                                            get=urllib.unquote(urllib.urlencode((('key','{key}'),))))
+DAILY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(format='val', resource='wxfcs', group='all', datatype='json', object=FORECAST_LOCATION_ID,
+                                            get=urllib.unquote(urllib.urlencode((('res', 'daily'),('key',API_KEY)))))
+THREEHOURLY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(format='val', resource='wxfcs', group='all', datatype='json', object=FORECAST_LOCATION_ID,
+                                            get=urllib.unquote(urllib.urlencode((('res', '3hourly'),('key',API_KEY)))))
+HOURLY_LOCATION_OBSERVATION_URL = URL_TEMPLATE.format(format='val', resource='wxobs', group='all', datatype='json', object=OBSERVATION_LOCATION_ID,
+                                            get=urllib.unquote(urllib.urlencode((('res', 'hourly'),('key',API_KEY)))))
+TEXT_FORECAST_URL = URL_TEMPLATE.format(format='txt', resource='wxfcs', group='regionalforecast', datatype='json', object=REGIONAL_LOCATION_ID,
+                                            get=urllib.unquote(urllib.urlencode((('key',API_KEY),))))
 FORECAST_LAYER_CAPABILITIES_URL = URL_TEMPLATE.format(format='layer', resource='wxfcs', group='all', datatype='json', object='capabilities',
-                                            get=urllib.unquote(urllib.urlencode((('key','{key}'),))))
+                                            get=urllib.unquote(urllib.urlencode((('key',API_KEY),))))
 
 LONG_REGIONAL_NAMES = {'os': 'Orkney and Shetland',
                        'he': 'Highland and Eilean Siar',

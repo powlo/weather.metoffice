@@ -20,7 +20,6 @@ def getsitelist(location, text=""):
         url = {'ForecastLocation' : FORECAST_SITELIST_URL,
                'ObservationLocation': OBSERVATION_SITELIST_URL,
                'RegionalLocation': REGIONAL_SITELIST_URL}[location]
-        url = url.format(key=API_KEY)
         filename = cache.get(url, lambda x: datetime.now()+timedelta(weeks=1))
         data = json.load(open(filename))
         sitelist = data['Locations']['Location']
