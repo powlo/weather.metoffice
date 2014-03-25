@@ -42,11 +42,14 @@ class TestUtilities(XBMCTestCase):
         self.xbmcgui.Window.return_value.clearProperty.assert_called_once_with('RightPanel.IsBusy')
         mock_func.assert_called_with(1,2,3)
 
+    #Have to write a stubby because lambdas contain explressions not statements
+    def lambda_raise(self):
+        raise IOError('An IOError occurred')
+
     def test_failgracefully(self):
-        mock_func = Mock()
+        mock_func = Mock(side_effect = self.lambda_raise)
         mock_func.__name__ = "Mock"
-        mock_func.side_effect = IOError
-        self.xbmcgui.getCurrentWindowId = Mock(return_value=self.utilities.WEATHER_WINDOW_ID)
+        self.xbmcgui.getCurrentWindowId = Mock(return_value=self.constants.WEATHER_WINDOW_ID)
         decorated_func = self.utilities.failgracefully(mock_func)
         decorated_func(1,2,3)
         mock_func.assert_called_once_with(1,2,3)
