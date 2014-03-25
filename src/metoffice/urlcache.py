@@ -66,8 +66,8 @@ class URLCache(object):
             #(src, headers) = urllib.urlretrieve(url)
             try:
                 response = urllib2.urlopen(url)
-            except socket.timeout as e:
-                e.args = ("Connection Timed Out", url)
+            except (socket.timeout, urllib2.URLError) as e:
+                e.args = (str(e), url)
                 raise
             page = response.read()
             response.close()
