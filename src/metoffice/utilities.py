@@ -23,7 +23,8 @@ def failgracefully(f):
         except Exception as e:
             log(traceback.format_exc(), xbmc.LOGSEVERE)
             if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or xbmcgui.getCurrentWindowId() == SETTINGS_WINDOW_ID:
-                DIALOG.ok("An Error Occurred", "Check log file for details.", str(type(e)), str(e))#@UndefinedVariable
+                e.args = e.args[:4]
+                DIALOG.ok(*e.args)#@UndefinedVariable
     return wrapper
 
 def xbmcbusy(f):

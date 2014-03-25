@@ -5,6 +5,7 @@ import os
 import urllib2
 import tempfile
 import json
+import socket
 
 import utilities
 
@@ -63,7 +64,11 @@ class URLCache(object):
                 return entry['resource']
         except (KeyError, InvalidCacheError):
             #(src, headers) = urllib.urlretrieve(url)
-            response = urllib2.urlopen(url)
+            try:
+                response = urllib2.urlopen(url)
+            except socket.timeout as e:
+                e.args = ("Connection Timed Out", url)
+                raise
             page = response.read()
             response.close()
             tmp = tempfile.NamedTemporaryFile(dir=self._folder, delete=False)
