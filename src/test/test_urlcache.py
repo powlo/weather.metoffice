@@ -103,6 +103,14 @@ class TestURLCache(XBMCTestCase):
             urllib2.urlopen.reset_mock() #@UndefinedVariable
             cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
             self.assertTrue(urllib2.urlopen.called) #@UndefinedVariable
+
+            #check an exception is modified and reraised when exception occurs with urlopen
+            urllib2.urlopen.reset_mock() #@UndefinedVariable
+            urllib2.urlopen = Mock(side_effect=urllib2.URLError('Name or service not known'))
+            cache.remove(url)
+            with self.assertRaises(urllib2.URLError) as cm:
+                cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
+            self.assertEqual(('<urlopen error Name or service not known>', 'http://www.xbmc.org/'), cm.exception.args)
     def tearDown(self):
         shutil.rmtree(RESULTS_FOLDER)
         super(TestURLCache, self).tearDown()
