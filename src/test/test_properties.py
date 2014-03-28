@@ -1,6 +1,7 @@
 import os
 import shutil
 import datetime
+from PIL import Image
 from mock import Mock, patch
 from test.xbmctestcase import XBMCTestCase
 
@@ -1146,6 +1147,13 @@ class TestProperties(XBMCTestCase):
     def test_forecastlayer(self, mock_cache, mock_panelbusy):
         mock_panelbusy.side_effect = self.mock_panelbusy
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
+
+        #Assert that the pretend image in cache has not been resized
+        img = Image.open(PRECIPITATION_LAYER_IMAGE)
+        (width, height) = img.size
+        self.assertEqual(500, width)
+        self.assertEqual(500, height)
+
         from metoffice import properties
         properties.forecastlayer()
         self.assertIn('ForecastMap.Surface', self.window_properties)
@@ -1163,6 +1171,12 @@ class TestProperties(XBMCTestCase):
         self.assertIn('ForecastMap.IsFetched', self.window_properties)
         self.assertEqual(self.window_properties['ForecastMap.IsFetched'], 'true')
         
+        #Assert that after execution the pretend image in cache has now been resized
+        img = Image.open(PRECIPITATION_LAYER_IMAGE)
+        (width, height) = img.size
+        self.assertEqual(420, width)
+        self.assertEqual(460, height)
+
         #Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
         with self.assertRaises(KeyError) as cm:
