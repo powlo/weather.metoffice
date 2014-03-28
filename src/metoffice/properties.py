@@ -141,7 +141,7 @@ def forecastlayer():
         filename = cache.get(FORECAST_LAYER_CAPABILITIES_URL, layer_capabilities_expiry)
         data = json.load(open(filename))
         selection = WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER#@UndefinedVariable
-        #pull parameters out of capabilities file - consider using jsonpath here
+        #pull parameters out of capabilities file - TODO: consider using jsonpath here
         try:
             for thislayer in data['Layers']['Layer']:
                 if thislayer['@displayName'] == selection:
@@ -151,27 +151,20 @@ def forecastlayer():
                     timesteps = thislayer['Service']['Timesteps']['Timestep']
                     break
             else:
-                utilities.log("Couldn't find layer '%s'" % selection)
-                return
+                raise Exception('Error', "Couldn't find layer '%s'" % selection)
         except KeyError as e:
             e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), FORECAST_LAYER_CAPABILITIES_URL)
             raise
 
         issuedat = utilities.strptime(default_time, DATAPOINT_DATETIME_FORMAT)
-        timestepindex = WINDOW.getProperty('ForecastMap.SliderPosition') or '0'#@UndefinedVariable
+        sliderposition = WINDOW.getProperty('ForecastMap.SliderPosition') or '0'#@UndefinedVariable
 
-        #allow the timestep to be modified by a second argument. Supports keyboard navigation in skin.
-        try:
-            adjust = sys.argv[2]
-        except IndexError:
-            adjust = '0'
-        timestepindex = str(int(timestepindex) + int(adjust))
-        if int(timestepindex) < 0:
-            timestepindex = '0'
-        elif int(timestepindex) > len(timesteps)-1:
-            timestepindex = str(len(timesteps)-1)
+        if int(sliderposition) < 0:
+            sliderposition = '0'
+        elif int(sliderposition) > len(timesteps)-1:
+            sliderposition = str(len(timesteps)-1)
 
-        timestep = timesteps[int(timestepindex)]
+        timestep = timesteps[int(sliderposition)]
         delta = timedelta(hours=timestep)
         maptime = issuedat + delta
 
@@ -198,7 +191,7 @@ def forecastlayer():
 
         WINDOW.setProperty('ForecastMap.Surface', surface)#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.Marker', marker)#@UndefinedVariable
-        WINDOW.setProperty('ForecastMap.SliderPosition', timestepindex)#@UndefinedVariable
+        WINDOW.setProperty('ForecastMap.SliderPosition', sliderposition)#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.IssuedAt', issuedat.strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.MapTime', maptime.strftime(MAPTIME_FORMAT))#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.Layer', layer)#@UndefinedVariable
