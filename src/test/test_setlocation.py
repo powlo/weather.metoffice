@@ -1,6 +1,5 @@
 import os
 import shutil
-import json
 from xbmctestcase import XBMCTestCase
 
 from mock import Mock, patch
