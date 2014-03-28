@@ -1141,10 +1141,9 @@ class TestProperties(XBMCTestCase):
                           "Key 'RegionalFcst' not found while processing file from url:",
                           self.constants.TEXT_FORECAST_URL), cm.exception.args)
 
-    @patch('sys.argv')
     @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
-    def test_forecastlayer(self, mock_cache, mock_panelbusy, mock_sysargv):
+    def test_forecastlayer(self, mock_cache, mock_panelbusy):
         mock_panelbusy.side_effect = self.mock_panelbusy
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
         from metoffice import properties
