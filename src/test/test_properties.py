@@ -1,25 +1,29 @@
 import os
+import shutil
 import datetime
 from mock import Mock, patch
 from test.xbmctestcase import XBMCTestCase
 
 TEST_FOLDER = os.path.dirname(__file__)
-RESULTS_FOLDER = os.path.join(TEST_FOLDER, 'results')
 DATA_FOLDER = os.path.join(TEST_FOLDER, 'data')
+RESULTS_FOLDER = os.path.join(TEST_FOLDER, 'results')
 OBSERVATIONHOURLY = os.path.join(DATA_FOLDER, 'observationhourly.json')
 OBSERVATIONHOURLY2 = os.path.join(DATA_FOLDER, 'observationhourly2.json')
 FORECASTDAILY = os.path.join(DATA_FOLDER, 'forecastdaily.json')
 FORECAST3HOURLY = os.path.join(DATA_FOLDER, 'forecast3hourly.json')
 FORECASTTEXT = os.path.join(DATA_FOLDER, 'forecasttext.json')
 LAYERCAPABILITIES = os.path.join(DATA_FOLDER, 'layercapabilities.json')
+CORRUPTLAYERCAPABILITIES = os.path.join(DATA_FOLDER, 'corruptlayercapabilities.json')
 FORECASTSITELIST = os.path.join(DATA_FOLDER, 'forecastsitelist.json')
 TEXTSITELIST = os.path.join(DATA_FOLDER, 'textsitelist.json')
+GEOIP = os.path.join(DATA_FOLDER, 'ip-api.json')
+EMPTY_FILE = os.path.join(DATA_FOLDER, 'empty.json')
 GOOGLE_SURFACE_IMAGE = os.path.join(DATA_FOLDER, 'google_surface.png')
 GOOGLE_MARKER_IMAGE = os.path.join(DATA_FOLDER, 'google_marker.png')
-PRECIPITATION_LAYER_IMAGE = os.path.join(DATA_FOLDER, 'precipitation_layer.png')
-GEOIP = os.path.join(DATA_FOLDER, 'ip-api.json')
+PRECIPITATION_LAYER_IMAGE = os.path.join(RESULTS_FOLDER, 'precipitation_layer.png')
 
-PRECIPITATION_LAYER_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=3&key=12345'
+PRECIPITATION_LAYER_HOUR0_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=0&key=12345'
+PRECIPITATION_LAYER_HOUR36_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=36&key=12345'
 
 class TestProperties(XBMCTestCase):
     def setUp(self):
@@ -53,6 +57,14 @@ class TestProperties(XBMCTestCase):
         from metoffice import constants
         self.constants = constants
 
+        #create a disposable area for testing
+        try:
+            os.mkdir(RESULTS_FOLDER)
+        except OSError:
+            pass
+
+        shutil.copy(os.path.join(DATA_FOLDER, 'precipitation_layer.png'), os.path.join(RESULTS_FOLDER, 'precipitation_layer.png'))
+
     def mock_getSetting(self, key):
         return self.settings[key]
 
@@ -77,7 +89,8 @@ class TestProperties(XBMCTestCase):
                 self.constants.GEOIP_PROVIDER['url']:GEOIP,
                 self.constants.GOOGLE_SURFACE: GOOGLE_SURFACE_IMAGE,
                 self.constants.GOOGLE_MARKER: GOOGLE_MARKER_IMAGE,
-                PRECIPITATION_LAYER_URL: PRECIPITATION_LAYER_IMAGE,
+                PRECIPITATION_LAYER_HOUR0_URL: PRECIPITATION_LAYER_IMAGE,
+                PRECIPITATION_LAYER_HOUR36_URL: PRECIPITATION_LAYER_IMAGE,
                 }[url]
 
     def mock_panelbusy(self, pane):
@@ -138,7 +151,15 @@ class TestProperties(XBMCTestCase):
         self.assertEqual(self.window_properties['Current.OutlookIcon'], '32.png')
         self.assertIn('Current.FanartCode', self.window_properties)
         self.assertEqual(self.window_properties['Current.FanartCode'], '32.png')
-    
+
+        #Test exception handling when given json without proper keys
+        mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
+        with self.assertRaises(KeyError) as cm:
+            properties.observation()
+        self.assertEqual(('Key Error in JSON File',
+                          "Key 'SiteRep' not found while processing file from url:",
+                          self.constants.HOURLY_LOCATION_OBSERVATION_URL), cm.exception.args)
+
     @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
     def test_daily(self, mock_cache, mock_panelbusy):
@@ -222,7 +243,15 @@ class TestProperties(XBMCTestCase):
         self.assertEqual(self.window_properties['Day4.Outlook'], 'Light Rain')
         self.assertIn('Day4.OutlookIcon', self.window_properties)
         self.assertEqual(self.window_properties['Day4.OutlookIcon'], 'special://temp/weather/11.png')
-        
+
+        #Test exception handling when given json without proper keys
+        mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
+        with self.assertRaises(KeyError) as cm:
+            properties.daily()
+        self.assertEqual(('Key Error in JSON File',
+                          "Key 'SiteRep' not found while processing file from url:",
+                          self.constants.DAILY_LOCATION_FORECAST_URL), cm.exception.args)
+
     @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
     def test_threehourly(self, mock_cache, mock_panelbusy):
@@ -1060,7 +1089,15 @@ class TestProperties(XBMCTestCase):
         self.assertEqual(self.window_properties['3Hourly35.Outlook'], 'Partly Cloudy')
         self.assertIn('3Hourly35.OutlookIcon', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly35.OutlookIcon'], 'special://temp/weather/29.png')
-        
+
+        #Test exception handling when given json without proper keys
+        mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
+        with self.assertRaises(KeyError) as cm:
+            properties.threehourly()
+        self.assertEqual(('Key Error in JSON File',
+                          "Key 'SiteRep' not found while processing file from url:",
+                          self.constants.THREEHOURLY_LOCATION_FORECAST_URL), cm.exception.args)
+
     @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
     def test_text(self, mock_cache, mock_panelbusy):
@@ -1096,6 +1133,14 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Text.Paragraph5.Content', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph5.Content'], 'Current indications suggest a more typically unsettled pattern across the United Kingdom through much of March. Through this period we can expect to see fairly average conditions, which would mean spells of wet and windy weather, mostly in the north and west, but still some decent sunny spells in between. The best of the drier, brighter conditions is most likely in the south and east of the UK. Temperatures are likely to be around average, which may lead to more frequent incidences of frost compared to recent weeks.')
 
+        #Test exception handling when given json without proper keys
+        mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
+        with self.assertRaises(KeyError) as cm:
+            properties.text()
+        self.assertEqual(('Key Error in JSON File',
+                          "Key 'RegionalFcst' not found while processing file from url:",
+                          self.constants.TEXT_FORECAST_URL), cm.exception.args)
+
     @patch('sys.argv')
     @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
@@ -1109,15 +1154,49 @@ class TestProperties(XBMCTestCase):
         self.assertIn('ForecastMap.Marker', self.window_properties)
         self.assertEqual(self.window_properties['ForecastMap.Marker'], GOOGLE_MARKER_IMAGE)
         self.assertIn('ForecastMap.SliderPosition', self.window_properties)
-        self.assertEqual(self.window_properties['ForecastMap.SliderPosition'], '1')
+        self.assertEqual(self.window_properties['ForecastMap.SliderPosition'], '0')
         self.assertIn('ForecastMap.IssuedAt', self.window_properties)
         self.assertEqual(self.window_properties['ForecastMap.IssuedAt'], '09:00 Wed 19 Mar 2014')
         self.assertIn('ForecastMap.MapTime', self.window_properties)
-        self.assertEqual(self.window_properties['ForecastMap.MapTime'], '1200 Wed')
+        self.assertEqual(self.window_properties['ForecastMap.MapTime'], '0900 Wed')
         self.assertIn('ForecastMap.Layer', self.window_properties)
         self.assertEqual(self.window_properties['ForecastMap.Layer'], PRECIPITATION_LAYER_IMAGE)
         self.assertIn('ForecastMap.IsFetched', self.window_properties)
         self.assertEqual(self.window_properties['ForecastMap.IsFetched'], 'true')
+        
+        #Test exception handling when given json without proper keys
+        mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
+        with self.assertRaises(KeyError) as cm:
+            properties.forecastlayer()
+        self.assertEqual(('Key Error in JSON File',
+                          "Key 'Layers' not found while processing file from url:",
+                          self.constants.FORECAST_LAYER_CAPABILITIES_URL), cm.exception.args)
+
+        #Test exception handling when given corrupt BaseURL in json
+        #(We have provide partially valid json so execution can drop to the exception under test.)
+        mock_cache.return_value.__enter__.return_value.get = Mock(return_value=CORRUPTLAYERCAPABILITIES)
+        with self.assertRaises(KeyError) as cm:
+            properties.forecastlayer()
+        self.assertEqual(('Key Error in JSON File',
+                          "Key '$' not found while processing file from url:",
+                          self.constants.FORECAST_LAYER_CAPABILITIES_URL), cm.exception.args)
+
+        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
+        #Test when requesting with an invalid slider position
+        self.window_properties['ForecastMap.SliderPosition'] = '-9'
+        properties.forecastlayer()
+        self.assertEqual('0', self.window_properties['ForecastMap.SliderPosition'])
+
+        self.window_properties['ForecastMap.SliderPosition'] = '45'
+
+        properties.forecastlayer()
+        self.assertEqual('12', self.window_properties['ForecastMap.SliderPosition'])
+
+        #Test response when given unknown layer name
+        self.window_properties['ForecastMap.LayerSelection'] = 'Unknown'
+        with self.assertRaises(Exception) as cm:
+            properties.forecastlayer()
+        self.assertEqual(('Error', "Couldn't find layer 'Unknown'"), cm.exception.args)
 
     @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
@@ -1163,3 +1242,7 @@ class TestProperties(XBMCTestCase):
         from metoffice import properties
         result = properties.layer_capabilities_expiry(LAYERCAPABILITIES)
         self.assertEqual(datetime.datetime(2014, 3, 19, 18, 0), result)
+
+    def tearDown(self):
+        super(TestProperties, self).tearDown()
+        shutil.rmtree(RESULTS_FOLDER)
