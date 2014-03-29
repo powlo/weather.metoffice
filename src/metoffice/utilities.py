@@ -6,7 +6,7 @@ import math
 import xbmc #@UnresolvedImport
 import xbmcgui #@UnresolvedImport
 
-from constants import WEATHER_WINDOW_ID, SETTINGS_WINDOW_ID, DIALOG, WINDOW
+from constants import WEATHER_WINDOW_ID, SETTINGS_WINDOW_ID, DIALOG, WINDOW, TEMPERATUREUNITS
 #by importing utilities all messages in xbmc log will be prepended with LOGPREFIX
 def log(msg, level=xbmc.LOGNOTICE):
     xbmc.log('weather.metoffice: {0}'.format(msg), level)
@@ -72,3 +72,18 @@ def haversine_distance(lat1, lon1, lat2, lon2):
         math.sin(dlon/2)**2
     c = 2 * math.asin(math.sqrt(a))
     return EARTH_RADIUS * c
+
+def rownd(x):
+    try:
+        return str(round(float(x))).split('.')[0]
+    except ValueError:
+        return ''
+
+def localised_temperature(t):
+    if TEMPERATUREUNITS[-1] == 'C':
+        return t
+    else:
+        try:
+            return str(int(float(t)*9)/5+32)
+        except ValueError:
+            return ''

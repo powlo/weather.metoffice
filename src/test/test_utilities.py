@@ -58,3 +58,18 @@ class TestUtilities(XBMCTestCase):
 
     def test_minutes_as_time(self):
         self.assertEqual("03:00", self.utilities.minutes_as_time(180))
+
+    def test_localise_temperature(self):
+        self.utilities.TEMPERATUREUNITS = 'C'
+        self.assertEqual('0', self.utilities.localised_temperature('0'))
+        self.assertEqual('-20', self.utilities.localised_temperature('-20'))
+        self.assertEqual('20', self.utilities.localised_temperature('20'))
+        self.utilities.TEMPERATUREUNITS = 'F'
+        self.assertEqual('32', self.utilities.localised_temperature('0'))
+        self.assertEqual('-4', self.utilities.localised_temperature('-20'))
+        self.assertEqual('68', self.utilities.localised_temperature('20'))
+
+    def test_rownd(self):
+        self.assertEqual('11', self.utilities.rownd('10.7'))
+        self.assertEqual('10', self.utilities.rownd('10.1'))
+        self.assertEqual('11', self.utilities.rownd('10.5'))

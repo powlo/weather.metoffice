@@ -61,12 +61,14 @@ def daily():
                 weather_type = rep.get('W', 'na')
                 if rep.get('$') == 'Day':
                     WINDOW.setProperty('Day%d.HighTemp' %p, rep.get('Dm', 'na'))#@UndefinedVariable
+                    WINDOW.setProperty('Day%d.HighTempIcon' %p, rep.get('Dm'))#@UndefinedVariable
                     WINDOW.setProperty('Day%d.Outlook' %p, WEATHER_CODES.get(weather_type)[1])#@UndefinedVariable
                     WINDOW.setProperty('Day%d.OutlookIcon' % p, WEATHER_ICON_PATH % WEATHER_CODES.get(weather_type, 'na')[0])#@UndefinedVariable
                     WINDOW.setProperty('Day%d.WindSpeed' % p,  rep.get('S', 'na'))#@UndefinedVariable
                     WINDOW.setProperty('Day%d.WindDirection' % p, rep.get('D', 'na').lower())#@UndefinedVariable
                 elif rep.get('$') == 'Night':
                     WINDOW.setProperty('Day%d.LowTemp' %p, rep.get('Nm', 'na'))#@UndefinedVariable
+                    WINDOW.setProperty('Day%d.LowTempIcon' %p, rep.get('Nm'))#@UndefinedVariable
     except KeyError as e:
         e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), DAILY_LOCATION_FORECAST_URL)
         raise
@@ -97,8 +99,10 @@ def threehourly():
                 WINDOW.setProperty('3Hourly%d.OutlookIcon' % count, WEATHER_ICON_PATH % WEATHER_CODES.get(weather_type, 'na')[0])#@UndefinedVariable
                 WINDOW.setProperty('3Hourly%d.Day' % count, time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
                 WINDOW.setProperty('3Hourly%d.Time' % count, utilities.minutes_as_time(int(rep.get('$'))))#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.ActualTemp' % count, rep.get('T', 'na'))#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.FeelsLikeTemp' % count, rep.get('F', 'na'))#@UndefinedVariable
+                WINDOW.setProperty('3Hourly%d.ActualTemp' % count, utilities.rownd(utilities.localised_temperature(rep.get('T', 'na'))))#@UndefinedVariable
+                WINDOW.setProperty('3Hourly%d.ActualTempIcon' % count, rep.get('T', 'na'))#@UndefinedVariable
+                WINDOW.setProperty('3Hourly%d.FeelsLikeTemp' % count, utilities.rownd(utilities.localised_temperature(rep.get('F', 'na'))))#@UndefinedVariable
+                WINDOW.setProperty('3Hourly%d.FeelsLikeTempIcon' % count, rep.get('F', 'na'))#@UndefinedVariable
                 count +=1
     except KeyError as e:
         e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), THREEHOURLY_LOCATION_FORECAST_URL)

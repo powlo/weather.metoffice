@@ -55,6 +55,9 @@ class TestProperties(XBMCTestCase):
         window.getProperty.side_effect = self.mock_getProperty
         window.setProperty.side_effect = self.mock_setProperty
 
+        #assume only one call to getInforLabel, which is for 'System.TemperatureUnits'
+        self.xbmc.getInfoLabel.return_value = 'C'
+
         from metoffice import constants
         self.constants = constants
 

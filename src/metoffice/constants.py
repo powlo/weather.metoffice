@@ -12,7 +12,7 @@ DIALOG = xbmcgui.Dialog()
 KEYBOARD = xbmc.Keyboard()
 ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % ADDON.getAddonInfo('id'))
 WEATHER_ICON_PATH = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
-
+TEMPERATUREUNITS = xbmc.getInfoLabel('System.TemperatureUnits')
 API_KEY = ADDON.getSetting('ApiKey')
 GEOLOCATION = ADDON.getSetting('GeoLocation')
 GEOIP = ADDON.getSetting('GeoIPProvider')
