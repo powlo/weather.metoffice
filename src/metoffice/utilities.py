@@ -22,6 +22,10 @@ def failgracefully(f):
             return f(*args, **kwds)
         except Exception as e:
             log(traceback.format_exc(), xbmc.LOGSEVERE)
+            if len(e.args) == 0 or e.args[0] == '':
+                e.args = ('Error',)
+            if len(e.args) == 1:
+                e.args = e.args + ('See log file for details',)
             if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or xbmcgui.getCurrentWindowId() == SETTINGS_WINDOW_ID:
                 args = (e.args[0].title(),) + e.args[1:4]
                 DIALOG.ok(*args)#@UndefinedVariable
