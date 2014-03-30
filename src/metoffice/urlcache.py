@@ -52,7 +52,7 @@ class URLCache(object):
         for url in flushlist:
             self.remove(url)
 
-    def get(self, url, expiry_callback):
+    def get(self, url, expiry_callback, resource_callback=None):
         """
         Checks to see if an item is in cache
         """
@@ -75,6 +75,8 @@ class URLCache(object):
             tmp.write(page)
             tmp.close()
             expiry = expiry_callback(tmp.name)
+            if resource_callback:
+                resource_callback(tmp.name)
             self._cache[url] = {'resource': tmp.name, 'expiry': expiry.strftime(self.TIME_FORMAT)}
             return tmp.name
 

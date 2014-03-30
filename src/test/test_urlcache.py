@@ -88,28 +88,42 @@ class TestURLCache(XBMCTestCase):
     def test_get(self):
         url = 'http://www.xbmc.org/'
         urllib2.urlopen = Mock(side_effect=lambda x: tempfile.NamedTemporaryFile(dir=RESULTS_FOLDER))
+        mock_expiry_callback = Mock(return_value = datetime.now()+timedelta(days=1))
+        mock_resource_callback = Mock()
         with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             #check item is fetched from the internet
-            cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
+            cache.get(url, mock_expiry_callback, mock_resource_callback)
             self.assertTrue(urllib2.urlopen.called) #@UndefinedVariable
+            self.assertTrue(mock_expiry_callback.called) #@UndefinedVariable
+            self.assertTrue(mock_resource_callback.called) #@UndefinedVariable
 
             #check item is not fetched from internet
             urllib2.urlopen.reset_mock() #@UndefinedVariable
-            filename = cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
+            mock_expiry_callback.reset_mock()
+            mock_resource_callback.reset_mock()
+            filename = cache.get(url, mock_expiry_callback, mock_resource_callback)
             self.assertFalse(urllib2.urlopen.called) #@UndefinedVariable
+            self.assertFalse(mock_expiry_callback.called) #@UndefinedVariable
+            self.assertFalse(mock_resource_callback.called) #@UndefinedVariable
 
             #check item is fetched because its invalid
             os.remove(filename)
             urllib2.urlopen.reset_mock() #@UndefinedVariable
-            cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
+            mock_expiry_callback.reset_mock()
+            mock_resource_callback.reset_mock()
+            cache.get(url, mock_expiry_callback, mock_resource_callback)
             self.assertTrue(urllib2.urlopen.called) #@UndefinedVariable
+            self.assertTrue(mock_expiry_callback.called) #@UndefinedVariable
+            self.assertTrue(mock_resource_callback.called) #@UndefinedVariable
 
             #check an exception is modified and reraised when exception occurs with urlopen
             urllib2.urlopen.reset_mock() #@UndefinedVariable
+            mock_expiry_callback.reset_mock()
+            mock_resource_callback.reset_mock()
             urllib2.urlopen = Mock(side_effect=urllib2.URLError('Name or service not known'))
             cache.remove(url)
             with self.assertRaises(urllib2.URLError) as cm:
-                cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
+                cache.get(url, mock_expiry_callback, mock_resource_callback)
             self.assertEqual(('<urlopen error Name or service not known>', 'http://www.xbmc.org/'), cm.exception.args)
     def tearDown(self):
         shutil.rmtree(RESULTS_FOLDER)

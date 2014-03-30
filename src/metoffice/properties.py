@@ -184,18 +184,10 @@ def forecastlayer():
                                  DefaultTime=default_time,
                                  Timestep=timestep,
                                  key=API_KEY)
-        layer = cache.get(url, lambda x: datetime.now() + timedelta(days=1))
-
-        #remove the 'cone' from the image
-        #TODO: Turn this into a callback for the cache
-        img = Image.open(layer)
-        (width, height) = img.size
-        if width == RAW_DATAPOINT_IMG_WIDTH:
-            img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(layer, image_format)
+        layer = cache.get(url, lambda x: datetime.now() + timedelta(days=1), image_resize)
 
         WINDOW.setProperty('ForecastMap.Surface', surface)#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.Marker', marker)#@UndefinedVariable
-        WINDOW.setProperty('ForecastMap.SliderPosition', sliderposition)#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.IssuedAt', issuedat.strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.MapTime', maptime.strftime(MAPTIME_FORMAT))#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.Layer', layer)#@UndefinedVariable
@@ -225,3 +217,11 @@ def layer_capabilities_expiry(filename):
     data = json.load(open(filename))
     defaultTime = data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime']
     return utilities.strptime(defaultTime, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=9)
+
+def image_resize(filename):
+    #remove the 'cone' from the image
+    img = Image.open(filename)
+    (width, height) = img.size
+    if width == RAW_DATAPOINT_IMG_WIDTH:
+        img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(filename, img.format)
+    

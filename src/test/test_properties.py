@@ -82,7 +82,7 @@ class TestProperties(XBMCTestCase):
         self.window_properties[key] = value
 
 
-    def mock_get(self, url, callback):
+    def mock_get(self, url, expiry_callback, resource_callback=None):
         return {
                 self.constants.FORECAST_SITELIST_URL: FORECASTSITELIST,
                 self.constants.DAILY_LOCATION_FORECAST_URL: FORECASTDAILY,
@@ -1173,12 +1173,6 @@ class TestProperties(XBMCTestCase):
         self.assertEqual(self.window_properties['ForecastMap.Layer'], PRECIPITATION_LAYER_IMAGE)
         self.assertIn('ForecastMap.IsFetched', self.window_properties)
         self.assertEqual(self.window_properties['ForecastMap.IsFetched'], 'true')
-        
-        #Assert that after execution the pretend image in cache has now been resized
-        img = Image.open(PRECIPITATION_LAYER_IMAGE)
-        (width, height) = img.size
-        self.assertEqual(420, width)
-        self.assertEqual(460, height)
 
         #Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
@@ -1198,15 +1192,19 @@ class TestProperties(XBMCTestCase):
                           self.constants.FORECAST_LAYER_CAPABILITIES_URL), cm.exception.args)
 
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
-        #Test when requesting with an invalid slider position
+        mock_cache.reset_mock()
+        
+        #Test valid url is used when requesting with an invalid slider position
         self.window_properties['ForecastMap.SliderPosition'] = '-9'
         properties.forecastlayer()
-        self.assertEqual('0', self.window_properties['ForecastMap.SliderPosition'])
+        self.assertEqual(u'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=0&key=12345',
+                         mock_cache.return_value.__enter__.return_value.get.call_args_list[3][0][0])
 
+        mock_cache.reset_mock()
         self.window_properties['ForecastMap.SliderPosition'] = '45'
-
         properties.forecastlayer()
-        self.assertEqual('12', self.window_properties['ForecastMap.SliderPosition'])
+        self.assertEqual(u'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=36&key=12345',
+                         mock_cache.return_value.__enter__.return_value.get.call_args_list[3][0][0])
 
         #Test response when given unknown layer name
         self.window_properties['ForecastMap.LayerSelection'] = 'Unknown'
@@ -1258,6 +1256,18 @@ class TestProperties(XBMCTestCase):
         from metoffice import properties
         result = properties.layer_capabilities_expiry(LAYERCAPABILITIES)
         self.assertEqual(datetime.datetime(2014, 3, 19, 18, 0), result)
+
+    @patch('metoffice.utilities.panelbusy')
+    @patch('metoffice.urlcache.URLCache')
+    def test_layer_image_resize_callback(self, mock_cache, mock_panelbusy):
+        mock_panelbusy.side_effect = self.mock_panelbusy
+        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
+        from metoffice import properties
+        properties.image_resize(PRECIPITATION_LAYER_IMAGE)
+        img = Image.open(PRECIPITATION_LAYER_IMAGE)
+        (width, height) = img.size
+        self.assertEqual(420, width)
+        self.assertEqual(460, height)
 
     def tearDown(self):
         super(TestProperties, self).tearDown()
