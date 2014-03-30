@@ -47,7 +47,8 @@ class TestUtilities(XBMCTestCase):
         raise IOError('An IOError occurred')
 
     def test_failgracefully(self):
-        mock_func = Mock(side_effect = self.lambda_raise)
+        message = ('Oh no', 'It all went wrong')
+        mock_func = Mock(side_effect = IOError(*message))
         mock_func.__name__ = "Mock"
         self.xbmcgui.getCurrentWindowId = Mock(return_value=self.constants.WEATHER_WINDOW_ID)
         decorated_func = self.utilities.failgracefully(mock_func)
@@ -55,6 +56,20 @@ class TestUtilities(XBMCTestCase):
         mock_func.assert_called_once_with(1,2,3)
         self.assertTrue(self.xbmc.log.called)
         self.assertTrue(self.xbmcgui.Dialog.return_value.ok.called)
+        self.xbmcgui.Dialog.return_value.ok.assert_called_once_with(message[0].title(), message[1])
+
+        #Test when exception called with only one arg
+        self.xbmcgui.Dialog.return_value.ok.reset_mock()
+        message = ('Oh no',)
+        mock_func.side_effect = IOError(*message)
+        decorated_func(1,2,3)
+        self.xbmcgui.Dialog.return_value.ok.assert_called_once_with(message[0].title(), 'See log file for details')
+
+        #Test when exception called with no args
+        self.xbmcgui.Dialog.return_value.ok.reset_mock()
+        mock_func.side_effect = IOError()
+        decorated_func(1,2,3)
+        self.xbmcgui.Dialog.return_value.ok.assert_called_once_with('Error', 'See log file for details')
 
     def test_minutes_as_time(self):
         self.assertEqual("03:00", self.utilities.minutes_as_time(180))
@@ -68,8 +83,10 @@ class TestUtilities(XBMCTestCase):
         self.assertEqual('32', self.utilities.localised_temperature('0'))
         self.assertEqual('-4', self.utilities.localised_temperature('-20'))
         self.assertEqual('68', self.utilities.localised_temperature('20'))
+        self.assertEqual('', self.utilities.localised_temperature(''))
 
     def test_rownd(self):
         self.assertEqual('11', self.utilities.rownd('10.7'))
         self.assertEqual('10', self.utilities.rownd('10.1'))
         self.assertEqual('11', self.utilities.rownd('10.5'))
+        self.assertEqual('', self.utilities.rownd(''))
