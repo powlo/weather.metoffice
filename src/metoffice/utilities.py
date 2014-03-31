@@ -21,6 +21,7 @@ def failgracefully(f):
         try:
             return f(*args, **kwds)
         except Exception as e:
+            e.args = map(str, e.args)
             log(traceback.format_exc(), xbmc.LOGSEVERE)
             if len(e.args) == 0 or e.args[0] == '':
                 e.args = ('Error',)

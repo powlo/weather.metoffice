@@ -7,6 +7,11 @@ WEATHER_WINDOW_ID = 12600
 SETTINGS_WINDOW_ID = 10014
 
 WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
+FORECASTMAP_SLIDER = WINDOW.getProperty('ForecastMap.Slider') or '0'
+OBSERVATIONMAP_SLIDER = WINDOW.getProperty('ObservationMap.Slider') or '0'
+FORECASTMAP_LAYER_SELECTION = WINDOW.getProperty('ForecastMap.LayerSelection') or 'Rainfall'#@UndefinedVariable
+OBSERVATIONMAP_LAYER_SELECTION = WINDOW.getProperty('ObservationMap.LayerSelection') or 'Rainfall'#@UndefinedVariable
+
 ADDON = xbmcaddon.Addon(id="weather.metoffice")
 DIALOG = xbmcgui.Dialog()
 KEYBOARD = xbmc.Keyboard()
@@ -30,8 +35,6 @@ DATAPOINT_DATE_FORMAT = '%Y-%m-%dZ'
 SHORT_DAY_FORMAT = "%a"
 MAPTIME_FORMAT = '%H%M %a'
 ISSUEDAT_FORMAT = '%H:%M %a %d %b %Y'
-
-DEFAULT_INITIAL_LAYER = 'Rainfall'
 
 GOOGLE_BASE = 'http://maps.googleapis.com/maps/api/staticmap'
 GOOGLE_GLOBAL = GOOGLE_BASE + "?sensor=false&center=55,-3.5&zoom=5&size=323x472"
@@ -105,6 +108,8 @@ HOURLY_LOCATION_OBSERVATION_URL = URL_TEMPLATE.format(format='val', resource='wx
 TEXT_FORECAST_URL = URL_TEMPLATE.format(format='txt', resource='wxfcs', group='regionalforecast', datatype='json', object=REGIONAL_LOCATION_ID,
                                             get=urllib.unquote(urllib.urlencode((('key',API_KEY),))))
 FORECAST_LAYER_CAPABILITIES_URL = URL_TEMPLATE.format(format='layer', resource='wxfcs', group='all', datatype='json', object='capabilities',
+                                            get=urllib.unquote(urllib.urlencode((('key',API_KEY),))))
+OBSERVATION_LAYER_CAPABILITIES_URL = URL_TEMPLATE.format(format='layer', resource='wxobs', group='all', datatype='json', object='capabilities',
                                             get=urllib.unquote(urllib.urlencode((('key',API_KEY),))))
 
 LONG_REGIONAL_NAMES = {'os': 'Orkney and Shetland',

@@ -2,16 +2,16 @@ import time
 from datetime import datetime, timedelta
 import utilities
 import json
-import sys
 from PIL import Image
 import urlcache
 from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT, SHORT_DAY_FORMAT, DATAPOINT_DATE_FORMAT,\
-                        WEATHER_ICON_PATH, WEATHER_CODES, WINDOW,\
-                        DAILY_LOCATION_FORECAST_URL, API_KEY, ADDON_DATA_PATH, THREEHOURLY_LOCATION_FORECAST_URL,\
-                        TEXT_FORECAST_URL, HOURLY_LOCATION_OBSERVATION_URL, FORECAST_LAYER_CAPABILITIES_URL,\
-                        RAW_DATAPOINT_IMG_WIDTH, CROP_WIDTH, CROP_HEIGHT, GOOGLE_SURFACE, GOOGLE_MARKER,\
-                        DEFAULT_INITIAL_LAYER, MAPTIME_FORMAT, REGIONAL_LOCATION, REGIONAL_LOCATION_ID,\
-                        FORECAST_LOCATION, FORECAST_LOCATION_ID, OBSERVATION_LOCATION, OBSERVATION_LOCATION_ID
+                        WEATHER_ICON_PATH, WEATHER_CODES, WINDOW, DAILY_LOCATION_FORECAST_URL, API_KEY,\
+                        ADDON_DATA_PATH, THREEHOURLY_LOCATION_FORECAST_URL, TEXT_FORECAST_URL,\
+                        HOURLY_LOCATION_OBSERVATION_URL, FORECAST_LAYER_CAPABILITIES_URL,\
+                        OBSERVATION_LAYER_CAPABILITIES_URL, RAW_DATAPOINT_IMG_WIDTH, CROP_WIDTH, CROP_HEIGHT,\
+                        GOOGLE_SURFACE, GOOGLE_MARKER, MAPTIME_FORMAT, REGIONAL_LOCATION,\
+                        REGIONAL_LOCATION_ID, FORECAST_LOCATION, FORECAST_LOCATION_ID, OBSERVATION_LOCATION,\
+                        OBSERVATION_LOCATION_ID, FORECASTMAP_SLIDER, OBSERVATIONMAP_SLIDER, FORECASTMAP_LAYER_SELECTION, OBSERVATIONMAP_LAYER_SELECTION
 
 @utilities.panelbusy('LeftPane')
 def observation():
@@ -138,37 +138,39 @@ def text():
 
 @utilities.panelbusy('RightPane')
 def forecastlayer():
+    utilities.log( "Fetching '{0}' Forecast Map with index '{1}'...".format(FORECASTMAP_LAYER_SELECTION, FORECASTMAP_SLIDER))
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
         surface = cache.get(GOOGLE_SURFACE, lambda x:  datetime.now() + timedelta(days=30))
         marker = cache.get(GOOGLE_MARKER, lambda x:  datetime.now() + timedelta(days=30))
 
-        filename = cache.get(FORECAST_LAYER_CAPABILITIES_URL, layer_capabilities_expiry)
+        filename = cache.get(FORECAST_LAYER_CAPABILITIES_URL, forecastlayer_capabilities_expiry)
         data = json.load(open(filename))
-        selection = WINDOW.getProperty('ForecastMap.LayerSelection') or DEFAULT_INITIAL_LAYER#@UndefinedVariable
         #pull parameters out of capabilities file - TODO: consider using jsonpath here
         try:
             for thislayer in data['Layers']['Layer']:
-                if thislayer['@displayName'] == selection:
+                if thislayer['@displayName'] == FORECASTMAP_LAYER_SELECTION:
                     layer_name = thislayer['Service']['LayerName']
                     image_format = thislayer['Service']['ImageFormat']
                     default_time = thislayer['Service']['Timesteps']['@defaultTime']
                     timesteps = thislayer['Service']['Timesteps']['Timestep']
                     break
             else:
-                raise Exception('Error', "Couldn't find layer '%s'" % selection)
+                raise Exception('Error', "Couldn't find layer '%s'" % FORECASTMAP_LAYER_SELECTION)
         except KeyError as e:
             e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), FORECAST_LAYER_CAPABILITIES_URL)
             raise
 
         issuedat = utilities.strptime(default_time, DATAPOINT_DATETIME_FORMAT)
-        sliderposition = WINDOW.getProperty('ForecastMap.SliderPosition') or '0'#@UndefinedVariable
 
-        if int(sliderposition) < 0:
-            sliderposition = '0'
-        elif int(sliderposition) > len(timesteps)-1:
-            sliderposition = str(len(timesteps)-1)
+        index = FORECASTMAP_SLIDER
+        if int(index) < 0:
+            utilities.log('Slider is negative. Fetching with index 0')
+            index = '0'
+        elif int(index) > len(timesteps)-1:
+            utilities.log('Slider exceeds available index range. Fetching with index {0}'.format(str(len(timesteps)-1)))
+            index = str(len(timesteps)-1)
 
-        timestep = timesteps[int(sliderposition)]
+        timestep = timesteps[int(index)]
         delta = timedelta(hours=timestep)
         maptime = issuedat + delta
 
@@ -193,6 +195,62 @@ def forecastlayer():
         WINDOW.setProperty('ForecastMap.Layer', layer)#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.IsFetched', 'true')#@UndefinedVariable
 
+@utilities.panelbusy('RightPane')
+def observationlayer():
+    utilities.log( "Fetching '{0}' Observation Map with index '{1}'...".format(OBSERVATIONMAP_LAYER_SELECTION, OBSERVATIONMAP_SLIDER))
+    
+    with urlcache.URLCache(ADDON_DATA_PATH) as cache:
+        surface = cache.get(GOOGLE_SURFACE, lambda x:  datetime.now() + timedelta(days=30))
+        marker = cache.get(GOOGLE_MARKER, lambda x:  datetime.now() + timedelta(days=30))
+
+        filename = cache.get(OBSERVATION_LAYER_CAPABILITIES_URL, observationlayer_capabilities_expiry)
+        data = json.load(open(filename))
+        #pull parameters out of capabilities file - TODO: consider using jsonpath here
+        try:
+            issuedat = utilities.strptime(data['Layers']['Layer'][-1]['Service']['Times']['Time'][0], DATAPOINT_DATETIME_FORMAT)
+            for thislayer in data['Layers']['Layer']:
+                if thislayer['@displayName'] == OBSERVATIONMAP_LAYER_SELECTION:
+                    layer_name = thislayer['Service']['LayerName']
+                    image_format = thislayer['Service']['ImageFormat']
+                    times = thislayer['Service']['Times']['Time']
+                    break
+            else:
+                raise Exception('Error', "Couldn't find layer '%s'" % OBSERVATIONMAP_LAYER_SELECTION)
+        except KeyError as e:
+            e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), FORECAST_LAYER_CAPABILITIES_URL)
+            raise
+
+        index = OBSERVATIONMAP_SLIDER
+        if int(index) < 0:
+            utilities.log('Slider is negative. Fetching with index 0')
+            index = '0'
+        elif int(index) > len(times)-1:
+            utilities.log('Slider exceeds available index range. Fetching with index {0}'.format(str(len(times)-1)))
+            index = str(len(times)-1)
+
+        indexedtime = times[int(index)]
+        maptime = utilities.strptime(indexedtime, DATAPOINT_DATETIME_FORMAT)
+
+        #get overlay using parameters from gui settings
+        try:
+            LayerURL = data['Layers']['BaseUrl']['$']
+        except KeyError as e:
+            e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), FORECAST_LAYER_CAPABILITIES_URL)
+            raise
+
+        url = LayerURL.format(LayerName=layer_name,
+                                 ImageFormat=image_format,
+                                 Time=indexedtime,
+                                 key=API_KEY)
+        layer = cache.get(url, lambda x: datetime.now() + timedelta(days=1), image_resize)
+
+        WINDOW.setProperty('ObservationMap.Surface', surface)#@UndefinedVariable
+        WINDOW.setProperty('ObservationMap.Marker', marker)#@UndefinedVariable
+        WINDOW.setProperty('ObservationMap.IssuedAt', issuedat.strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
+        WINDOW.setProperty('ObservationMap.MapTime', maptime.strftime(MAPTIME_FORMAT))#@UndefinedVariable
+        WINDOW.setProperty('ObservationMap.Layer', layer)#@UndefinedVariable
+        WINDOW.setProperty('ObservationMap.IsFetched', 'true')#@UndefinedVariable
+
 def daily_expiry(filename):
     data = json.load(open(filename))
     dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
@@ -213,10 +271,16 @@ def observation_expiry(filename):
     dataDate = data['SiteRep']['DV']['dataDate'].rstrip('Z')
     return utilities.strptime(dataDate, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=1.5)
 
-def layer_capabilities_expiry(filename):
+def forecastlayer_capabilities_expiry(filename):
     data = json.load(open(filename))
     defaultTime = data['Layers']['Layer'][0]['Service']['Timesteps']['@defaultTime']
     return utilities.strptime(defaultTime, DATAPOINT_DATETIME_FORMAT) + timedelta(hours=9)
+
+def observationlayer_capabilities_expiry(filename):
+    #TODO: Assumes 'Rainfall' is the last report in the file, and Rainfall is the best indicator of issue time
+    data = json.load(open(filename))
+    tyme = data['Layers']['Layer'][-1]['Service']['Times']['Time'][0]
+    return utilities.strptime(tyme, DATAPOINT_DATETIME_FORMAT) + timedelta(minutes=30)
 
 def image_resize(filename):
     #remove the 'cone' from the image

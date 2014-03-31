@@ -10,10 +10,13 @@ def main():
         raise Exception('No API Key. Enter your Met Office API Key under settings.')
 
     if sys.argv[1].isdigit():
+        #TODO: Examine Window.Property(Weather.CurrentView) to see what should be refreshed
         properties.observation()
         properties.daily()
     elif sys.argv[1] == 'ForecastMap':
         properties.forecastlayer()
+    elif sys.argv[1] == 'ObservationMap':
+        properties.observationlayer()
     elif sys.argv[1] == 'DailyForecast':
         properties.daily()
     elif sys.argv[1] == '3HourlyForecast':
