@@ -13,8 +13,10 @@ OBSERVATIONHOURLY2 = os.path.join(DATA_FOLDER, 'observationhourly2.json')
 FORECASTDAILY = os.path.join(DATA_FOLDER, 'forecastdaily.json')
 FORECAST3HOURLY = os.path.join(DATA_FOLDER, 'forecast3hourly.json')
 FORECASTTEXT = os.path.join(DATA_FOLDER, 'forecasttext.json')
-LAYERCAPABILITIES = os.path.join(DATA_FOLDER, 'layercapabilities.json')
-CORRUPTLAYERCAPABILITIES = os.path.join(DATA_FOLDER, 'corruptlayercapabilities.json')
+FORECASTLAYERCAPABILITIES = os.path.join(DATA_FOLDER, 'forecastlayercapabilities.json')
+OBSERVATIONLAYERCAPABILITIES = os.path.join(DATA_FOLDER, 'observationlayercapabilities.json')
+CORRUPTFORECASTLAYERCAPABILITIES = os.path.join(DATA_FOLDER, 'corruptforecastlayercapabilities.json')
+CORRUPTOBSERVATIONLAYERCAPABILITIES = os.path.join(DATA_FOLDER, 'corruptobservationlayercapabilities.json')
 FORECASTSITELIST = os.path.join(DATA_FOLDER, 'forecastsitelist.json')
 TEXTSITELIST = os.path.join(DATA_FOLDER, 'textsitelist.json')
 GEOIP = os.path.join(DATA_FOLDER, 'ip-api.json')
@@ -25,7 +27,8 @@ PRECIPITATION_LAYER_IMAGE = os.path.join(RESULTS_FOLDER, 'precipitation_layer.pn
 
 PRECIPITATION_LAYER_HOUR0_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=0&key=12345'
 PRECIPITATION_LAYER_HOUR36_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=36&key=12345'
-
+OBSERVATION_LAYER0_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxobs/RADAR_UK_Composite_Highres/png?TIME=2014-04-01T16:30:00Z&key=12345'
+OBSERVATION_LAYER1_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxobs/RADAR_UK_Composite_Highres/png?TIME=2014-04-01T13:30:00Z&key=12345'
 class TestProperties(XBMCTestCase):
     def setUp(self):
         super(TestProperties, self).setUp()
@@ -45,7 +48,9 @@ class TestProperties(XBMCTestCase):
                          }
 
         self.window_properties = {'ForecastMap.LayerSelection' : 'Rainfall',
-                                  'ForecastMap.SliderPosition' : '0'}
+                                  'ObservationMap.LayerSelection' : 'Rainfall',
+                                  'ForecastMap.Slider' : '0',
+                                  'ObservationMap.Slider' : '0'}
 
         addon = self.xbmcaddon.Addon.return_value
         addon.getSetting.side_effect = self.mock_getSetting
@@ -87,7 +92,8 @@ class TestProperties(XBMCTestCase):
                 self.constants.FORECAST_SITELIST_URL: FORECASTSITELIST,
                 self.constants.DAILY_LOCATION_FORECAST_URL: FORECASTDAILY,
                 self.constants.THREEHOURLY_LOCATION_FORECAST_URL: FORECAST3HOURLY,
-                self.constants.FORECAST_LAYER_CAPABILITIES_URL: LAYERCAPABILITIES,
+                self.constants.FORECAST_LAYER_CAPABILITIES_URL: FORECASTLAYERCAPABILITIES,
+                self.constants.OBSERVATION_LAYER_CAPABILITIES_URL: OBSERVATIONLAYERCAPABILITIES,
                 self.constants.TEXT_FORECAST_URL: FORECASTTEXT,
                 self.constants.HOURLY_LOCATION_OBSERVATION_URL: OBSERVATIONHOURLY,
                 self.constants.GEOIP_PROVIDER['url']:GEOIP,
@@ -95,6 +101,8 @@ class TestProperties(XBMCTestCase):
                 self.constants.GOOGLE_MARKER: GOOGLE_MARKER_IMAGE,
                 PRECIPITATION_LAYER_HOUR0_URL: PRECIPITATION_LAYER_IMAGE,
                 PRECIPITATION_LAYER_HOUR36_URL: PRECIPITATION_LAYER_IMAGE,
+                OBSERVATION_LAYER0_URL: PRECIPITATION_LAYER_IMAGE,
+                OBSERVATION_LAYER1_URL: PRECIPITATION_LAYER_IMAGE,
                 }[url]
 
     def mock_panelbusy(self, pane):
@@ -1151,20 +1159,14 @@ class TestProperties(XBMCTestCase):
         mock_panelbusy.side_effect = self.mock_panelbusy
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
-        #Assert that the pretend image in cache has not been resized
-        img = Image.open(PRECIPITATION_LAYER_IMAGE)
-        (width, height) = img.size
-        self.assertEqual(500, width)
-        self.assertEqual(500, height)
-
         from metoffice import properties
         properties.forecastlayer()
         self.assertIn('ForecastMap.Surface', self.window_properties)
         self.assertEqual(self.window_properties['ForecastMap.Surface'], GOOGLE_SURFACE_IMAGE)
         self.assertIn('ForecastMap.Marker', self.window_properties)
         self.assertEqual(self.window_properties['ForecastMap.Marker'], GOOGLE_MARKER_IMAGE)
-        self.assertIn('ForecastMap.SliderPosition', self.window_properties)
-        self.assertEqual(self.window_properties['ForecastMap.SliderPosition'], '0')
+        self.assertIn('ForecastMap.Slider', self.window_properties)
+        self.assertEqual(self.window_properties['ForecastMap.Slider'], '0')
         self.assertIn('ForecastMap.IssuedAt', self.window_properties)
         self.assertEqual(self.window_properties['ForecastMap.IssuedAt'], '09:00 Wed 19 Mar 2014')
         self.assertIn('ForecastMap.MapTime', self.window_properties)
@@ -1184,7 +1186,7 @@ class TestProperties(XBMCTestCase):
 
         #Test exception handling when given corrupt BaseURL in json
         #(We have provide partially valid json so execution can drop to the exception under test.)
-        mock_cache.return_value.__enter__.return_value.get = Mock(return_value=CORRUPTLAYERCAPABILITIES)
+        mock_cache.return_value.__enter__.return_value.get = Mock(return_value=CORRUPTFORECASTLAYERCAPABILITIES)
         with self.assertRaises(KeyError) as cm:
             properties.forecastlayer()
         self.assertEqual(('Key Error in JSON File',
@@ -1193,23 +1195,84 @@ class TestProperties(XBMCTestCase):
 
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
         mock_cache.reset_mock()
-        
+
         #Test valid url is used when requesting with an invalid slider position
-        self.window_properties['ForecastMap.SliderPosition'] = '-9'
+        properties.FORECASTMAP_SLIDER = '-9'
         properties.forecastlayer()
-        self.assertEqual(u'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=0&key=12345',
+        self.assertEqual(PRECIPITATION_LAYER_HOUR0_URL,
                          mock_cache.return_value.__enter__.return_value.get.call_args_list[3][0][0])
 
         mock_cache.reset_mock()
-        self.window_properties['ForecastMap.SliderPosition'] = '45'
+        properties.FORECASTMAP_SLIDER = '45'
         properties.forecastlayer()
-        self.assertEqual(u'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=36&key=12345',
+        self.assertEqual(PRECIPITATION_LAYER_HOUR36_URL,
                          mock_cache.return_value.__enter__.return_value.get.call_args_list[3][0][0])
 
         #Test response when given unknown layer name
-        self.window_properties['ForecastMap.LayerSelection'] = 'Unknown'
+        properties.FORECASTMAP_LAYER_SELECTION = 'Unknown'
         with self.assertRaises(Exception) as cm:
             properties.forecastlayer()
+        self.assertEqual(('Error', "Couldn't find layer 'Unknown'"), cm.exception.args)
+
+    @patch('metoffice.utilities.panelbusy')
+    @patch('metoffice.urlcache.URLCache')
+    def test_observationlayer(self, mock_cache, mock_panelbusy):
+        mock_panelbusy.side_effect = self.mock_panelbusy
+        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
+
+        from metoffice import properties
+        properties.observationlayer()
+        self.assertIn('ObservationMap.Surface', self.window_properties)
+        self.assertEqual(self.window_properties['ObservationMap.Surface'], GOOGLE_SURFACE_IMAGE)
+        self.assertIn('ObservationMap.Marker', self.window_properties)
+        self.assertEqual(self.window_properties['ObservationMap.Marker'], GOOGLE_MARKER_IMAGE)
+        self.assertIn('ObservationMap.Slider', self.window_properties)
+        self.assertEqual(self.window_properties['ObservationMap.Slider'], '0')
+        self.assertIn('ObservationMap.IssuedAt', self.window_properties)
+        self.assertEqual(self.window_properties['ObservationMap.IssuedAt'], '16:30 Tue 01 Apr 2014')
+        self.assertIn('ObservationMap.MapTime', self.window_properties)
+        self.assertEqual(self.window_properties['ObservationMap.MapTime'], '1630 Tue')
+        self.assertIn('ObservationMap.Layer', self.window_properties)
+        self.assertEqual(self.window_properties['ObservationMap.Layer'], PRECIPITATION_LAYER_IMAGE)
+        self.assertIn('ObservationMap.IsFetched', self.window_properties)
+        self.assertEqual(self.window_properties['ObservationMap.IsFetched'], 'true')
+
+        #Test exception handling when given json without proper keys
+        mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
+        with self.assertRaises(KeyError) as cm:
+            properties.observationlayer()
+        self.assertEqual(('Key Error in JSON File',
+                          "Key 'Layers' not found while processing file from url:",
+                          self.constants.OBSERVATION_LAYER_CAPABILITIES_URL), cm.exception.args)
+
+        #Test exception handling when given corrupt BaseURL in json
+        #(We have provide partially valid json so execution can drop to the exception under test.)
+        mock_cache.return_value.__enter__.return_value.get = Mock(return_value=CORRUPTOBSERVATIONLAYERCAPABILITIES)
+        with self.assertRaises(KeyError) as cm:
+            properties.observationlayer()
+        self.assertEqual(('Key Error in JSON File',
+                          "Key '$' not found while processing file from url:",
+                          self.constants.OBSERVATION_LAYER_CAPABILITIES_URL), cm.exception.args)
+
+        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
+        mock_cache.reset_mock()
+
+        #Test valid url is used when requesting with an invalid slider position
+        properties.OBSERVATIONMAP_SLIDER = '-9'
+        properties.observationlayer()
+        self.assertEqual(OBSERVATION_LAYER0_URL,
+                         mock_cache.return_value.__enter__.return_value.get.call_args_list[3][0][0])
+
+        mock_cache.reset_mock()
+        properties.OBSERVATIONMAP_SLIDER = '45'
+        properties.observationlayer()
+        self.assertEqual(OBSERVATION_LAYER1_URL,
+                         mock_cache.return_value.__enter__.return_value.get.call_args_list[3][0][0])
+
+        #Test response when given unknown layer name
+        properties.OBSERVATIONMAP_LAYER_SELECTION = 'Unknown'
+        with self.assertRaises(Exception) as cm:
+            properties.observationlayer()
         self.assertEqual(('Error', "Couldn't find layer 'Unknown'"), cm.exception.args)
 
     @patch('metoffice.utilities.panelbusy')
@@ -1250,18 +1313,34 @@ class TestProperties(XBMCTestCase):
 
     @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
-    def test_layer_capabilities_expiry(self, mock_cache, mock_panelbusy):
+    def test_forecastlayer_capabilities_expiry(self, mock_cache, mock_panelbusy):
         mock_panelbusy.side_effect = self.mock_panelbusy
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
         from metoffice import properties
-        result = properties.layer_capabilities_expiry(LAYERCAPABILITIES)
+        result = properties.forecastlayer_capabilities_expiry(FORECASTLAYERCAPABILITIES)
         self.assertEqual(datetime.datetime(2014, 3, 19, 18, 0), result)
+
+    @patch('metoffice.utilities.panelbusy')
+    @patch('metoffice.urlcache.URLCache')
+    def test_observationlayer_capabilities_expiry(self, mock_cache, mock_panelbusy):
+        mock_panelbusy.side_effect = self.mock_panelbusy
+        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
+        from metoffice import properties
+        result = properties.observationlayer_capabilities_expiry(OBSERVATIONLAYERCAPABILITIES)
+        self.assertEqual(datetime.datetime(2014, 4, 1, 17, 0), result)
 
     @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
     def test_layer_image_resize_callback(self, mock_cache, mock_panelbusy):
         mock_panelbusy.side_effect = self.mock_panelbusy
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
+
+        #Assert that the pretend image in cache has not been resized
+        img = Image.open(PRECIPITATION_LAYER_IMAGE)
+        (width, height) = img.size
+        self.assertEqual(500, width)
+        self.assertEqual(500, height)
+
         from metoffice import properties
         properties.image_resize(PRECIPITATION_LAYER_IMAGE)
         img = Image.open(PRECIPITATION_LAYER_IMAGE)

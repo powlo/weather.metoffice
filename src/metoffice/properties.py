@@ -165,9 +165,11 @@ def forecastlayer():
         index = FORECASTMAP_SLIDER
         if int(index) < 0:
             utilities.log('Slider is negative. Fetching with index 0')
+            WINDOW.setProperty('ForecastMap.Slider', '0') #@UndefinedVariable
             index = '0'
         elif int(index) > len(timesteps)-1:
             utilities.log('Slider exceeds available index range. Fetching with index {0}'.format(str(len(timesteps)-1)))
+            WINDOW.setProperty('ForecastMap.Slider', str(len(timesteps)-1)) #@UndefinedVariable
             index = str(len(timesteps)-1)
 
         timestep = timesteps[int(index)]
@@ -217,15 +219,17 @@ def observationlayer():
             else:
                 raise Exception('Error', "Couldn't find layer '%s'" % OBSERVATIONMAP_LAYER_SELECTION)
         except KeyError as e:
-            e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), FORECAST_LAYER_CAPABILITIES_URL)
+            e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), OBSERVATION_LAYER_CAPABILITIES_URL)
             raise
 
         index = OBSERVATIONMAP_SLIDER
         if int(index) < 0:
             utilities.log('Slider is negative. Fetching with index 0')
+            WINDOW.setProperty('ObservationMap.Slider', '0')#@UndefinedVariable
             index = '0'
         elif int(index) > len(times)-1:
             utilities.log('Slider exceeds available index range. Fetching with index {0}'.format(str(len(times)-1)))
+            WINDOW.setProperty('ObservationMap.Slider', str(len(times)-1))#@UndefinedVariable
             index = str(len(times)-1)
 
         indexedtime = times[int(index)]
@@ -235,7 +239,7 @@ def observationlayer():
         try:
             LayerURL = data['Layers']['BaseUrl']['$']
         except KeyError as e:
-            e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), FORECAST_LAYER_CAPABILITIES_URL)
+            e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), OBSERVATION_LAYER_CAPABILITIES_URL)
             raise
 
         url = LayerURL.format(LayerName=layer_name,
