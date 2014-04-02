@@ -23,7 +23,7 @@ def observation():
         data=json.load(open(filename))
     try:
         dv = data['SiteRep']['DV']
-        dataDate = datetime.strptime(dv.get('dataDate').rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
+        dataDate = utilities.strptime(dv.get('dataDate').rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
         WINDOW.setProperty('HourlyObservation.IssuedAt', dataDate.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         try:
             latest_period = dv['Location']['Period'][-1]
@@ -55,7 +55,7 @@ def daily():
         data=json.load(open(filename))
     try:
         dv = data['SiteRep']['DV']
-        dataDate = datetime.strptime(dv.get('dataDate').rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
+        dataDate = utilities.strptime(dv.get('dataDate').rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
         WINDOW.setProperty('DailyForecast.IssuedAt', dataDate.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         for p, period in enumerate(dv['Location']['Period']):
             WINDOW.setProperty('Day%d.Title' %p, time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
@@ -85,7 +85,7 @@ def threehourly():
         data=json.load(open(filename))
     try:
         dv = data['SiteRep']['DV']
-        dataDate = datetime.strptime(dv.get('dataDate').rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
+        dataDate = utilities.strptime(dv.get('dataDate').rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
         WINDOW.setProperty('3HourlyForecast.IssuedAt', dataDate.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         count = 0
         for period in dv['Location']['Period']:
@@ -119,7 +119,7 @@ def text():
         data=json.load(open(filename))
     try:
         rf = data['RegionalFcst']
-        issuedat = datetime.strptime(rf['issuedAt'].rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
+        issuedat = utilities.strptime(rf['issuedAt'].rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
         WINDOW.setProperty('TextForecast.IssuedAt', issuedat.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         count = 0
         for period in rf['FcstPeriods']['Period']:
@@ -142,8 +142,8 @@ def text():
 def forecastlayer():
     utilities.log( "Fetching '{0}' Forecast Map with index '{1}'...".format(FORECASTMAP_LAYER_SELECTION, FORECASTMAP_SLIDER))
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        surface = cache.get(GOOGLE_SURFACE, lambda x:  datetime.now() + timedelta(days=30))
-        marker = cache.get(GOOGLE_MARKER, lambda x:  datetime.now() + timedelta(days=30))
+        surface = cache.get(GOOGLE_SURFACE, lambda x:  datetime.utcnow() + timedelta(days=30))
+        marker = cache.get(GOOGLE_MARKER, lambda x:  datetime.utcnow() + timedelta(days=30))
 
         filename = cache.get(FORECAST_LAYER_CAPABILITIES_URL, forecastlayer_capabilities_expiry)
         data = json.load(open(filename))
@@ -162,7 +162,7 @@ def forecastlayer():
             e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), FORECAST_LAYER_CAPABILITIES_URL)
             raise
 
-        issuedat = datetime.strptime(default_time, DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
+        issuedat = utilities.strptime(default_time, DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
 
         index = FORECASTMAP_SLIDER
         if int(index) < 0:
@@ -190,7 +190,7 @@ def forecastlayer():
                                  DefaultTime=default_time,
                                  Timestep=timestep,
                                  key=API_KEY)
-        layer = cache.get(url, lambda x: datetime.now() + timedelta(days=1), image_resize)
+        layer = cache.get(url, lambda x: datetime.utcnow() + timedelta(days=1), image_resize)
 
         WINDOW.setProperty('ForecastMap.Surface', surface)#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.Marker', marker)#@UndefinedVariable
@@ -204,14 +204,14 @@ def observationlayer():
     utilities.log( "Fetching '{0}' Observation Map with index '{1}'...".format(OBSERVATIONMAP_LAYER_SELECTION, OBSERVATIONMAP_SLIDER))
     
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        surface = cache.get(GOOGLE_SURFACE, lambda x:  datetime.now() + timedelta(days=30))
-        marker = cache.get(GOOGLE_MARKER, lambda x:  datetime.now() + timedelta(days=30))
+        surface = cache.get(GOOGLE_SURFACE, lambda x:  datetime.utcnow() + timedelta(days=30))
+        marker = cache.get(GOOGLE_MARKER, lambda x:  datetime.utcnow() + timedelta(days=30))
 
         filename = cache.get(OBSERVATION_LAYER_CAPABILITIES_URL, observationlayer_capabilities_expiry)
         data = json.load(open(filename))
         #pull parameters out of capabilities file - TODO: consider using jsonpath here
         try:
-            issuedat = datetime.strptime(data['Layers']['Layer'][-1]['Service']['Times']['Time'][0], DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
+            issuedat = utilities.strptime(data['Layers']['Layer'][-1]['Service']['Times']['Time'][0], DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
             for thislayer in data['Layers']['Layer']:
                 if thislayer['@displayName'] == OBSERVATIONMAP_LAYER_SELECTION:
                     layer_name = thislayer['Service']['LayerName']
@@ -235,7 +235,7 @@ def observationlayer():
             index = str(len(times)-1)
 
         indexedtime = times[int(index)]
-        maptime = datetime.strptime(indexedtime, DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
+        maptime = utilities.strptime(indexedtime, DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
 
         #get overlay using parameters from gui settings
         try:
@@ -248,7 +248,7 @@ def observationlayer():
                                  ImageFormat=image_format,
                                  Time=indexedtime,
                                  key=API_KEY)
-        layer = cache.get(url, lambda x: datetime.now() + timedelta(days=1), image_resize)
+        layer = cache.get(url, lambda x: datetime.utcnow() + timedelta(days=1), image_resize)
 
         WINDOW.setProperty('ObservationMap.Surface', surface)#@UndefinedVariable
         WINDOW.setProperty('ObservationMap.Marker', marker)#@UndefinedVariable

@@ -10,7 +10,7 @@ import socket
 import utilities
 
 class URLCache(object):
-    TIME_FORMAT = "%a %b %d %H:%M:%S %Y"
+    TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
     def __init__(self, folder):
         self._folder = os.path.join(folder, 'cache')
@@ -47,7 +47,7 @@ class URLCache(object):
     def flush(self):
         flushlist = list()
         for url, entry in self._cache.iteritems():
-            if not os.path.isfile(entry['resource']) or utilities.strptime(entry['expiry'], self.TIME_FORMAT) < datetime.now():
+            if not os.path.isfile(entry['resource']) or utilities.strptime(entry['expiry'], self.TIME_FORMAT) < datetime.utcnow():
                     flushlist.append(url)
         for url in flushlist:
             self.remove(url)
@@ -58,7 +58,7 @@ class URLCache(object):
         """
         try:
             entry = self._cache[url]
-            if not os.path.isfile(entry['resource']) or utilities.strptime(entry['expiry'], self.TIME_FORMAT) < datetime.now():
+            if not os.path.isfile(entry['resource']) or utilities.strptime(entry['expiry'], self.TIME_FORMAT) < datetime.utcnow():
                 raise InvalidCacheError
             else:
                 return entry['resource']
