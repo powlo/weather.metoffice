@@ -1,4 +1,5 @@
 import time
+import pytz
 from datetime import datetime, timedelta
 import utilities
 import json
@@ -11,7 +12,8 @@ from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT, SHORT_DAY_FORM
                         OBSERVATION_LAYER_CAPABILITIES_URL, RAW_DATAPOINT_IMG_WIDTH, CROP_WIDTH, CROP_HEIGHT,\
                         GOOGLE_SURFACE, GOOGLE_MARKER, MAPTIME_FORMAT, REGIONAL_LOCATION,\
                         REGIONAL_LOCATION_ID, FORECAST_LOCATION, FORECAST_LOCATION_ID, OBSERVATION_LOCATION,\
-                        OBSERVATION_LOCATION_ID, FORECASTMAP_SLIDER, OBSERVATIONMAP_SLIDER, FORECASTMAP_LAYER_SELECTION, OBSERVATIONMAP_LAYER_SELECTION
+                        OBSERVATION_LOCATION_ID, FORECASTMAP_SLIDER, OBSERVATIONMAP_SLIDER, FORECASTMAP_LAYER_SELECTION,\
+                        OBSERVATIONMAP_LAYER_SELECTION, TZ, TZUK
 
 @utilities.panelbusy('LeftPane')
 def observation():
@@ -21,8 +23,8 @@ def observation():
         data=json.load(open(filename))
     try:
         dv = data['SiteRep']['DV']
-        dataDate = dv.get('dataDate').rstrip('Z')
-        WINDOW.setProperty('HourlyObservation.IssuedAt', time.strftime(ISSUEDAT_FORMAT, time.strptime(dataDate, DATAPOINT_DATETIME_FORMAT)))#@UndefinedVariable
+        dataDate = datetime.strptime(dv.get('dataDate').rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
+        WINDOW.setProperty('HourlyObservation.IssuedAt', dataDate.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         try:
             latest_period = dv['Location']['Period'][-1]
         except KeyError:
@@ -53,8 +55,8 @@ def daily():
         data=json.load(open(filename))
     try:
         dv = data['SiteRep']['DV']
-        dataDate = dv.get('dataDate').rstrip('Z')
-        WINDOW.setProperty('DailyForecast.IssuedAt', time.strftime(ISSUEDAT_FORMAT, time.strptime(dataDate, DATAPOINT_DATETIME_FORMAT))) #@UndefinedVariable
+        dataDate = datetime.strptime(dv.get('dataDate').rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
+        WINDOW.setProperty('DailyForecast.IssuedAt', dataDate.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         for p, period in enumerate(dv['Location']['Period']):
             WINDOW.setProperty('Day%d.Title' %p, time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
             for rep in period['Rep']:
@@ -83,8 +85,8 @@ def threehourly():
         data=json.load(open(filename))
     try:
         dv = data['SiteRep']['DV']
-        dataDate = dv.get('dataDate').rstrip('Z')
-        WINDOW.setProperty('3HourlyForecast.IssuedAt', time.strftime(ISSUEDAT_FORMAT, time.strptime(dataDate, DATAPOINT_DATETIME_FORMAT)))#@UndefinedVariable
+        dataDate = datetime.strptime(dv.get('dataDate').rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
+        WINDOW.setProperty('3HourlyForecast.IssuedAt', dataDate.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         count = 0
         for period in dv['Location']['Period']:
             for rep in period['Rep']:
@@ -117,8 +119,8 @@ def text():
         data=json.load(open(filename))
     try:
         rf = data['RegionalFcst']
-        issuedat = rf['issuedAt'].rstrip('Z')
-        WINDOW.setProperty('TextForecast.IssuedAt', time.strftime(ISSUEDAT_FORMAT, time.strptime(issuedat, DATAPOINT_DATETIME_FORMAT)))#@UndefinedVariable
+        issuedat = datetime.strptime(rf['issuedAt'].rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
+        WINDOW.setProperty('TextForecast.IssuedAt', issuedat.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         count = 0
         for period in rf['FcstPeriods']['Period']:
             #have to check type because json can return list or dict here
@@ -160,7 +162,7 @@ def forecastlayer():
             e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), FORECAST_LAYER_CAPABILITIES_URL)
             raise
 
-        issuedat = utilities.strptime(default_time, DATAPOINT_DATETIME_FORMAT)
+        issuedat = datetime.strptime(default_time, DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
 
         index = FORECASTMAP_SLIDER
         if int(index) < 0:
@@ -174,7 +176,7 @@ def forecastlayer():
 
         timestep = timesteps[int(index)]
         delta = timedelta(hours=timestep)
-        maptime = issuedat + delta
+        maptime = TZUK.normalize(issuedat + delta)
 
         #get overlay using parameters from gui settings
         try:
@@ -192,7 +194,7 @@ def forecastlayer():
 
         WINDOW.setProperty('ForecastMap.Surface', surface)#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.Marker', marker)#@UndefinedVariable
-        WINDOW.setProperty('ForecastMap.IssuedAt', issuedat.strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
+        WINDOW.setProperty('ForecastMap.IssuedAt', issuedat.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.MapTime', maptime.strftime(MAPTIME_FORMAT))#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.Layer', layer)#@UndefinedVariable
         WINDOW.setProperty('ForecastMap.IsFetched', 'true')#@UndefinedVariable
@@ -209,7 +211,7 @@ def observationlayer():
         data = json.load(open(filename))
         #pull parameters out of capabilities file - TODO: consider using jsonpath here
         try:
-            issuedat = utilities.strptime(data['Layers']['Layer'][-1]['Service']['Times']['Time'][0], DATAPOINT_DATETIME_FORMAT)
+            issuedat = datetime.strptime(data['Layers']['Layer'][-1]['Service']['Times']['Time'][0], DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
             for thislayer in data['Layers']['Layer']:
                 if thislayer['@displayName'] == OBSERVATIONMAP_LAYER_SELECTION:
                     layer_name = thislayer['Service']['LayerName']
@@ -233,7 +235,7 @@ def observationlayer():
             index = str(len(times)-1)
 
         indexedtime = times[int(index)]
-        maptime = utilities.strptime(indexedtime, DATAPOINT_DATETIME_FORMAT)
+        maptime = datetime.strptime(indexedtime, DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
 
         #get overlay using parameters from gui settings
         try:
@@ -250,8 +252,8 @@ def observationlayer():
 
         WINDOW.setProperty('ObservationMap.Surface', surface)#@UndefinedVariable
         WINDOW.setProperty('ObservationMap.Marker', marker)#@UndefinedVariable
-        WINDOW.setProperty('ObservationMap.IssuedAt', issuedat.strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
-        WINDOW.setProperty('ObservationMap.MapTime', maptime.strftime(MAPTIME_FORMAT))#@UndefinedVariable
+        WINDOW.setProperty('ObservationMap.IssuedAt', issuedat.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
+        WINDOW.setProperty('ObservationMap.MapTime', maptime.astimezone(TZUK).strftime(MAPTIME_FORMAT))#@UndefinedVariable
         WINDOW.setProperty('ObservationMap.Layer', layer)#@UndefinedVariable
         WINDOW.setProperty('ObservationMap.IsFetched', 'true')#@UndefinedVariable
 

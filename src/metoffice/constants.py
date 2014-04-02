@@ -2,10 +2,12 @@ import xbmc #@UnresolvedImport
 import xbmcgui #@UnresolvedImport
 import xbmcaddon #@UnresolvedImport
 import urllib
-
+import pytz
 WEATHER_WINDOW_ID = 12600
 SETTINGS_WINDOW_ID = 10014
 
+TZ = pytz.timezone('Europe/London') #TODO: Need to pull the actual timezone out of xbmc. Somehow.
+TZUK = pytz.timezone('Europe/London')
 WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
 FORECASTMAP_SLIDER = WINDOW.getProperty('ForecastMap.Slider') or '0'
 OBSERVATIONMAP_SLIDER = WINDOW.getProperty('ObservationMap.Slider') or '0'

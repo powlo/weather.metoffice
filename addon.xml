@@ -6,6 +6,7 @@
   provider-name="powlo">
   <requires>
 	<import addon="xbmc.python" version="2.0"/>
+	<import addon="script.module.pytz" version="1.0"/>
   </requires>
   <extension point="xbmc.python.weather" library="src/metoffice/default.py"/>
   <extension point="xbmc.addon.metadata">
