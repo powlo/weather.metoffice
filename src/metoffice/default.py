@@ -2,29 +2,27 @@ import sys
 import socket
 socket.setdefaulttimeout(20)
 import utilities, properties
-from constants import WINDOW, ADDON, API_KEY
+from constants import WINDOW, ADDON, API_KEY, CURRENT_VIEW
 
 @utilities.failgracefully
 def main():
     if not API_KEY:
         raise Exception('No API Key. Enter your Met Office API Key under settings.')
 
-    if sys.argv[1].isdigit():
+    if len(sys.argv) > 1 and sys.argv[1].isdigit():
         #TODO: Examine Window.Property(Weather.CurrentView) to see what should be refreshed
         properties.observation()
         properties.daily()
-    elif sys.argv[1] == 'ForecastMap':
-        properties.forecastlayer()
-    elif sys.argv[1] == 'ObservationMap':
-        properties.observationlayer()
-    elif sys.argv[1] == 'DailyForecast':
+    elif not CURRENT_VIEW:
         properties.daily()
-    elif sys.argv[1] == '3HourlyForecast':
+    elif CURRENT_VIEW == '3hourly':
         properties.threehourly()
-    elif sys.argv[1] == 'TextForecast':
+    elif CURRENT_VIEW == 'forecastmap':
+        properties.forecastlayer()
+    elif CURRENT_VIEW == 'observationmap':
+        properties.observationlayer()
+    elif CURRENT_VIEW == 'text':
         properties.text()
-    elif sys.argv[1] == 'HourlyObservation':
-        properties.observation()
 
     WINDOW.setProperty('WeatherProvider', ADDON.getAddonInfo('name'))#@UndefinedVariable
     WINDOW.setProperty('ObservationLocation', ADDON.getSetting('ObservationLocation'))#@UndefinedVariable

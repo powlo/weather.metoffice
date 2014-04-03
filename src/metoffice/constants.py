@@ -13,6 +13,7 @@ FORECASTMAP_SLIDER = WINDOW.getProperty('ForecastMap.Slider') or '0'
 OBSERVATIONMAP_SLIDER = WINDOW.getProperty('ObservationMap.Slider') or '0'
 FORECASTMAP_LAYER_SELECTION = WINDOW.getProperty('ForecastMap.LayerSelection') or 'Rainfall'#@UndefinedVariable
 OBSERVATIONMAP_LAYER_SELECTION = WINDOW.getProperty('ObservationMap.LayerSelection') or 'Rainfall'#@UndefinedVariable
+CURRENT_VIEW = WINDOW.getProperty('Weather.CurrentView')
 
 ADDON = xbmcaddon.Addon(id="weather.metoffice")
 DIALOG = xbmcgui.Dialog()
