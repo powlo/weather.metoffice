@@ -50,7 +50,8 @@ class TestProperties(XBMCTestCase):
         self.window_properties = {'ForecastMap.LayerSelection' : 'Rainfall',
                                   'ObservationMap.LayerSelection' : 'Rainfall',
                                   'ForecastMap.Slider' : '0',
-                                  'ObservationMap.Slider' : '0'}
+                                  'ObservationMap.Slider' : '0',
+                                  'Weather.CurrentView' : 'Doesnt matter'}
 
         addon = self.xbmcaddon.Addon.return_value
         addon.getSetting.side_effect = self.mock_getSetting
