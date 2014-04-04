@@ -42,6 +42,9 @@ def observation():
         WINDOW.setProperty('Current.WindGust', latest_obs.get('G', 'n/a'))#@UndefinedVariable
         WINDOW.setProperty('Current.OutlookIcon', '%s.png' % WEATHER_CODES[latest_obs.get('W', 'na')][0])#@UndefinedVariable
         WINDOW.setProperty('Current.FanartCode', '%s.png' % WEATHER_CODES[latest_obs.get('W','na')][0])#@UndefinedVariable
+        WINDOW.setProperty('Current.DewPoint', str(round(float(latest_obs.get('Dp', 'n/a')))).split('.')[0])#@UndefinedVariable
+        WINDOW.setProperty('Current.Humidity', str(round(float(latest_obs.get('H', 'n/a')))).split('.')[0])#@UndefinedVariable
+
         WINDOW.setProperty('HourlyObservation.IsFetched', 'true')#@UndefinedVariable
     except KeyError as e:
         e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), HOURLY_LOCATION_OBSERVATION_URL)
@@ -68,6 +71,7 @@ def daily():
                     WINDOW.setProperty('Day%d.OutlookIcon' % p, WEATHER_ICON_PATH % WEATHER_CODES.get(weather_type, 'na')[0])#@UndefinedVariable
                     WINDOW.setProperty('Day%d.WindSpeed' % p,  rep.get('S', 'na'))#@UndefinedVariable
                     WINDOW.setProperty('Day%d.WindDirection' % p, rep.get('D', 'na').lower())#@UndefinedVariable
+
                 elif rep.get('$') == 'Night':
                     WINDOW.setProperty('Day%d.LowTemp' %p, rep.get('Nm', 'na'))#@UndefinedVariable
                     WINDOW.setProperty('Day%d.LowTempIcon' %p, rep.get('Nm'))#@UndefinedVariable

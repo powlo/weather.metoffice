@@ -140,6 +140,10 @@ class TestProperties(XBMCTestCase):
         self.assertEqual(self.window_properties['Current.OutlookIcon'], '26.png')
         self.assertIn('Current.FanartCode', self.window_properties)
         self.assertEqual(self.window_properties['Current.FanartCode'], '26.png')
+        self.assertIn('Current.DewPoint', self.window_properties)
+        self.assertEqual(self.window_properties['Current.DewPoint'], '6')
+        self.assertIn('Current.Humidity', self.window_properties)
+        self.assertEqual(self.window_properties['Current.Humidity'], '79')
 
         #Test exceptions when reports don't contain list items.
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=OBSERVATIONHOURLY2)
@@ -164,6 +168,10 @@ class TestProperties(XBMCTestCase):
         self.assertEqual(self.window_properties['Current.OutlookIcon'], '32.png')
         self.assertIn('Current.FanartCode', self.window_properties)
         self.assertEqual(self.window_properties['Current.FanartCode'], '32.png')
+        self.assertIn('Current.DewPoint', self.window_properties)
+        self.assertEqual(self.window_properties['Current.DewPoint'], '4')
+        self.assertIn('Current.Humidity', self.window_properties)
+        self.assertEqual(self.window_properties['Current.Humidity'], '66')
 
         #Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
