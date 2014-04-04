@@ -20,5 +20,6 @@
 			values="www.ip-api.com|www.freegeoip.net|www.telize.com|www.hostip.info|www.geoiplookup.net"
 			enable="eq(-1,true)"
 			default="2"/>
+		<setting id="EraseCache" label="Erase Cache" type="bool" default="false"/>
 	</category>
 </settings>

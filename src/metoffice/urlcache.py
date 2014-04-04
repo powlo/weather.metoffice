@@ -8,6 +8,7 @@ import json
 import socket
 
 import utilities
+import shutil
 
 class URLCache(object):
     TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
@@ -51,6 +52,10 @@ class URLCache(object):
                     flushlist.append(url)
         for url in flushlist:
             self.remove(url)
+
+    def erase(self):
+        os.remove(self._file)
+        shutil.rmtree(self._folder)
 
     def get(self, url, expiry_callback, resource_callback=None):
         """

@@ -1,11 +1,17 @@
 import sys
 import socket
 socket.setdefaulttimeout(20)
-import utilities, properties
-from constants import WINDOW, ADDON, API_KEY, CURRENT_VIEW
+import utilities, properties, urlcache
+from constants import WINDOW, ADDON, API_KEY, CURRENT_VIEW, ADDON_DATA_PATH
 
 @utilities.failgracefully
 def main():
+    if ADDON.getSetting('EraseCache') == 'true':
+        try:
+            urlcache.URLCache(ADDON_DATA_PATH).erase()
+        finally:
+            ADDON.setSetting('EraseCache', 'false')#@UndefinedVariable
+
     if not API_KEY:
         raise Exception('No API Key. Enter your Met Office API Key under settings.')
 

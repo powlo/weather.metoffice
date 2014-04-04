@@ -85,6 +85,13 @@ class TestURLCache(XBMCTestCase):
             self.assertFalse(os.path.isfile(filename), 'File is still in cache.')
             self.assertFalse(url in cache._cache, 'Entry is still in cache.')
 
+    def test_erase(self):
+        open(os.path.join(RESULTS_FOLDER, 'cache.json'), 'a').close()
+        os.mkdir(os.path.join(RESULTS_FOLDER, 'cache'))
+        self.urlcache.URLCache(RESULTS_FOLDER).erase()
+        self.assertFalse(os.path.isfile(os.path.join(RESULTS_FOLDER, 'cache.json')))
+        self.assertFalse(os.path.isdir(os.path.join(RESULTS_FOLDER, 'cache')))
+
     def test_get(self):
         url = 'http://www.xbmc.org/'
         urllib2.urlopen = Mock(side_effect=lambda x: tempfile.NamedTemporaryFile(dir=RESULTS_FOLDER))
