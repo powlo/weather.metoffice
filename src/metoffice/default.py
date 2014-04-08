@@ -19,6 +19,7 @@ import sys
 import socket
 socket.setdefaulttimeout(20)
 import utilities, properties, urlcache
+from utilities import gettext as _
 from constants import WINDOW, ADDON, API_KEY, CURRENT_VIEW, ADDON_DATA_PATH
 
 @utilities.failgracefully
@@ -30,7 +31,7 @@ def main():
             ADDON.setSetting('EraseCache', 'false')#@UndefinedVariable
 
     if not API_KEY:
-        raise Exception('No API Key. Enter your Met Office API Key under settings.')
+        raise Exception(_("No API Key."), _("Enter your Met Office API Key under settings."))
 
     if len(sys.argv) > 1 and sys.argv[1].isdigit():
         properties.observation()

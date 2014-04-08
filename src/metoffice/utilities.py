@@ -6,7 +6,7 @@ import math
 import xbmc #@UnresolvedImport
 import xbmcgui #@UnresolvedImport
 
-from constants import WEATHER_WINDOW_ID, SETTINGS_WINDOW_ID, DIALOG, WINDOW, TEMPERATUREUNITS
+from constants import WEATHER_WINDOW_ID, SETTINGS_WINDOW_ID, DIALOG, WINDOW, TEMPERATUREUNITS, ADDON
 #by importing utilities all messages in xbmc log will be prepended with LOGPREFIX
 def log(msg, level=xbmc.LOGNOTICE):
     xbmc.log('weather.metoffice: {0}'.format(msg), level)
@@ -92,3 +92,33 @@ def localised_temperature(t):
             return str(int(float(t)*9)/5+32)
         except ValueError:
             return ''
+
+def gettext(s):
+    """
+    gettext() gets around XBMCs cryptic "Ints For Strings" translation mechanism
+    requires the translatable table is kept up to date with the contents of strings.po
+    """
+    translatable = {"Observation Location" : 32000,
+                    "Forecast Location": 32001,
+                    "Regional Location": 32002,
+                    "API Key": 32003,
+                    "Use IP address to determine location": 32004,
+                    "GeoIP Provider": 32005,
+                    "Erase Cache": 32006,
+                    "No API Key.": 32007,
+                    "Enter your Met Office API Key under settings.": 32008,
+                    "No Matches": 32009,
+                    "No locations found containing": 32010,
+                    "Matching Sites": 32011}
+    try:
+        translation = ADDON.getLocalizedString(translatable[s]) #@UndefinedVariable
+        if not translation:
+            raise TranslationError
+        else:
+            return translation
+    except (KeyError, TranslationError):
+        log('String "{0}" not translated.'.format(s), level=xbmc.LOGWARNING)
+        return s
+
+class TranslationError(Exception):
+    pass

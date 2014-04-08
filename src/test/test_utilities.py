@@ -90,3 +90,29 @@ class TestUtilities(XBMCTestCase):
         self.assertEqual('10', self.utilities.rownd('10.1'))
         self.assertEqual('11', self.utilities.rownd('10.5'))
         self.assertEqual('', self.utilities.rownd(''))
+
+    def test_gettext(self):
+        trans = "Nire aerolabangailua aingirez beteta dago"
+        known_string = "Observation Location"
+        unknown_string = "Observation Position"
+        self.utilities.log = Mock()
+        self.utilities.ADDON = Mock()
+        self.utilities.ADDON.getLocalizedString = Mock(return_value=trans)
+        self.utilities.xbmc.LOGWARNING = 3
+
+        #successful translation
+        result = self.utilities.gettext(known_string)
+        self.utilities.ADDON.getLocalizedString.assert_called
+        self.assertEqual(trans, result)
+
+        #KeyError
+        result = self.utilities.gettext(unknown_string)
+        self.utilities.ADDON.getLocalizedString.assert_called
+        self.utilities.log.assert_called
+        self.assertEqual(unknown_string, result)
+
+        #TranslationError
+        self.utilities.ADDON.getLocalizedString = Mock(return_value='')
+        result = self.utilities.gettext(known_string)
+        self.utilities.ADDON.getLocalizedString.assert_called
+        self.assertEqual(known_string, result)

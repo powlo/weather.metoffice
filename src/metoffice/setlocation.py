@@ -11,6 +11,7 @@ from operator import itemgetter
 from itertools import ifilter
 import json
 import urlcache, utilities
+from utilities import gettext as _
 
 from constants import API_KEY, ADDON_DATA_PATH, GEOIP_PROVIDER, KEYBOARD, DIALOG, ADDON, FORECAST_SITELIST_URL,\
                         OBSERVATION_SITELIST_URL, REGIONAL_SITELIST_URL, LONG_REGIONAL_NAMES, GEOLOCATION
@@ -61,23 +62,23 @@ def getsitelist(location, text=""):
 @utilities.failgracefully
 def main(location):
     if not API_KEY:
-        raise Exception('No API Key. Enter your Met Office API Key under settings.')
+        raise Exception(_("No API Key."), _("Enter your Met Office API Key under settings."))
 
     KEYBOARD.doModal()#@UndefinedVariable
     text= KEYBOARD.isConfirmed() and KEYBOARD.getText()#@UndefinedVariable
     sitelist = getsitelist(location, text)
     if sitelist == []:
-        DIALOG.ok("No Matches", "No locations found containing '%s'" % text)#@UndefinedVariable
-        utilities.log( "No locations found containing '%s'" % text)
+        DIALOG.ok(_("No Matches"), _("No locations found containing")+" {0}".format(text))#@UndefinedVariable
+        utilities.log("No locations found containing '%s'" % text)
     else:
         display_list = [site['display'] for site in sitelist]
-        selected = DIALOG.select("Matching Sites", display_list)#@UndefinedVariable
+        selected = DIALOG.select(_("Matching Sites"), display_list)#@UndefinedVariable
         if selected != -1:
             ADDON.setSetting(location, sitelist[selected]['name'])#@UndefinedVariable
             ADDON.setSetting("%sID" % location, sitelist[selected]['id'])#@UndefinedVariable
             ADDON.setSetting("%sLatitude" % location, str(sitelist[selected].get('latitude')))#@UndefinedVariable
             ADDON.setSetting("%sLongitude" % location, str(sitelist[selected].get('longitude')))#@UndefinedVariable
-            utilities.log( "Setting '{location}' to '{name} ({distance})'".format(location=location,
+            utilities.log("Setting '{location}' to '{name} ({distance})'".format(location=location,
                                                                          name=sitelist[selected]['name'].encode('utf-8'),
                                                                          distance=sitelist[selected]['id']))
 

@@ -62,9 +62,10 @@ class TestSetLocation(XBMCTestCase):
         mock_failgracefully.side_effect = lambda f: f
         from metoffice import setlocation
         setlocation.API_KEY = ''
+        setlocation._ = lambda x : x
         with self.assertRaises(Exception) as cm:
             setlocation.main('ForecastLocation')
-        self.assertEqual(('No API Key. Enter your Met Office API Key under settings.',), cm.exception.args)
+        self.assertEqual(('No API Key.', 'Enter your Met Office API Key under settings.',), cm.exception.args)
 
     @patch('metoffice.utilities.xbmcbusy')
     @patch('metoffice.urlcache.URLCache')
