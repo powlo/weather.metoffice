@@ -7,7 +7,7 @@
   <requires>
 	<import addon="xbmc.python" version="2.1.0"/>
 	<import addon="script.module.pytz" version="2014.2"/>
-	<import addon="stript.module.pil"/>
+	<import addon="script.module.pil"/>
   </requires>
   <extension point="xbmc.python.weather" library="src/metoffice/default.py"/>
   <extension point="xbmc.addon.metadata">
