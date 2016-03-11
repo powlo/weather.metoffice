@@ -203,7 +203,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Day0.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['Day0.Outlook'], 'Light Rain')
         self.assertIn('Day0.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['Day0.OutlookIcon'], 'special://temp/weather/11.png')
+        self.assertEqual(self.window_properties['Day0.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/11.png')
 
         self.assertIn('Day1.Title', self.window_properties)
         self.assertEqual(self.window_properties['Day1.Title'], 'Tue')
@@ -218,7 +218,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Day1.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['Day1.Outlook'], 'Sunny')
         self.assertIn('Day1.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['Day1.OutlookIcon'], 'special://temp/weather/32.png')
+        self.assertEqual(self.window_properties['Day1.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/32.png')
 
         self.assertIn('Day2.Title', self.window_properties)
         self.assertEqual(self.window_properties['Day2.Title'], 'Wed')
@@ -233,7 +233,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Day2.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['Day2.Outlook'], 'Sunny')
         self.assertIn('Day2.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['Day2.OutlookIcon'], 'special://temp/weather/32.png')
+        self.assertEqual(self.window_properties['Day2.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/32.png')
 
         self.assertIn('Day3.Title', self.window_properties)
         self.assertEqual(self.window_properties['Day3.Title'], 'Thu')
@@ -248,7 +248,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Day3.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['Day3.Outlook'], 'Heavy Rain')
         self.assertIn('Day3.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['Day3.OutlookIcon'], 'special://temp/weather/40.png')
+        self.assertEqual(self.window_properties['Day3.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/40.png')
 
         self.assertIn('Day4.Title', self.window_properties)
         self.assertEqual(self.window_properties['Day4.Title'], 'Fri')
@@ -263,7 +263,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Day4.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['Day4.Outlook'], 'Light Rain')
         self.assertIn('Day4.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['Day4.OutlookIcon'], 'special://temp/weather/11.png')
+        self.assertEqual(self.window_properties['Day4.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/11.png')
 
         #Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
@@ -304,7 +304,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly0.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly0.Outlook'], 'Cloudy')
         self.assertIn('3Hourly0.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly0.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly0.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly1.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly1.Day'], 'Sat')
@@ -327,7 +327,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly1.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly1.Outlook'], 'Cloudy')
         self.assertIn('3Hourly1.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly1.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly1.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly2.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly2.Day'], 'Sat')
@@ -350,7 +350,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly2.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly2.Outlook'], 'Cloudy')
         self.assertIn('3Hourly2.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly2.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly2.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly3.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly3.Day'], 'Sat')
@@ -373,7 +373,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly3.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly3.Outlook'], 'Clear')
         self.assertIn('3Hourly3.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly3.OutlookIcon'], 'special://temp/weather/31.png')
+        self.assertEqual(self.window_properties['3Hourly3.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/31.png')
 
         self.assertIn('3Hourly4.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly4.Day'], 'Sun')
@@ -396,7 +396,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly4.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly4.Outlook'], 'Clear')
         self.assertIn('3Hourly4.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly4.OutlookIcon'], 'special://temp/weather/31.png')
+        self.assertEqual(self.window_properties['3Hourly4.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/31.png')
 
         self.assertIn('3Hourly5.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly5.Day'], 'Sun')
@@ -419,7 +419,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly5.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly5.Outlook'], 'Clear')
         self.assertIn('3Hourly5.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly5.OutlookIcon'], 'special://temp/weather/31.png')
+        self.assertEqual(self.window_properties['3Hourly5.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/31.png')
 
         self.assertIn('3Hourly6.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly6.Day'], 'Sun')
@@ -442,7 +442,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly6.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly6.Outlook'], 'Cloudy')
         self.assertIn('3Hourly6.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly6.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly6.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly7.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly7.Day'], 'Sun')
@@ -465,7 +465,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly7.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly7.Outlook'], 'Cloudy')
         self.assertIn('3Hourly7.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly7.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly7.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly8.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly8.Day'], 'Sun')
@@ -488,7 +488,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly8.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly8.Outlook'], 'Cloudy')
         self.assertIn('3Hourly8.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly8.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly8.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly9.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly9.Day'], 'Sun')
@@ -511,7 +511,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly9.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly9.Outlook'], 'Cloudy')
         self.assertIn('3Hourly9.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly9.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly9.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly10.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly10.Day'], 'Sun')
@@ -534,7 +534,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly10.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly10.Outlook'], 'Heavy Rain')
         self.assertIn('3Hourly10.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly10.OutlookIcon'], 'special://temp/weather/40.png')
+        self.assertEqual(self.window_properties['3Hourly10.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/40.png')
 
         self.assertIn('3Hourly11.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly11.Day'], 'Sun')
@@ -557,7 +557,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly11.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly11.Outlook'], 'Heavy Rain')
         self.assertIn('3Hourly11.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly11.OutlookIcon'], 'special://temp/weather/40.png')
+        self.assertEqual(self.window_properties['3Hourly11.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/40.png')
 
         self.assertIn('3Hourly12.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly12.Day'], 'Mon')
@@ -580,7 +580,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly12.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly12.Outlook'], 'Light Rain')
         self.assertIn('3Hourly12.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly12.OutlookIcon'], 'special://temp/weather/11.png')
+        self.assertEqual(self.window_properties['3Hourly12.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/11.png')
 
         self.assertIn('3Hourly13.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly13.Day'], 'Mon')
@@ -603,7 +603,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly13.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly13.Outlook'], 'Clear')
         self.assertIn('3Hourly13.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly13.OutlookIcon'], 'special://temp/weather/31.png')
+        self.assertEqual(self.window_properties['3Hourly13.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/31.png')
 
         self.assertIn('3Hourly14.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly14.Day'], 'Mon')
@@ -626,7 +626,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly14.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly14.Outlook'], 'Cloudy')
         self.assertIn('3Hourly14.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly14.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly14.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly15.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly15.Day'], 'Mon')
@@ -649,7 +649,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly15.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly15.Outlook'], 'Light Rain')
         self.assertIn('3Hourly15.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly15.OutlookIcon'], 'special://temp/weather/11.png')
+        self.assertEqual(self.window_properties['3Hourly15.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/11.png')
 
         self.assertIn('3Hourly16.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly16.Day'], 'Mon')
@@ -672,7 +672,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly16.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly16.Outlook'], 'Heavy Rain')
         self.assertIn('3Hourly16.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly16.OutlookIcon'], 'special://temp/weather/40.png')
+        self.assertEqual(self.window_properties['3Hourly16.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/40.png')
 
         self.assertIn('3Hourly17.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly17.Day'], 'Mon')
@@ -695,7 +695,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly17.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly17.Outlook'], 'Light Rain')
         self.assertIn('3Hourly17.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly17.OutlookIcon'], 'special://temp/weather/11.png')
+        self.assertEqual(self.window_properties['3Hourly17.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/11.png')
 
         self.assertIn('3Hourly18.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly18.Day'], 'Mon')
@@ -718,7 +718,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly18.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly18.Outlook'], 'Light Rain')
         self.assertIn('3Hourly18.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly18.OutlookIcon'], 'special://temp/weather/45.png')
+        self.assertEqual(self.window_properties['3Hourly18.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/45.png')
 
         self.assertIn('3Hourly19.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly19.Day'], 'Mon')
@@ -741,7 +741,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly19.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly19.Outlook'], 'Cloudy')
         self.assertIn('3Hourly19.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly19.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly19.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly20.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly20.Day'], 'Tue')
@@ -764,7 +764,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly20.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly20.Outlook'], 'Partly Cloudy')
         self.assertIn('3Hourly20.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly20.OutlookIcon'], 'special://temp/weather/29.png')
+        self.assertEqual(self.window_properties['3Hourly20.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/29.png')
 
         self.assertIn('3Hourly21.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly21.Day'], 'Tue')
@@ -787,7 +787,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly21.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly21.Outlook'], 'Partly Cloudy')
         self.assertIn('3Hourly21.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly21.OutlookIcon'], 'special://temp/weather/29.png')
+        self.assertEqual(self.window_properties['3Hourly21.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/29.png')
 
         self.assertIn('3Hourly22.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly22.Day'], 'Tue')
@@ -810,7 +810,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly22.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly22.Outlook'], 'Partly Cloudy')
         self.assertIn('3Hourly22.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly22.OutlookIcon'], 'special://temp/weather/29.png')
+        self.assertEqual(self.window_properties['3Hourly22.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/29.png')
 
         self.assertIn('3Hourly23.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly23.Day'], 'Tue')
@@ -833,7 +833,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly23.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly23.Outlook'], 'Partly Cloudy')
         self.assertIn('3Hourly23.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly23.OutlookIcon'], 'special://temp/weather/30.png')
+        self.assertEqual(self.window_properties['3Hourly23.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/30.png')
 
         self.assertIn('3Hourly24.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly24.Day'], 'Tue')
@@ -856,7 +856,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly24.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly24.Outlook'], 'Partly Cloudy')
         self.assertIn('3Hourly24.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly24.OutlookIcon'], 'special://temp/weather/30.png')
+        self.assertEqual(self.window_properties['3Hourly24.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/30.png')
 
         self.assertIn('3Hourly25.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly25.Day'], 'Tue')
@@ -879,7 +879,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly25.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly25.Outlook'], 'Sunny')
         self.assertIn('3Hourly25.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly25.OutlookIcon'], 'special://temp/weather/32.png')
+        self.assertEqual(self.window_properties['3Hourly25.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/32.png')
 
         self.assertIn('3Hourly26.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly26.Day'], 'Tue')
@@ -902,7 +902,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly26.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly26.Outlook'], 'Clear')
         self.assertIn('3Hourly26.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly26.OutlookIcon'], 'special://temp/weather/31.png')
+        self.assertEqual(self.window_properties['3Hourly26.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/31.png')
 
         self.assertIn('3Hourly27.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly27.Day'], 'Tue')
@@ -925,7 +925,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly27.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly27.Outlook'], 'Partly Cloudy')
         self.assertIn('3Hourly27.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly27.OutlookIcon'], 'special://temp/weather/29.png')
+        self.assertEqual(self.window_properties['3Hourly27.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/29.png')
 
         self.assertIn('3Hourly28.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly28.Day'], 'Wed')
@@ -948,7 +948,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly28.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly28.Outlook'], 'Cloudy')
         self.assertIn('3Hourly28.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly28.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly28.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly29.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly29.Day'], 'Wed')
@@ -971,7 +971,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly29.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly29.Outlook'], 'Cloudy')
         self.assertIn('3Hourly29.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly29.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly29.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly30.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly30.Day'], 'Wed')
@@ -994,7 +994,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly30.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly30.Outlook'], 'Overcast')
         self.assertIn('3Hourly30.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly30.OutlookIcon'], 'special://temp/weather/26.png')
+        self.assertEqual(self.window_properties['3Hourly30.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/26.png')
 
         self.assertIn('3Hourly31.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly31.Day'], 'Wed')
@@ -1017,7 +1017,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly31.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly31.Outlook'], 'Light Rain')
         self.assertIn('3Hourly31.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly31.OutlookIcon'], 'special://temp/weather/11.png')
+        self.assertEqual(self.window_properties['3Hourly31.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/11.png')
 
         self.assertIn('3Hourly32.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly32.Day'], 'Wed')
@@ -1040,7 +1040,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly32.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly32.Outlook'], 'Light Rain')
         self.assertIn('3Hourly32.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly32.OutlookIcon'], 'special://temp/weather/11.png')
+        self.assertEqual(self.window_properties['3Hourly32.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/11.png')
 
         self.assertIn('3Hourly33.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly33.Day'], 'Wed')
@@ -1063,7 +1063,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly33.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly33.Outlook'], 'Partly Cloudy')
         self.assertIn('3Hourly33.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly33.OutlookIcon'], 'special://temp/weather/30.png')
+        self.assertEqual(self.window_properties['3Hourly33.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/30.png')
 
         self.assertIn('3Hourly34.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly34.Day'], 'Wed')
@@ -1086,7 +1086,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly34.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly34.Outlook'], 'Partly Cloudy')
         self.assertIn('3Hourly34.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly34.OutlookIcon'], 'special://temp/weather/29.png')
+        self.assertEqual(self.window_properties['3Hourly34.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/29.png')
 
         self.assertIn('3Hourly35.Day', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly35.Day'], 'Wed')
@@ -1109,7 +1109,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('3Hourly35.Outlook', self.window_properties)
         self.assertEqual(self.window_properties['3Hourly35.Outlook'], 'Partly Cloudy')
         self.assertIn('3Hourly35.OutlookIcon', self.window_properties)
-        self.assertEqual(self.window_properties['3Hourly35.OutlookIcon'], 'special://temp/weather/29.png')
+        self.assertEqual(self.window_properties['3Hourly35.OutlookIcon'], 'special://xbmc/addons/resource.images.weathericons.default/resources/29.png')
 
         #Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)

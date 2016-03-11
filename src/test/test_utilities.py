@@ -102,17 +102,17 @@ class TestUtilities(XBMCTestCase):
 
         #successful translation
         result = self.utilities.gettext(known_string)
-        self.utilities.ADDON.getLocalizedString.assert_called
+        self.assertTrue(self.utilities.ADDON.getLocalizedString.called)
         self.assertEqual(trans, result)
 
         #KeyError
         result = self.utilities.gettext(unknown_string)
-        self.utilities.ADDON.getLocalizedString.assert_called
-        self.utilities.log.assert_called
+        self.assertTrue(self.utilities.ADDON.getLocalizedString.called)
+        self.assertTrue(self.utilities.log.called)
         self.assertEqual(unknown_string, result)
 
         #TranslationError
         self.utilities.ADDON.getLocalizedString = Mock(return_value='')
         result = self.utilities.gettext(known_string)
-        self.utilities.ADDON.getLocalizedString.assert_called
+        self.assertTrue(self.utilities.ADDON.getLocalizedString.called)
         self.assertEqual(known_string, result)

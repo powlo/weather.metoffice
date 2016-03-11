@@ -53,7 +53,10 @@ class TestSetLocation(XBMCTestCase):
         elif url == self.constants.REGIONAL_SITELIST_URL:
             return REGIONALSITELIST
         elif url == self.constants.GEOIP_PROVIDER['url']:
-            return GEOIP
+            if url == 'www.bad-geo.com':
+                return os.path.join(DATA_FOLDER, 'bad-geo.json')
+            else:
+                return GEOIP
         else:
             return None
 
@@ -95,6 +98,22 @@ class TestSetLocation(XBMCTestCase):
 
         #Same request for forecast location, but with geolocation off
         setlocation.GEOLOCATION = 'false'
+        result = setlocation.getsitelist('ForecastLocation', 'Cairnwell')
+        expected = [{u'elevation': u'933.0',
+                     u'name': u'Cairnwell',
+                     u'region': u'ta',
+                     u'longitude': u'-3.42',
+                     'display': u'Cairnwell',
+                     u'nationalPark': u'Cairngorms National Park',
+                     u'latitude': u'56.879',
+                     u'unitaryAuthArea': u'Perth and Kinross',
+                     u'id': u'3072'}]
+        self.assertEqual(expected, result)
+        
+        #Put geolocation back on, but test with a "dirty" geolocation provider
+        setlocation.GEOLOCATION = 'true'
+        setlocation.GEOIP_PROVIDER['url'] = 'www.bad-geo.com'
+
         result = setlocation.getsitelist('ForecastLocation', 'Cairnwell')
         expected = [{u'elevation': u'933.0',
                      u'name': u'Cairnwell',

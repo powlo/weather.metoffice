@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="weather.metoffice"
-  version="1.0.1"
+  version="1.0.2"
   name="Met Office"
   provider-name="powlo">
   <requires>
@@ -11,8 +11,8 @@
   </requires>
   <extension point="xbmc.python.weather" library="src/metoffice/default.py"/>
   <extension point="xbmc.addon.metadata">
-	<summary lang="en">Weather forecast from the Met Office.</summary>
-	<description lang="en">Weather forecast provided by Met Office (http://www.metoffice.gov.uk/)</description>
+	<summary lang="en">UK weather forecast from the Met Office.</summary>
+	<description lang="en">UK weather forecast provided by Met Office (http://www.metoffice.gov.uk/)</description>
 	<platform>all</platform>
     <language>en</language>
     <license>GNU GPL v2</license>

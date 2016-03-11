@@ -18,8 +18,9 @@ CURRENT_VIEW = WINDOW.getProperty('Weather.CurrentView')
 ADDON = xbmcaddon.Addon(id="weather.metoffice")
 DIALOG = xbmcgui.Dialog()
 KEYBOARD = xbmc.Keyboard()
+ADDON_HOME_PATH = xbmc.translatePath('special://home/addons/%s/' % ADDON.getAddonInfo('id'))
 ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % ADDON.getAddonInfo('id'))
-WEATHER_ICON_PATH = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
+WEATHER_ICON_PATH = xbmc.translatePath('special://xbmc/addons/resource.images.weathericons.default/resources/%s.png').decode("utf-8")
 TEMPERATUREUNITS = xbmc.getInfoLabel('System.TemperatureUnits')
 
 API_KEY = ADDON.getSetting('ApiKey')
@@ -88,8 +89,6 @@ WEATHER_CODES = {
 #the settings.xml in order for the indexes to align.
 GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitude':'lon'},
              {'url':'http://freegeoip.net/json/', 'latitude':'latitude', 'longitude':'longitude'},
-             {'url':'http://www.telize.com/geoip/','latitude':'latitude', 'longitude':'longitude'},
-             {'url':'http://api.hostip.info/get_json.php?position=true','latitude':'lat', 'longitude':'lng'},
              {'url':'http://geoiplookup.net/geoapi.php?output=json', 'latitude':'latitude', 'longitude':'longitude'}
                    ]
 GEOIP_PROVIDER = GEOIP_PROVIDERS[int(GEOIP)]

@@ -17,9 +17,9 @@
 	    <setting id="GeoIPProvider"
 			label="32005"
 			type="enum"
-			values="www.ip-api.com|www.freegeoip.net|www.telize.com|www.hostip.info|www.geoiplookup.net"
+			values="www.ip-api.com|www.freegeoip.net|www.geoiplookup.net"
 			enable="eq(-1,true)"
-			default="2"/>
+			default="0"/>
 		<setting id="EraseCache" label="32006" type="bool" default="false"/>
 	</category>
 </settings>

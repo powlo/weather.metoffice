@@ -37,15 +37,23 @@ def getsitelist(location, text=""):
             sitelist[:] = ifilter(lambda x: x['name'].lower().find(text.lower()) >= 0, sitelist)
 
         if GEOLOCATION == 'true':
-            url = GEOIP_PROVIDER['url'] 
+            geo = {}
+            url = GEOIP_PROVIDER['url']
             filename = cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
-            data = json.load(open(filename))
-            geoip_lat = float(data[GEOIP_PROVIDER['latitude']])
-            geoip_long = float(data[GEOIP_PROVIDER['longitude']])
-    
+            try:
+                data = json.load(open(filename))
+            except ValueError:
+                utilities.log('Failed to fetch valid data from %s' % url)
+            try:
+                geolat = float(data[GEOIP_PROVIDER['latitude']])
+                geolong = float(data[GEOIP_PROVIDER['longitude']])
+                geo = {'lat':geolat, 'long':geolong}
+            except KeyError:
+                utilities.log('Couldn\'t extract lat/long data from %s' %url)
+
             for site in sitelist:
                 try:
-                    site['distance'] = int(utilities.haversine_distance(geoip_lat, geoip_long, float(site['latitude']), float(site['longitude'])))
+                    site['distance'] = int(utilities.haversine_distance(geo['lat'], geo['long'], float(site['latitude']), float(site['longitude'])))
                     site['display'] = "{0} ({1}km)".format(site['name'].encode('utf-8'),site['distance'])
                 except KeyError:
                     site['display'] = site['name']
