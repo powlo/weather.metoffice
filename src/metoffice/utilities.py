@@ -84,6 +84,11 @@ def rownd(x):
     except ValueError:
         return ''
 
+#TODO: This implicitly assumes that temperatures are only either
+#Celsius or Farenheit. This isn't true, Kodi now supports Kelvin
+#and other crazy units. Given that this function is only used
+#for non-standard pages, which require a custom skin, its
+#unlikely that anyone will hit the problem.
 def localised_temperature(t):
     if TEMPERATUREUNITS[-1] == 'C':
         return t
@@ -92,6 +97,12 @@ def localised_temperature(t):
             return str(int(float(t)*9)/5+32)
         except ValueError:
             return ''
+
+#Convert miles per hour to kilomenters per hour
+#Required because Kodi assumes that wind speed is provided in
+#kilometers per hour
+def mph_to_kmph(s):
+    return s * 1.609344;
 
 def gettext(s):
     """
