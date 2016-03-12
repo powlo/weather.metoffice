@@ -16,12 +16,11 @@
 # *  http://www.gnu.org/copyleft/gpl.html
 
 import sys
-import os
 import socket
 socket.setdefaulttimeout(20)
 import utilities, properties, urlcache
 from utilities import gettext as _
-from constants import WINDOW, ADDON, API_KEY, CURRENT_VIEW, ADDON_DATA_PATH, ADDON_HOME_PATH
+from constants import WINDOW, ADDON, API_KEY, CURRENT_VIEW, ADDON_DATA_PATH, ADDON_BANNER_PATH
 
 @utilities.failgracefully
 def main():
@@ -48,7 +47,7 @@ def main():
         properties.text()
 
     WINDOW.setProperty('WeatherProvider', ADDON.getAddonInfo('name'))#@UndefinedVariable
-    WINDOW.setProperty('WeatherProviderLogo', os.path.join(ADDON_HOME_PATH, 'resources', 'banner.png'))#@UndefinedVariable
+    WINDOW.setProperty('WeatherProviderLogo', ADDON_BANNER_PATH)#@UndefinedVariable
     WINDOW.setProperty('ObservationLocation', ADDON.getSetting('ObservationLocation'))#@UndefinedVariable
     WINDOW.setProperty('ForecastLocation', ADDON.getSetting('ForecastLocation'))#@UndefinedVariable
     WINDOW.setProperty('RegionalLocation', ADDON.getSetting('RegionalLocation'))#@UndefinedVariable
