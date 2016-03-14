@@ -54,5 +54,16 @@ def main():
     WINDOW.setProperty('Location1', ADDON.getSetting('ForecastLocation'))#@UndefinedVariable
     WINDOW.setProperty('Locations', '1')#@UndefinedVariable
 
+    #Explicitly set unused flags to false, so there are no unusual side
+    #effects/residual data when moving from another weather provider.
+    WINDOW.setProperty('Daily.IsFetched', '')#@UndefinedVariable
+    WINDOW.setProperty('36Hour.IsFetched', '')#@UndefinedVariable
+    WINDOW.setProperty('Weekend.IsFetched', '')#@UndefinedVariable
+    WINDOW.setProperty('Hourly.IsFetched', '')#@UndefinedVariable
+    WINDOW.setProperty('Map.IsFetched', '')#@UndefinedVariable
+    WINDOW.setProperty('Today.Sunrise', '')#@UndefinedVariable
+    WINDOW.setProperty('Today.Sunset', '')#@UndefinedVariable
+    WINDOW.setProperty('Weather.CurrentView', '')#@UndefinedVariable
+
 if __name__ == '__main__':
     main()
