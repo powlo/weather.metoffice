@@ -1,4 +1,4 @@
-# XBMC Media Center language file
+# Kodi language file
 # Addon Name: Weather MetOffice
 # Addon id: weather.metoffice
 # Addon Provider: Paul Backhouse
