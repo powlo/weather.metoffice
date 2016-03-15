@@ -1,6 +1,7 @@
 import xbmc #@UnresolvedImport
 import xbmcgui #@UnresolvedImport
 import xbmcaddon #@UnresolvedImport
+import re
 import urllib
 import pytz
 WEATHER_WINDOW_ID = 12600
@@ -20,7 +21,17 @@ DIALOG = xbmcgui.Dialog()
 KEYBOARD = xbmc.Keyboard()
 ADDON_BANNER_PATH = xbmc.translatePath('special://home/addons/%s/resources/banner.png' % ADDON.getAddonInfo('id'))
 ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % ADDON.getAddonInfo('id'))
-WEATHER_ICON_PATH = xbmc.translatePath('special://xbmc/addons/resource.images.weathericons.default/resources/%s.png').decode("utf-8")
+
+try:
+    version = float(re.compile('(\d+\.\d).*').match(xbmc.getInfoLabel('System.BuildVersion')).group(1))
+except:
+    version = 1.0
+
+if version >= 16.0:
+    WEATHER_ICON_PATH = xbmc.translatePath('special://xbmc/addons/resource.images.weathericons.default/resources/%s.png').decode("utf-8")
+else:
+    WEATHER_ICON_PATH = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
+
 TEMPERATUREUNITS = xbmc.getInfoLabel('System.TemperatureUnits')
 
 API_KEY = ADDON.getSetting('ApiKey')
