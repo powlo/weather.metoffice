@@ -12,7 +12,7 @@
 		<setting id="RegionalLocationID" type="text" visible="false" default="514"/>
 	</category>
 	<category label="Configuration">
-		<setting id="ApiKey" label="32003" type="text" default="4eeb196d-a473-4634-a9da-397974138bf5"/>
+		<setting id="ApiKey" label="32003" type="text" default="a5408080-80af-44ea-b3a6-b86d320dc706"/>
 		<setting id="GeoLocation" label="32004" type="bool" default="true"/>
 	    <setting id="GeoIPProvider"
 			label="32005"
