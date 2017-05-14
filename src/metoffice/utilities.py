@@ -6,7 +6,7 @@ import math
 import xbmc #@UnresolvedImport
 import xbmcgui #@UnresolvedImport
 
-from constants import WEATHER_WINDOW_ID, SETTINGS_WINDOW_ID, DIALOG, WINDOW, TEMPERATUREUNITS, ADDON
+from constants import WEATHER_WINDOW_ID, ADDON_BROWSER_WINDOW_ID, DIALOG, WINDOW, TEMPERATUREUNITS, ADDON
 #by importing utilities all messages in xbmc log will be prepended with LOGPREFIX
 def log(msg, level=xbmc.LOGNOTICE):
     xbmc.log('weather.metoffice: {0}'.format(msg), level)
@@ -27,7 +27,8 @@ def failgracefully(f):
                 e.args = ('Error',)
             if len(e.args) == 1:
                 e.args = e.args + ('See log file for details',)
-            if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or xbmcgui.getCurrentWindowId() == SETTINGS_WINDOW_ID:
+            if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or xbmcgui.getCurrentWindowId() == ADDON_BROWSER_WINDOW_ID:
+                log("Showing something useful?")
                 args = (e.args[0].title(),) + e.args[1:4]
                 DIALOG.ok(*args)#@UndefinedVariable
     return wrapper
@@ -35,7 +36,7 @@ def failgracefully(f):
 def xbmcbusy(f):
     @wraps(f)
     def wrapper(*args, **kwds):
-        if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or xbmcgui.getCurrentWindowId() == SETTINGS_WINDOW_ID:
+        if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or xbmcgui.getCurrentWindowId() == ADDON_BROWSER_WINDOW_ID:
             xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         try:
             return f(*args, **kwds)

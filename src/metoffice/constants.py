@@ -5,7 +5,7 @@ import re
 import urllib
 import pytz
 WEATHER_WINDOW_ID = 12600
-SETTINGS_WINDOW_ID = 10014
+ADDON_BROWSER_WINDOW_ID = 10040
 
 TZ = pytz.timezone('Europe/London') #TODO: Need to pull the actual timezone out of xbmc. Somehow.
 TZUK = pytz.timezone('Europe/London')
@@ -96,7 +96,7 @@ WEATHER_CODES = {
     '30': ('17', 'Thunder')
 }
 
-#This list must appear in the same order as it appears in 
+#This list must appear in the same order as it appears in
 #the settings.xml in order for the indexes to align.
 GEOIP_PROVIDERS = [{'url':'http://ip-api.com/json/', 'latitude':'lat', 'longitude':'lon'},
              {'url':'http://freegeoip.net/json/', 'latitude':'latitude', 'longitude':'longitude'},
@@ -106,7 +106,7 @@ GEOIP_PROVIDER = GEOIP_PROVIDERS[int(GEOIP)]
 
 URL_TEMPLATE = "http://datapoint.metoffice.gov.uk/public/data/{format}/{resource}/{group}/{datatype}/{object}?{get}"
 
-FORECAST_SITELIST_URL = URL_TEMPLATE.format(format='val', resource='wxfcs', group='all', datatype='json', object='sitelist', 
+FORECAST_SITELIST_URL = URL_TEMPLATE.format(format='val', resource='wxfcs', group='all', datatype='json', object='sitelist',
                                             get=urllib.unquote(urllib.urlencode((('key',API_KEY),))))
 OBSERVATION_SITELIST_URL = URL_TEMPLATE.format(format='val', resource='wxobs', group='all', datatype='json', object='sitelist',
                                             get=urllib.unquote(urllib.urlencode((('key',API_KEY),))))
