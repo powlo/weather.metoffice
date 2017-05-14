@@ -28,7 +28,6 @@ def failgracefully(f):
             if len(e.args) == 1:
                 e.args = e.args + ('See log file for details',)
             if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or xbmcgui.getCurrentWindowId() == ADDON_BROWSER_WINDOW_ID:
-                log("Showing something useful?")
                 args = (e.args[0].title(),) + e.args[1:4]
                 DIALOG.ok(*args)#@UndefinedVariable
     return wrapper
