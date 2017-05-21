@@ -33,18 +33,9 @@ def main():
     if not API_KEY:
         raise Exception(_("No API Key."), _("Enter your Met Office API Key under settings."))
 
-    if len(sys.argv) > 1 and sys.argv[1].isdigit():
-        properties.observation()
-    if not CURRENT_VIEW:
-        properties.daily()
-    elif CURRENT_VIEW == '3hourly':
-        properties.threehourly()
-    elif CURRENT_VIEW == 'forecastmap':
-        properties.forecastlayer()
-    elif CURRENT_VIEW == 'observationmap':
-        properties.observationlayer()
-    elif CURRENT_VIEW == 'text':
-        properties.text()
+    properties.observation()
+    properties.daily()
+    properties.threehourly()
 
     WINDOW.setProperty('WeatherProvider', ADDON.getAddonInfo('name'))#@UndefinedVariable
     WINDOW.setProperty('WeatherProviderLogo', ADDON_BANNER_PATH)#@UndefinedVariable
@@ -56,10 +47,8 @@ def main():
 
     #Explicitly set unused flags to false, so there are no unusual side
     #effects/residual data when moving from another weather provider.
-    WINDOW.setProperty('Daily.IsFetched', '')#@UndefinedVariable
     WINDOW.setProperty('36Hour.IsFetched', '')#@UndefinedVariable
     WINDOW.setProperty('Weekend.IsFetched', '')#@UndefinedVariable
-    WINDOW.setProperty('Hourly.IsFetched', '')#@UndefinedVariable
     WINDOW.setProperty('Map.IsFetched', '')#@UndefinedVariable
     WINDOW.setProperty('Today.Sunrise', '')#@UndefinedVariable
     WINDOW.setProperty('Today.Sunset', '')#@UndefinedVariable
