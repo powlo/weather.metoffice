@@ -32,7 +32,7 @@ if version >= 16.0:
 else:
     WEATHER_ICON_PATH = xbmc.translatePath('special://temp/weather/%s.png').decode("utf-8")
 
-TEMPERATUREUNITS = xbmc.getInfoLabel('System.TemperatureUnits')
+TEMPERATUREUNITS = unicode(xbmc.getRegion('tempunit'),encoding='utf-8')
 
 API_KEY = ADDON.getSetting('ApiKey')
 GEOLOCATION = ADDON.getSetting('GeoLocation')
@@ -49,6 +49,7 @@ LONGITUDE = ADDON.getSetting('ForecastLocationLongitude')
 DATAPOINT_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 DATAPOINT_DATE_FORMAT = '%Y-%m-%dZ'
 SHORT_DAY_FORMAT = "%a"
+SHORT_DATE_FORMAT = "%d %b"
 MAPTIME_FORMAT = '%H%M %a'
 ISSUEDAT_FORMAT = '%H:%M %a %d %b %Y'
 

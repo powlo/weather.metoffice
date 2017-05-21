@@ -5,15 +5,18 @@ import utilities
 import json
 from PIL import Image
 import urlcache
-from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT, SHORT_DAY_FORMAT, DATAPOINT_DATE_FORMAT,\
-                        WEATHER_ICON_PATH, WEATHER_CODES, WINDOW, DAILY_LOCATION_FORECAST_URL, API_KEY,\
-                        ADDON_DATA_PATH, THREEHOURLY_LOCATION_FORECAST_URL, TEXT_FORECAST_URL,\
-                        HOURLY_LOCATION_OBSERVATION_URL, FORECAST_LAYER_CAPABILITIES_URL,\
-                        OBSERVATION_LAYER_CAPABILITIES_URL, RAW_DATAPOINT_IMG_WIDTH, CROP_WIDTH, CROP_HEIGHT,\
-                        GOOGLE_SURFACE, GOOGLE_MARKER, MAPTIME_FORMAT, REGIONAL_LOCATION,\
-                        REGIONAL_LOCATION_ID, FORECAST_LOCATION, FORECAST_LOCATION_ID, OBSERVATION_LOCATION,\
-                        OBSERVATION_LOCATION_ID, FORECASTMAP_SLIDER, OBSERVATIONMAP_SLIDER, FORECASTMAP_LAYER_SELECTION,\
-                        OBSERVATIONMAP_LAYER_SELECTION, TZ, TZUK
+from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT,\
+    SHORT_DAY_FORMAT, SHORT_DATE_FORMAT, DATAPOINT_DATE_FORMAT,\
+    WEATHER_CODES, WINDOW, DAILY_LOCATION_FORECAST_URL,\
+    API_KEY, ADDON_DATA_PATH, THREEHOURLY_LOCATION_FORECAST_URL,\
+    TEXT_FORECAST_URL, HOURLY_LOCATION_OBSERVATION_URL,\
+    FORECAST_LAYER_CAPABILITIES_URL, OBSERVATION_LAYER_CAPABILITIES_URL,\
+    RAW_DATAPOINT_IMG_WIDTH, CROP_WIDTH, CROP_HEIGHT, GOOGLE_SURFACE,\
+    GOOGLE_MARKER, MAPTIME_FORMAT, REGIONAL_LOCATION, REGIONAL_LOCATION_ID,\
+    FORECAST_LOCATION, FORECAST_LOCATION_ID, OBSERVATION_LOCATION,\
+    OBSERVATION_LOCATION_ID, FORECASTMAP_SLIDER, OBSERVATIONMAP_SLIDER,\
+    FORECASTMAP_LAYER_SELECTION, OBSERVATIONMAP_LAYER_SELECTION, TZ, TZUK,\
+    TEMPERATUREUNITS
 
 @utilities.panelbusy('LeftPane')
 def observation():
@@ -47,6 +50,7 @@ def observation():
         WINDOW.setProperty('Current.Humidity', str(round(float(latest_obs.get('H', 'n/a')))).split('.')[0])#@UndefinedVariable
 
         WINDOW.setProperty('HourlyObservation.IsFetched', 'true')#@UndefinedVariable
+
     except KeyError as e:
         e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), HOURLY_LOCATION_OBSERVATION_URL)
         raise
@@ -64,6 +68,7 @@ def daily():
         for p, period in enumerate(dv['Location']['Period']):
             WINDOW.setProperty('Day%d.Title' %p, time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
             WINDOW.setProperty('Daily.%d.ShortDay' % (p+1), time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
+            WINDOW.setProperty('Daily.%d.ShortDate' % (p+1), time.strftime(SHORT_DATE_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
             for rep in period['Rep']:
                 weather_type = rep.get('W', 'na')
                 if rep.get('$') == 'Day':
@@ -75,7 +80,7 @@ def daily():
                     WINDOW.setProperty('Day%d.WindDirection' % p, rep.get('D', 'na').lower())#@UndefinedVariable
 
                     #"Extended" properties used by some skins.
-                    WINDOW.setProperty('Daily.%d.HighTemperature' % (p+1), rep.get('Dm', 'na'))#@UndefinedVariable
+                    WINDOW.setProperty('Daily.%d.HighTemperature' % (p+1), utilities.localised_temperature(rep.get('Dm', 'na'))+TEMPERATUREUNITS)#@UndefinedVariable
                     WINDOW.setProperty('Daily.%d.HighTempIcon' % (p+1), rep.get('Dm'))#@UndefinedVariable
                     WINDOW.setProperty('Daily.%d.Outlook' % (p+1), WEATHER_CODES.get(weather_type)[1])#@UndefinedVariable
                     WINDOW.setProperty('Daily.%d.OutlookIcon' % (p+1), "%s.png" % WEATHER_CODES.get(weather_type, 'na')[0])#@UndefinedVariable
@@ -87,7 +92,7 @@ def daily():
                     WINDOW.setProperty('Day%d.LowTemp' %p, rep.get('Nm', 'na'))#@UndefinedVariable
                     WINDOW.setProperty('Day%d.LowTempIcon' %p, rep.get('Nm'))#@UndefinedVariable
 
-                    WINDOW.setProperty('Daily.%d.LowTemperature' % (p+1), rep.get('Nm', 'na'))#@UndefinedVariable
+                    WINDOW.setProperty('Daily.%d.LowTemperature' % (p+1), utilities.localised_temperature(rep.get('Nm', 'na'))+TEMPERATUREUNITS)#@UndefinedVariable
                     WINDOW.setProperty('Daily.%d.LowTempIcon' % (p+1), rep.get('Nm'))#@UndefinedVariable
 
     except KeyError as e:
@@ -116,11 +121,11 @@ def threehourly():
                 WINDOW.setProperty('Hourly.%d.WindDirection' % count, rep.get('D', 'na').lower())#@UndefinedVariable
                 WINDOW.setProperty('Hourly.%d.GustSpeed' % count, rep.get('G', 'n/a'))#@UndefinedVariable
                 WINDOW.setProperty('Hourly.%d.UVIndex' % count, rep.get('U', 'n/a'))#@UndefinedVariable
-                WINDOW.setProperty('Hourly.%d.Precipitation' % count, rep.get('Pp'))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.Precipitation' % count, rep.get('Pp') + "%")#@UndefinedVariable
                 WINDOW.setProperty('Hourly.%d.OutlookIcon' % count, "%s.png" % WEATHER_CODES.get(weather_type, 'na')[0])#@UndefinedVariable
-                WINDOW.setProperty('Hourly.%d.Day' % count, time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.ShortDate' % count, time.strftime(SHORT_DATE_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
                 WINDOW.setProperty('Hourly.%d.Time' % count, utilities.minutes_as_time(int(rep.get('$'))))#@UndefinedVariable
-                WINDOW.setProperty('Hourly.%d.Temperature' % count, utilities.rownd(utilities.localised_temperature(rep.get('T', 'na'))))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.Temperature' % count, utilities.rownd(utilities.localised_temperature(rep.get('T', 'na')))+TEMPERATUREUNITS)#@UndefinedVariable
                 WINDOW.setProperty('Hourly.%d.ActualTempIcon' % count, rep.get('T', 'na'))#@UndefinedVariable
                 WINDOW.setProperty('Hourly.%d.FeelsLikeTemp' % count, utilities.rownd(utilities.localised_temperature(rep.get('F', 'na'))))#@UndefinedVariable
                 WINDOW.setProperty('Hourly.%d.FeelsLikeTempIcon' % count, rep.get('F', 'na'))#@UndefinedVariable
