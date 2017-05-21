@@ -40,6 +40,7 @@ def main():
     WINDOW.setProperty('WeatherProvider', ADDON.getAddonInfo('name'))#@UndefinedVariable
     WINDOW.setProperty('WeatherProviderLogo', ADDON_BANNER_PATH)#@UndefinedVariable
     WINDOW.setProperty('ObservationLocation', ADDON.getSetting('ObservationLocation'))#@UndefinedVariable
+    WINDOW.setProperty('Current.Location', ADDON.getSetting('ObservationLocation'))#@UndefinedVariable
     WINDOW.setProperty('ForecastLocation', ADDON.getSetting('ForecastLocation'))#@UndefinedVariable
     WINDOW.setProperty('RegionalLocation', ADDON.getSetting('RegionalLocation'))#@UndefinedVariable
     WINDOW.setProperty('Location1', ADDON.getSetting('ForecastLocation'))#@UndefinedVariable
