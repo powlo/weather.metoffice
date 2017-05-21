@@ -106,29 +106,29 @@ def threehourly():
         dv = data['SiteRep']['DV']
         dataDate = utilities.strptime(dv.get('dataDate').rstrip('Z'), DATAPOINT_DATETIME_FORMAT).replace(tzinfo=pytz.utc)
         WINDOW.setProperty('3HourlyForecast.IssuedAt', dataDate.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
-        count = 0
+        count = 1
         for period in dv['Location']['Period']:
             for rep in period['Rep']:
                 #extra xbmc targeted info:
                 weather_type = rep.get('W', 'na')
-                WINDOW.setProperty('3Hourly%d.Outlook' % count, WEATHER_CODES.get(weather_type)[1])#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.WindSpeed' % count, rep.get('S', 'n/a'))#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.WindDirection' % count, rep.get('D', 'na').lower())#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.GustSpeed' % count, rep.get('G', 'n/a'))#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.UVIndex' % count, rep.get('U', 'n/a'))#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.Precipitation' % count, rep.get('Pp'))#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.OutlookIcon' % count, WEATHER_ICON_PATH % WEATHER_CODES.get(weather_type, 'na')[0])#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.Day' % count, time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.Time' % count, utilities.minutes_as_time(int(rep.get('$'))))#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.ActualTemp' % count, utilities.rownd(utilities.localised_temperature(rep.get('T', 'na'))))#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.ActualTempIcon' % count, rep.get('T', 'na'))#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.FeelsLikeTemp' % count, utilities.rownd(utilities.localised_temperature(rep.get('F', 'na'))))#@UndefinedVariable
-                WINDOW.setProperty('3Hourly%d.FeelsLikeTempIcon' % count, rep.get('F', 'na'))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.Outlook' % count, WEATHER_CODES.get(weather_type)[1])#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.WindSpeed' % count, rep.get('S', 'n/a'))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.WindDirection' % count, rep.get('D', 'na').lower())#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.GustSpeed' % count, rep.get('G', 'n/a'))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.UVIndex' % count, rep.get('U', 'n/a'))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.Precipitation' % count, rep.get('Pp'))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.OutlookIcon' % count, "%s.png" % WEATHER_CODES.get(weather_type, 'na')[0])#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.Day' % count, time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.Time' % count, utilities.minutes_as_time(int(rep.get('$'))))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.Temperature' % count, utilities.rownd(utilities.localised_temperature(rep.get('T', 'na'))))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.ActualTempIcon' % count, rep.get('T', 'na'))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.FeelsLikeTemp' % count, utilities.rownd(utilities.localised_temperature(rep.get('F', 'na'))))#@UndefinedVariable
+                WINDOW.setProperty('Hourly.%d.FeelsLikeTempIcon' % count, rep.get('F', 'na'))#@UndefinedVariable
                 count +=1
     except KeyError as e:
         e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), THREEHOURLY_LOCATION_FORECAST_URL)
         raise
-    WINDOW.setProperty('3HourlyForecast.IsFetched', 'true')#@UndefinedVariable
+    WINDOW.setProperty('Hourly.IsFetched', 'true')#@UndefinedVariable
 
 @utilities.panelbusy('RightPane')
 def text():
