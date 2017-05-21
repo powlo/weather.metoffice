@@ -63,24 +63,38 @@ def daily():
         WINDOW.setProperty('DailyForecast.IssuedAt', dataDate.astimezone(TZ).strftime(ISSUEDAT_FORMAT))#@UndefinedVariable
         for p, period in enumerate(dv['Location']['Period']):
             WINDOW.setProperty('Day%d.Title' %p, time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
+            WINDOW.setProperty('Daily.%d.ShortDay' % (p+1), time.strftime(SHORT_DAY_FORMAT, time.strptime(period.get('value'), DATAPOINT_DATE_FORMAT)))#@UndefinedVariable
             for rep in period['Rep']:
                 weather_type = rep.get('W', 'na')
                 if rep.get('$') == 'Day':
                     WINDOW.setProperty('Day%d.HighTemp' %p, rep.get('Dm', 'na'))#@UndefinedVariable
                     WINDOW.setProperty('Day%d.HighTempIcon' %p, rep.get('Dm'))#@UndefinedVariable
                     WINDOW.setProperty('Day%d.Outlook' %p, WEATHER_CODES.get(weather_type)[1])#@UndefinedVariable
-                    WINDOW.setProperty('Day%d.OutlookIcon' % p, WEATHER_ICON_PATH % WEATHER_CODES.get(weather_type, 'na')[0])#@UndefinedVariable
+                    WINDOW.setProperty('Day%d.OutlookIcon' % p, "%s.png" % WEATHER_CODES.get(weather_type, 'na')[0])#@UndefinedVariable
                     WINDOW.setProperty('Day%d.WindSpeed' % p,  rep.get('S', 'na'))#@UndefinedVariable
                     WINDOW.setProperty('Day%d.WindDirection' % p, rep.get('D', 'na').lower())#@UndefinedVariable
+
+                    #"Extended" properties used by some skins.
+                    WINDOW.setProperty('Daily.%d.HighTemperature' % (p+1), rep.get('Dm', 'na'))#@UndefinedVariable
+                    WINDOW.setProperty('Daily.%d.HighTempIcon' % (p+1), rep.get('Dm'))#@UndefinedVariable
+                    WINDOW.setProperty('Daily.%d.Outlook' % (p+1), WEATHER_CODES.get(weather_type)[1])#@UndefinedVariable
+                    WINDOW.setProperty('Daily.%d.OutlookIcon' % (p+1), "%s.png" % WEATHER_CODES.get(weather_type, 'na')[0])#@UndefinedVariable
+                    WINDOW.setProperty('Daily.%d.FanartCode' % (p+1), WEATHER_CODES.get(weather_type, 'na')[0])#@UndefinedVariable
+                    WINDOW.setProperty('Daily.%d.WindSpeed' % (p+1),  rep.get('S', 'na'))#@UndefinedVariable
+                    WINDOW.setProperty('Daily.%d.WindDirection' % (p+1), rep.get('D', 'na').lower())#@UndefinedVariable
 
                 elif rep.get('$') == 'Night':
                     WINDOW.setProperty('Day%d.LowTemp' %p, rep.get('Nm', 'na'))#@UndefinedVariable
                     WINDOW.setProperty('Day%d.LowTempIcon' %p, rep.get('Nm'))#@UndefinedVariable
+
+                    WINDOW.setProperty('Daily.%d.LowTemperature' % (p+1), rep.get('Nm', 'na'))#@UndefinedVariable
+                    WINDOW.setProperty('Daily.%d.LowTempIcon' % (p+1), rep.get('Nm'))#@UndefinedVariable
+
     except KeyError as e:
         e.args = ("Key Error in JSON File", "Key '{0}' not found while processing file from url:".format(e.args[0]), DAILY_LOCATION_FORECAST_URL)
         raise
 
-    WINDOW.setProperty('DailyForecast.IsFetched', 'true')#@UndefinedVariable
+    WINDOW.setProperty('Daily.IsFetched', 'true')#@UndefinedVariable
 
 @utilities.panelbusy('RightPane')
 def threehourly():
@@ -207,7 +221,7 @@ def forecastlayer():
 @utilities.panelbusy('RightPane')
 def observationlayer():
     utilities.log( "Fetching '{0}' Observation Map with index '{1}'...".format(OBSERVATIONMAP_LAYER_SELECTION, OBSERVATIONMAP_SLIDER))
-    
+
     with urlcache.URLCache(ADDON_DATA_PATH) as cache:
         surface = cache.get(GOOGLE_SURFACE, lambda x:  datetime.utcnow() + timedelta(days=30))
         marker = cache.get(GOOGLE_MARKER, lambda x:  datetime.utcnow() + timedelta(days=30))
@@ -299,4 +313,3 @@ def image_resize(filename):
     (width, height) = img.size
     if width == RAW_DATAPOINT_IMG_WIDTH:
         img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH, height-CROP_HEIGHT)).save(filename, img.format)
-    
