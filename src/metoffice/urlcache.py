@@ -6,9 +6,11 @@ import urllib2
 import tempfile
 import json
 import socket
+import shutil
 
 import utilities
-import shutil
+
+throwaway = datetime.strptime('20170101', '%Y%m%d')
 
 class URLCache(object):
     TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
