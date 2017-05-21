@@ -10,7 +10,7 @@ import shutil
 
 import utilities
 
-throwaway = datetime.strptime('20170101', '%Y%m%d')
+throwaway = utilities.strptime('20170101', '%Y%m%d')
 
 class URLCache(object):
     TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
