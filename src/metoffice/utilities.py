@@ -55,6 +55,24 @@ def panelbusy(pane):
         return wrapper
     return decorate
 
+def f_or_nla(f):
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        try:
+            return f(*args, **kwds)
+        except KeyError as e:
+            return 'n/a'
+    return wrapper
+
+def f_or_na(f):
+    @wraps(f)
+    def wrapper(*args, **kwds):
+        try:
+            return f(*args, **kwds)
+        except KeyError as e:
+            return 'na'
+    return wrapper
+
 def minutes_as_time(minutes):
     """
     Takes an integer number of minutes and returns it
@@ -101,8 +119,9 @@ def localised_temperature(t):
 #Convert miles per hour to kilomenters per hour
 #Required because Kodi assumes that wind speed is provided in
 #kilometers per hour
-def mph_to_kmph(s):
-    return s * 1.609344;
+@f_or_nla
+def mph_to_kmph(obj, key):
+    return str(round(float(obj[key]) * 1.609344))
 
 def gettext(s):
     """

@@ -41,7 +41,8 @@ def observation():
         WINDOW.setProperty('Current.Pressure', latest_obs.get('P', 'n/a'))#@UndefinedVariable
         WINDOW.setProperty('Current.Temperature', str(round(float(latest_obs.get('T', 'n/a')))).split('.')[0])#@UndefinedVariable
         WINDOW.setProperty('Current.FeelsLike', 'n/a')#@UndefinedVariable
-        WINDOW.setProperty('Current.Wind', str(round(utilities.mph_to_kmph(float(latest_obs.get('S', 'n/a'))))))#@UndefinedVariable
+        #if we get Wind, then convert it to kmph.
+        WINDOW.setProperty('Current.Wind', utilities.mph_to_kmph(latest_obs, 'S'))#@UndefinedVariable
         WINDOW.setProperty('Current.WindDirection', latest_obs.get('D', 'n/a'))#@UndefinedVariable
         WINDOW.setProperty('Current.WindGust', latest_obs.get('G', 'n/a'))#@UndefinedVariable
         WINDOW.setProperty('Current.OutlookIcon', '%s.png' % WEATHER_CODES[latest_obs.get('W', 'na')][0])#@UndefinedVariable
