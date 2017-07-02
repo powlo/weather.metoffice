@@ -9,3 +9,8 @@ v1.0.2
 - Use forecast location as the displayed location
 - removed non responsive geoip providers
 - provided graceful fail for non-responsive geoip providers
+
+v2.0.0
+- updated for Krypton.
+- Fetch observation, daily and three hourly by default.
+- Update addon icons.
