@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import datetime
 from PIL import Image
@@ -1042,6 +1043,15 @@ class TestProperties(XBMCTestCase):
         self.assertEqual(('Key Error in JSON File',
                           "Key 'SiteRep' not found while processing file from url:",
                           self.constants.THREEHOURLY_LOCATION_FORECAST_URL), cm.exception.args)
+
+    def test_sunrise(self):
+        #Set a dummy latitude, longitude
+        from metoffice import properties
+        properties.sunrisesunset()
+        self.assertIn('Today.Sunrise', self.window_properties)
+        self.assertTrue(re.match('\d\d:\d\d', self.window_properties['Today.Sunrise']))
+        self.assertIn('Today.Sunset', self.window_properties)
+        self.assertTrue(re.match('\d\d:\d\d', self.window_properties['Today.Sunset']))
 
     @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
