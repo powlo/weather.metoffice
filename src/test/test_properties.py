@@ -30,29 +30,31 @@ PRECIPITATION_LAYER_HOUR0_URL = 'http://datapoint.metoffice.gov.uk/public/data/l
 PRECIPITATION_LAYER_HOUR36_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=36&key=12345'
 OBSERVATION_LAYER0_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxobs/RADAR_UK_Composite_Highres/png?TIME=2014-04-01T16:30:00Z&key=12345'
 OBSERVATION_LAYER1_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxobs/RADAR_UK_Composite_Highres/png?TIME=2014-04-01T13:30:00Z&key=12345'
+
+
 class TestProperties(XBMCTestCase):
     def setUp(self):
         super(TestProperties, self).setUp()
         self.xbmc.translatePath.side_effect = lambda x: x
 
-        self.settings = {'ApiKey' : '12345',
-                         'GeoLocation' : 'true',
-                         'GeoIPProvider' : '0',
-                         'ForecastLocation' : 'CAMBRIDGE NIAB',
-                         'ForecastLocationID' : '99123',
-                         'ForecastLocationLatitude' : '52.245',
-                         'ForecastLocationLongitude' : '0.103',
-                         'ObservationLocation' : 'BEDFORD',
-                         'ObservationLocationID' : '3560',
-                         'RegionalLocation' : 'Wales',
-                         'RegionalLocationID' : '516'
+        self.settings = {'ApiKey': '12345',
+                         'GeoLocation': 'true',
+                         'GeoIPProvider': '0',
+                         'ForecastLocation': 'CAMBRIDGE NIAB',
+                         'ForecastLocationID': '99123',
+                         'ForecastLocationLatitude': '52.245',
+                         'ForecastLocationLongitude': '0.103',
+                         'ObservationLocation': 'BEDFORD',
+                         'ObservationLocationID': '3560',
+                         'RegionalLocation': 'Wales',
+                         'RegionalLocationID': '516'
                          }
 
-        self.window_properties = {'ForecastMap.LayerSelection' : 'Rainfall',
-                                  'ObservationMap.LayerSelection' : 'Rainfall',
-                                  'ForecastMap.Slider' : '0',
-                                  'ObservationMap.Slider' : '0',
-                                  'Weather.CurrentView' : 'Doesnt matter'}
+        self.window_properties = {'ForecastMap.LayerSelection': 'Rainfall',
+                                  'ObservationMap.LayerSelection': 'Rainfall',
+                                  'ForecastMap.Slider': '0',
+                                  'ObservationMap.Slider': '0',
+                                  'Weather.CurrentView': 'Doesnt matter'}
 
         addon = self.xbmcaddon.Addon.return_value
         addon.getSetting.side_effect = self.mock_getSetting
@@ -65,13 +67,14 @@ class TestProperties(XBMCTestCase):
         from metoffice import constants
         self.constants = constants
 
-        #create a disposable area for testing
+        # create a disposable area for testing
         try:
             os.mkdir(RESULTS_FOLDER)
         except OSError:
             pass
 
-        shutil.copy(os.path.join(DATA_FOLDER, 'precipitation_layer.png'), os.path.join(RESULTS_FOLDER, 'precipitation_layer.png'))
+        shutil.copy(os.path.join(DATA_FOLDER, 'precipitation_layer.png'),
+                    os.path.join(RESULTS_FOLDER, 'precipitation_layer.png'))
 
     def mock_getSetting(self, key):
         return self.settings[key]
@@ -87,21 +90,21 @@ class TestProperties(XBMCTestCase):
 
     def mock_get(self, url, expiry_callback, resource_callback=None):
         return {
-                self.constants.FORECAST_SITELIST_URL: FORECASTSITELIST,
-                self.constants.DAILY_LOCATION_FORECAST_URL: FORECASTDAILY,
-                self.constants.THREEHOURLY_LOCATION_FORECAST_URL: FORECAST3HOURLY,
-                self.constants.FORECAST_LAYER_CAPABILITIES_URL: FORECASTLAYERCAPABILITIES,
-                self.constants.OBSERVATION_LAYER_CAPABILITIES_URL: OBSERVATIONLAYERCAPABILITIES,
-                self.constants.TEXT_FORECAST_URL: FORECASTTEXT,
-                self.constants.HOURLY_LOCATION_OBSERVATION_URL: OBSERVATIONHOURLY,
-                self.constants.GEOIP_PROVIDER['url']:GEOIP,
-                self.constants.GOOGLE_SURFACE: GOOGLE_SURFACE_IMAGE,
-                self.constants.GOOGLE_MARKER: GOOGLE_MARKER_IMAGE,
-                PRECIPITATION_LAYER_HOUR0_URL: PRECIPITATION_LAYER_IMAGE,
-                PRECIPITATION_LAYER_HOUR36_URL: PRECIPITATION_LAYER_IMAGE,
-                OBSERVATION_LAYER0_URL: PRECIPITATION_LAYER_IMAGE,
-                OBSERVATION_LAYER1_URL: PRECIPITATION_LAYER_IMAGE,
-                }[url]
+            self.constants.FORECAST_SITELIST_URL: FORECASTSITELIST,
+            self.constants.DAILY_LOCATION_FORECAST_URL: FORECASTDAILY,
+            self.constants.THREEHOURLY_LOCATION_FORECAST_URL: FORECAST3HOURLY,
+            self.constants.FORECAST_LAYER_CAPABILITIES_URL: FORECASTLAYERCAPABILITIES,
+            self.constants.OBSERVATION_LAYER_CAPABILITIES_URL: OBSERVATIONLAYERCAPABILITIES,
+            self.constants.TEXT_FORECAST_URL: FORECASTTEXT,
+            self.constants.HOURLY_LOCATION_OBSERVATION_URL: OBSERVATIONHOURLY,
+            self.constants.GEOIP_PROVIDER['url']: GEOIP,
+            self.constants.GOOGLE_SURFACE: GOOGLE_SURFACE_IMAGE,
+            self.constants.GOOGLE_MARKER: GOOGLE_MARKER_IMAGE,
+            PRECIPITATION_LAYER_HOUR0_URL: PRECIPITATION_LAYER_IMAGE,
+            PRECIPITATION_LAYER_HOUR36_URL: PRECIPITATION_LAYER_IMAGE,
+            OBSERVATION_LAYER0_URL: PRECIPITATION_LAYER_IMAGE,
+            OBSERVATION_LAYER1_URL: PRECIPITATION_LAYER_IMAGE,
+        }[url]
 
     def mock_panelbusy(self, pane):
         def decorate(f):
@@ -142,7 +145,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Current.Humidity', self.window_properties)
         self.assertEqual(self.window_properties['Current.Humidity'], '79')
 
-        #Test exceptions when reports don't contain list items.
+        # Test exceptions when reports don't contain list items.
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=OBSERVATIONHOURLY2)
         properties.observation()
         self.assertIn('HourlyObservation.IssuedAt', self.window_properties)
@@ -170,7 +173,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Current.Humidity', self.window_properties)
         self.assertEqual(self.window_properties['Current.Humidity'], '66')
 
-        #Test exception handling when given json without proper keys
+        # Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
         with self.assertRaises(KeyError) as cm:
             properties.observation()
@@ -262,7 +265,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Day4.OutlookIcon', self.window_properties)
         self.assertEqual(self.window_properties['Day4.OutlookIcon'], '11.png')
 
-        #Test exception handling when given json without proper keys
+        # Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
         with self.assertRaises(KeyError) as cm:
             properties.daily()
@@ -1036,7 +1039,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Hourly.36.OutlookIcon', self.window_properties)
         self.assertEqual(self.window_properties['Hourly.36.OutlookIcon'], '29.png')
 
-        #Test exception handling when given json without proper keys
+        # Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
         with self.assertRaises(KeyError) as cm:
             properties.threehourly()
@@ -1045,7 +1048,7 @@ class TestProperties(XBMCTestCase):
                           self.constants.THREEHOURLY_LOCATION_FORECAST_URL), cm.exception.args)
 
     def test_sunrise(self):
-        #Set a dummy latitude, longitude
+        # Set a dummy latitude, longitude
         from metoffice import properties
         properties.sunrisesunset()
         self.assertIn('Today.Sunrise', self.window_properties)
@@ -1066,19 +1069,23 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Text.Paragraph0.Title', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph0.Title'], 'Headline')
         self.assertIn('Text.Paragraph0.Content', self.window_properties)
-        self.assertEqual(self.window_properties['Text.Paragraph0.Content'], 'Rain clearing eastwards, showers following, with increasing winds.')
+        self.assertEqual(self.window_properties['Text.Paragraph0.Content'],
+                         'Rain clearing eastwards, showers following, with increasing winds.')
         self.assertIn('Text.Paragraph1.Title', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph1.Title'], 'This Evening and Tonight')
         self.assertIn('Text.Paragraph1.Content', self.window_properties)
-        self.assertEqual(self.window_properties['Text.Paragraph1.Content'], 'Rain arriving in the far west around dusk will clear eastwards overnight, this heaviest in the west and over high ground, where winds will also become strong. Mild, with clear spells and scattered showers following. Minimum Temperature 5C.')
+        self.assertEqual(self.window_properties['Text.Paragraph1.Content'],
+                         'Rain arriving in the far west around dusk will clear eastwards overnight, this heaviest in the west and over high ground, where winds will also become strong. Mild, with clear spells and scattered showers following. Minimum Temperature 5C.')
         self.assertIn('Text.Paragraph2.Title', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph2.Title'], 'Tuesday')
         self.assertIn('Text.Paragraph2.Content', self.window_properties)
-        self.assertEqual(self.window_properties['Text.Paragraph2.Content'], 'Some dry and bright weather is likely at times but also scattered blustery, heavy showers. Remaining windy, especially around exposed coasts and hills where gales are likely. Maximum Temperature 9C.')
+        self.assertEqual(self.window_properties['Text.Paragraph2.Content'],
+                         'Some dry and bright weather is likely at times but also scattered blustery, heavy showers. Remaining windy, especially around exposed coasts and hills where gales are likely. Maximum Temperature 9C.')
         self.assertIn('Text.Paragraph3.Title', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph3.Title'], 'Wednesday to Friday')
         self.assertIn('Text.Paragraph3.Content', self.window_properties)
-        self.assertEqual(self.window_properties['Text.Paragraph3.Content'], 'Sunny spells and lighter winds on Wednesday, some showers along the coast. Wet and windy overnight, turning showery on Thursday and Friday, becoming wintry over hills.')
+        self.assertEqual(self.window_properties['Text.Paragraph3.Content'],
+                         'Sunny spells and lighter winds on Wednesday, some showers along the coast. Wet and windy overnight, turning showery on Thursday and Friday, becoming wintry over hills.')
         self.assertIn('Text.Paragraph4.Title', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph4.Title'], 'Saturday 1 Mar 2014 to Monday 10 Mar 2014')
         self.assertIn('Text.Paragraph4.Content', self.window_properties)
@@ -1088,7 +1095,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('Text.Paragraph5.Content', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph5.Content'], 'Current indications suggest a more typically unsettled pattern across the United Kingdom through much of March. Through this period we can expect to see fairly average conditions, which would mean spells of wet and windy weather, mostly in the north and west, but still some decent sunny spells in between. The best of the drier, brighter conditions is most likely in the south and east of the UK. Temperatures are likely to be around average, which may lead to more frequent incidences of frost compared to recent weeks.')
 
-        #Test exception handling when given json without proper keys
+        # Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
         with self.assertRaises(KeyError) as cm:
             properties.text()
@@ -1119,7 +1126,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('ForecastMap.IsFetched', self.window_properties)
         self.assertEqual(self.window_properties['ForecastMap.IsFetched'], 'true')
 
-        #Test exception handling when given json without proper keys
+        # Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
         with self.assertRaises(KeyError) as cm:
             properties.forecastlayer()
@@ -1127,8 +1134,8 @@ class TestProperties(XBMCTestCase):
                           "Key 'Layers' not found while processing file from url:",
                           self.constants.FORECAST_LAYER_CAPABILITIES_URL), cm.exception.args)
 
-        #Test exception handling when given corrupt BaseURL in json
-        #(We have provide partially valid json so execution can drop to the exception under test.)
+        # Test exception handling when given corrupt BaseURL in json
+        # (We have provide partially valid json so execution can drop to the exception under test.)
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=CORRUPTFORECASTLAYERCAPABILITIES)
         with self.assertRaises(KeyError) as cm:
             properties.forecastlayer()
@@ -1139,7 +1146,7 @@ class TestProperties(XBMCTestCase):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
         mock_cache.reset_mock()
 
-        #Test valid url is used when requesting with an invalid slider position
+        # Test valid url is used when requesting with an invalid slider position
         properties.FORECASTMAP_SLIDER = '-9'
         properties.forecastlayer()
         self.assertEqual(PRECIPITATION_LAYER_HOUR0_URL,
@@ -1151,7 +1158,7 @@ class TestProperties(XBMCTestCase):
         self.assertEqual(PRECIPITATION_LAYER_HOUR36_URL,
                          mock_cache.return_value.__enter__.return_value.get.call_args_list[3][0][0])
 
-        #Test response when given unknown layer name
+        # Test response when given unknown layer name
         properties.FORECASTMAP_LAYER_SELECTION = 'Unknown'
         with self.assertRaises(Exception) as cm:
             properties.forecastlayer()
@@ -1180,7 +1187,7 @@ class TestProperties(XBMCTestCase):
         self.assertIn('ObservationMap.IsFetched', self.window_properties)
         self.assertEqual(self.window_properties['ObservationMap.IsFetched'], 'true')
 
-        #Test exception handling when given json without proper keys
+        # Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
         with self.assertRaises(KeyError) as cm:
             properties.observationlayer()
@@ -1188,8 +1195,8 @@ class TestProperties(XBMCTestCase):
                           "Key 'Layers' not found while processing file from url:",
                           self.constants.OBSERVATION_LAYER_CAPABILITIES_URL), cm.exception.args)
 
-        #Test exception handling when given corrupt BaseURL in json
-        #(We have provide partially valid json so execution can drop to the exception under test.)
+        # Test exception handling when given corrupt BaseURL in json
+        # (We have provide partially valid json so execution can drop to the exception under test.)
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=CORRUPTOBSERVATIONLAYERCAPABILITIES)
         with self.assertRaises(KeyError) as cm:
             properties.observationlayer()
@@ -1200,7 +1207,7 @@ class TestProperties(XBMCTestCase):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
         mock_cache.reset_mock()
 
-        #Test valid url is used when requesting with an invalid slider position
+        # Test valid url is used when requesting with an invalid slider position
         properties.OBSERVATIONMAP_SLIDER = '-9'
         properties.observationlayer()
         self.assertEqual(OBSERVATION_LAYER0_URL,
@@ -1212,7 +1219,7 @@ class TestProperties(XBMCTestCase):
         self.assertEqual(OBSERVATION_LAYER1_URL,
                          mock_cache.return_value.__enter__.return_value.get.call_args_list[3][0][0])
 
-        #Test response when given unknown layer name
+        # Test response when given unknown layer name
         properties.OBSERVATIONMAP_LAYER_SELECTION = 'Unknown'
         with self.assertRaises(Exception) as cm:
             properties.observationlayer()
@@ -1278,7 +1285,7 @@ class TestProperties(XBMCTestCase):
         mock_panelbusy.side_effect = self.mock_panelbusy
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
-        #Assert that the pretend image in cache has not been resized
+        # Assert that the pretend image in cache has not been resized
         img = Image.open(PRECIPITATION_LAYER_IMAGE)
         (width, height) = img.size
         self.assertEqual(500, width)

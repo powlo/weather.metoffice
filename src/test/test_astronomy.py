@@ -1,10 +1,11 @@
 from test.xbmctestcase import XBMCTestCase
 import datetime
 
+
 class TestAstronomy(XBMCTestCase):
     def setUp(self):
-        #Setup contains mocks for xbmc modules that would normally
-        #not be found in an isolated test environment.
+        # Setup contains mocks for xbmc modules that would normally
+        # not be found in an isolated test environment.
         super(TestAstronomy, self).setUp()
 
     def test_basic(self):
@@ -14,11 +15,11 @@ class TestAstronomy(XBMCTestCase):
         """
         from metoffice import astronomy
         sun = astronomy.Sun()
-        #We get a sun object back
+        # We get a sun object back
         self.assertTrue(isinstance(sun, astronomy.Sun))
-        #which contains a sunrise datetime
+        # which contains a sunrise datetime
         self.assertTrue(isinstance(sun.sunrise(), datetime.time))
-        #and a sunset datetime
+        # and a sunset datetime
         self.assertTrue(isinstance(sun.sunset(), datetime.time))
 
     def test_known_time_place(self):
@@ -32,5 +33,5 @@ class TestAstronomy(XBMCTestCase):
         sun = astronomy.Sun(*london)
         sunrise = sun.sunrise(today)
         sunset = sun.sunset(today)
-        self.assertEqual(sunrise, datetime.time(4,28,38))
-        self.assertEqual(sunset, datetime.time(19,44    ,39))
+        self.assertEqual(sunrise, datetime.time(4, 28, 38))
+        self.assertEqual(sunset, datetime.time(19, 44, 39))

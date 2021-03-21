@@ -9,7 +9,8 @@ from datetime import datetime, time
 from constants import TZ
 
 # this module is not provided here. See text.
-#from timezone import LocalTimezone
+# from timezone import LocalTimezone
+
 
 class Sun:
     """
@@ -23,7 +24,8 @@ class Sun:
     s = sun(lat=49,long=3)
     print('sunrise at ',s.sunrise(when=datetime.datetime.now())
     """
-    def __init__(self, lat=52.37, lng=4.90): # default Amsterdam
+
+    def __init__(self, lat=52.37, lng=4.90):  # default Amsterdam
         self.lat = lat
         self.lng = lng
 
@@ -96,38 +98,39 @@ class Sun:
         The results are stored in the instance variables
         sunrise_t, sunset_t and solarnoon_t
         """
-        timezone = self.timezone # in hours, east is positive
+        timezone = self.timezone  # in hours, east is positive
         longitude = self.lng     # in decimal degrees, east is positive
         latitude = self.lat      # in decimal degrees, north is positive
 
-        time = self.time # percentage past midnight, i.e. noon  is 0.5
+        time = self.time  # percentage past midnight, i.e. noon  is 0.5
         day = self.day     # daynumber 1=1/1/1900
 
-        jday = day+2415018.5+time-timezone/24 # Julian day
+        jday = day+2415018.5+time-timezone/24  # Julian day
         jcent = (jday-2451545)/36525    # Julian century
 
         manom = 357.52911+jcent*(35999.05029-0.0001537*jcent)
-        mlong = 280.46646+jcent*(36000.76983+jcent*0.0003032)%360
+        mlong = 280.46646+jcent*(36000.76983+jcent*0.0003032) % 360
         eccent = 0.016708634-jcent*(0.000042037+0.0001537*jcent)
         mobliq = 23+(26+((21.448-jcent*(46.815+jcent*(0.00059-jcent*0.001813))))/60)/60
         obliq = mobliq+0.00256*cos(rad(125.04-1934.136*jcent))
         vary = tan(rad(obliq/2))*tan(rad(obliq/2))
-        seqcent = sin(rad(manom))*(1.914602-jcent*(0.004817+0.000014*jcent))+\
+        seqcent = sin(rad(manom))*(1.914602-jcent*(0.004817+0.000014*jcent)) +\
             sin(rad(2*manom))*(0.019993-0.000101*jcent)+sin(rad(3*manom))*0.000289
         struelong = mlong+seqcent
         sapplong = struelong-0.00569-0.00478*sin(rad(125.04-1934.136*jcent))
         declination = deg(asin(sin(rad(obliq))*sin(rad(sapplong))))
 
-        eqtime = 4*deg(vary*sin(2*rad(mlong))-2*eccent*sin(rad(manom))+\
-            4*eccent*vary*sin(rad(manom))*cos(2*rad(mlong))-\
-            0.5*vary*vary*sin(4*rad(mlong))-1.25*eccent*eccent*sin(2*rad(manom)))
+        eqtime = 4*deg(vary*sin(2*rad(mlong))-2*eccent*sin(rad(manom)) +
+                       4*eccent*vary*sin(rad(manom))*cos(2*rad(mlong)) -
+                       0.5*vary*vary*sin(4*rad(mlong))-1.25*eccent*eccent*sin(2*rad(manom)))
 
-        hourangle = deg(acos(cos(rad(90.833))/(cos(rad(latitude))*\
-            cos(rad(declination)))-tan(rad(latitude))*tan(rad(declination))))
+        hourangle = deg(acos(cos(rad(90.833))/(cos(rad(latitude)) *
+                                               cos(rad(declination)))-tan(rad(latitude))*tan(rad(declination))))
 
         self.solarnoon_t = (720-4*longitude-eqtime+timezone*60)/1440
         self.sunrise_t = self.solarnoon_t-hourangle*4/1440
         self.sunset_t = self.solarnoon_t+hourangle*4/1440
+
 
 """
 if __name__ == "__main__":

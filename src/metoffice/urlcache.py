@@ -1,4 +1,4 @@
-#A basic way of caching files associated with URLs
+# A basic way of caching files associated with URLs
 
 from datetime import datetime
 import os
@@ -11,6 +11,7 @@ import shutil
 import utilities
 
 throwaway = utilities.strptime('20170101', '%Y%m%d')
+
 
 class URLCache(object):
     TIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
@@ -25,7 +26,7 @@ class URLCache(object):
         try:
             fyle = open(self._file, 'r')
         except IOError:
-            #create the file and try again.
+            # create the file and try again.
             open(self._file, 'a').close()
             fyle = open(self._file, 'r')
         try:
@@ -51,7 +52,7 @@ class URLCache(object):
         flushlist = list()
         for url, entry in self._cache.iteritems():
             if not os.path.isfile(entry['resource']) or utilities.strptime(entry['expiry'], self.TIME_FORMAT) < datetime.utcnow():
-                    flushlist.append(url)
+                flushlist.append(url)
         for url in flushlist:
             self.remove(url)
 
@@ -70,9 +71,9 @@ class URLCache(object):
             else:
                 return entry['resource']
         except (KeyError, InvalidCacheError):
-            #(src, headers) = urllib.urlretrieve(url)
+            # (src, headers) = urllib.urlretrieve(url)
             try:
-                req = urllib2.Request(url, None, {'User-Agent' : 'Mozilla/5.0'})
+                req = urllib2.Request(url, None, {'User-Agent': 'Mozilla/5.0'})
                 response = urllib2.urlopen(req)
             except (socket.timeout, urllib2.URLError) as e:
                 e.args = (str(e), url)
@@ -87,6 +88,7 @@ class URLCache(object):
                 resource_callback(tmp.name)
             self._cache[url] = {'resource': tmp.name, 'expiry': expiry.strftime(self.TIME_FORMAT)}
             return tmp.name
+
 
 class InvalidCacheError(Exception):
     pass
