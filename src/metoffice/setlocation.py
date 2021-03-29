@@ -90,10 +90,10 @@ def main(location):
             ADDON.setSetting("%sID" % location, sitelist[selected]['id'])  # @UndefinedVariable
             ADDON.setSetting("%sLatitude" % location, str(sitelist[selected].get('latitude')))  # @UndefinedVariable
             ADDON.setSetting("%sLongitude" % location, str(sitelist[selected].get('longitude')))  # @UndefinedVariable
-            utilities.log("Setting '{location}' to '{name} ({distance})'".format(location=location,
-                                                                                 name=sitelist[selected]['name'].encode(
-                                                                                     'utf-8'),
-                                                                                 distance=sitelist[selected]['id']))
+            utilities.log("Setting '{location}' to '{name} ({id})'".format(location=location,
+                                                                           name=sitelist[selected]['name'].encode(
+                                                                               'utf-8'),
+                                                                           id=sitelist[selected]['id']))
 
 
 if __name__ == '__main__':
