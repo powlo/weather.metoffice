@@ -9,7 +9,7 @@ import xbmcgui  # @UnresolvedImport
 from constants import WEATHER_WINDOW_ID, ADDON_BROWSER_WINDOW_ID, DIALOG, WINDOW, TEMPERATUREUNITS, ADDON
 
 
-def log(msg, level=xbmc.LOGNOTICE):
+def log(msg, level=xbmc.LOGINFO):
     # by importing utilities all messages in xbmc log will be prepended with LOGPREFIX
     xbmc.log('weather.metoffice: {0}'.format(msg), level)
 
@@ -26,7 +26,7 @@ def failgracefully(f):
             return f(*args, **kwds)
         except Exception as e:
             e.args = map(str, e.args)
-            log(traceback.format_exc(), xbmc.LOGSEVERE)
+            log(traceback.format_exc(), xbmc.LOGERROR)
             if len(e.args) == 0 or e.args[0] == '':
                 e.args = ('Error',)
             if len(e.args) == 1:

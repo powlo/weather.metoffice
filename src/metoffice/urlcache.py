@@ -2,7 +2,7 @@
 
 from datetime import datetime
 import os
-import urllib2
+import urllib.request
 import tempfile
 import json
 import socket
@@ -50,7 +50,7 @@ class URLCache(object):
 
     def flush(self):
         flushlist = list()
-        for url, entry in self._cache.iteritems():
+        for url, entry in self._cache.items():
             if not os.path.isfile(entry['resource']) or \
                     utilities.strptime(entry['expiry'], self.TIME_FORMAT) < datetime.utcnow():
                 flushlist.append(url)
@@ -75,9 +75,9 @@ class URLCache(object):
         except (KeyError, InvalidCacheError):
             # (src, headers) = urllib.urlretrieve(url)
             try:
-                req = urllib2.Request(url, None, {'User-Agent': 'Mozilla/5.0'})
-                response = urllib2.urlopen(req)
-            except (socket.timeout, urllib2.URLError) as e:
+                req = urllib.request.Request(url, None, {'User-Agent': 'Mozilla/5.0'})
+                response = urllib.request.urlopen(req)
+            except (socket.timeout, urllib.request.URLError) as e:
                 e.args = (str(e), url)
                 raise
             page = response.read()

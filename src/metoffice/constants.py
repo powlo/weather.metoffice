@@ -1,7 +1,7 @@
 import xbmc  # @UnresolvedImport
 import xbmcgui  # @UnresolvedImport
 import xbmcaddon  # @UnresolvedImport
-import urllib
+import urllib.parse
 import pytz
 WEATHER_WINDOW_ID = 12600
 ADDON_BROWSER_WINDOW_ID = 10040
@@ -21,7 +21,7 @@ KEYBOARD = xbmc.Keyboard()
 ADDON_BANNER_PATH = xbmc.translatePath('special://home/addons/%s/resources/banner.png' % ADDON.getAddonInfo('id'))
 ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % ADDON.getAddonInfo('id'))
 
-TEMPERATUREUNITS = unicode(xbmc.getRegion('tempunit'), encoding='utf-8')
+TEMPERATUREUNITS = xbmc.getRegion('tempunit')
 
 API_KEY = ADDON.getSetting('ApiKey')
 GEOLOCATION = ADDON.getSetting('GeoLocation')
@@ -111,7 +111,7 @@ FORECAST_SITELIST_URL = URL_TEMPLATE.format(
     group='all',
     datatype='json',
     object='sitelist',
-    get=urllib.unquote(urllib.urlencode((('key', API_KEY),))))
+    get=urllib.parse.unquote(urllib.parse.urlencode((('key', API_KEY),))))
 
 OBSERVATION_SITELIST_URL = URL_TEMPLATE.format(
     format='val',
@@ -119,7 +119,7 @@ OBSERVATION_SITELIST_URL = URL_TEMPLATE.format(
     group='all',
     datatype='json',
     object='sitelist',
-    get=urllib.unquote(urllib.urlencode((('key', API_KEY),))))
+    get=urllib.parse.unquote(urllib.parse.urlencode((('key', API_KEY),))))
 
 REGIONAL_SITELIST_URL = URL_TEMPLATE.format(
     format='txt',
@@ -127,7 +127,7 @@ REGIONAL_SITELIST_URL = URL_TEMPLATE.format(
     group='regionalforecast',
     datatype='json',
     object='sitelist',
-    get=urllib.unquote(urllib.urlencode((('key', API_KEY),))))
+    get=urllib.parse.unquote(urllib.parse.urlencode((('key', API_KEY),))))
 
 DAILY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(
     format='val',
@@ -135,7 +135,7 @@ DAILY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(
     group='all',
     datatype='json',
     object=FORECAST_LOCATION_ID,
-    get=urllib.unquote(urllib.urlencode((('res', 'daily'), ('key', API_KEY)))))
+    get=urllib.parse.unquote(urllib.parse.urlencode((('res', 'daily'), ('key', API_KEY)))))
 
 THREEHOURLY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(
     format='val',
@@ -143,7 +143,7 @@ THREEHOURLY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(
     group='all',
     datatype='json',
     object=FORECAST_LOCATION_ID,
-    get=urllib.unquote(urllib.urlencode((('res', '3hourly'), ('key', API_KEY)))))
+    get=urllib.parse.unquote(urllib.parse.urlencode((('res', '3hourly'), ('key', API_KEY)))))
 
 HOURLY_LOCATION_OBSERVATION_URL = URL_TEMPLATE.format(
     format='val',
@@ -151,7 +151,7 @@ HOURLY_LOCATION_OBSERVATION_URL = URL_TEMPLATE.format(
     group='all',
     datatype='json',
     object=OBSERVATION_LOCATION_ID,
-    get=urllib.unquote(urllib.urlencode((('res', 'hourly'), ('key', API_KEY)))))
+    get=urllib.parse.unquote(urllib.parse.urlencode((('res', 'hourly'), ('key', API_KEY)))))
 
 TEXT_FORECAST_URL = URL_TEMPLATE.format(
     format='txt',
@@ -159,7 +159,7 @@ TEXT_FORECAST_URL = URL_TEMPLATE.format(
     group='regionalforecast',
     datatype='json',
     object=REGIONAL_LOCATION_ID,
-    get=urllib.unquote(urllib.urlencode((('key', API_KEY),))))
+    get=urllib.parse.unquote(urllib.parse.urlencode((('key', API_KEY),))))
 
 FORECAST_LAYER_CAPABILITIES_URL = URL_TEMPLATE.format(
     format='layer',
@@ -167,7 +167,7 @@ FORECAST_LAYER_CAPABILITIES_URL = URL_TEMPLATE.format(
     group='all',
     datatype='json',
     object='capabilities',
-    get=urllib.unquote(urllib.urlencode((('key', API_KEY),))))
+    get=urllib.parse.unquote(urllib.parse.urlencode((('key', API_KEY),))))
 
 OBSERVATION_LAYER_CAPABILITIES_URL = URL_TEMPLATE.format(
     format='layer',
@@ -175,7 +175,7 @@ OBSERVATION_LAYER_CAPABILITIES_URL = URL_TEMPLATE.format(
     group='all',
     datatype='json',
     object='capabilities',
-    get=urllib.unquote(urllib.urlencode((('key', API_KEY),))))
+    get=urllib.parse.unquote(urllib.parse.urlencode((('key', API_KEY),))))
 
 LONG_REGIONAL_NAMES = {'os': 'Orkney and Shetland',
                        'he': 'Highland and Eilean Siar',

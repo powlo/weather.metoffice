@@ -87,7 +87,7 @@ class Sun:
 
         self.timezone = 0
         offset = when.utcoffset()
-        if not offset is None:
+        if offset is not None:
             self.timezone = offset.seconds/3600.0
 
     def __calc(self):

@@ -8,13 +8,11 @@ is set.
 import sys
 from datetime import datetime, timedelta
 from operator import itemgetter
-from itertools import ifilter
 import json
-import urlcache
-import utilities
-from utilities import gettext as _
+from metoffice import utilities, urlcache
+from metoffice.utilities import gettext as _
 
-from constants import API_KEY, ADDON_DATA_PATH, GEOIP_PROVIDER, KEYBOARD, DIALOG, ADDON, FORECAST_SITELIST_URL,\
+from metoffice.constants import API_KEY, ADDON_DATA_PATH, GEOIP_PROVIDER, KEYBOARD, DIALOG, ADDON, FORECAST_SITELIST_URL,\
     OBSERVATION_SITELIST_URL, REGIONAL_SITELIST_URL, LONG_REGIONAL_NAMES, GEOLOCATION
 
 
@@ -36,7 +34,7 @@ def getsitelist(location, text=""):
                 # Change regional names to long versions. Untouched otherwise.
                 site['name'] = LONG_REGIONAL_NAMES.get(site['name'], site['name'])
         if text:
-            sitelist[:] = ifilter(lambda x: x['name'].lower().find(text.lower()) >= 0, sitelist)
+            sitelist[:] = filter(lambda x: x['name'].lower().find(text.lower()) >= 0, sitelist)
 
         if GEOLOCATION == 'true':
             geo = {}
