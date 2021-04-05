@@ -6,7 +6,7 @@ import math
 import xbmc  # @UnresolvedImport
 import xbmcgui  # @UnresolvedImport
 
-from constants import WEATHER_WINDOW_ID, ADDON_BROWSER_WINDOW_ID, DIALOG, WINDOW, TEMPERATUREUNITS, ADDON
+from .constants import WEATHER_WINDOW_ID, ADDON_BROWSER_WINDOW_ID, DIALOG, WINDOW, TEMPERATUREUNITS, ADDON
 
 
 def log(msg, level=xbmc.LOGINFO):

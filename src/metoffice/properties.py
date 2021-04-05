@@ -1,11 +1,13 @@
 import time
 import pytz
 from datetime import datetime, timedelta
-import utilities
 import json
 from PIL import Image
-import urlcache
-from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT,\
+
+from . import astronomy
+from . import utilities
+from . import urlcache
+from .constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT,\
     SHORT_DAY_FORMAT, SHORT_DATE_FORMAT, TIME_FORMAT, DATAPOINT_DATE_FORMAT,\
     WEATHER_CODES, WINDOW, DAILY_LOCATION_FORECAST_URL,\
     API_KEY, ADDON_DATA_PATH, THREEHOURLY_LOCATION_FORECAST_URL,\
@@ -17,8 +19,6 @@ from constants import ISSUEDAT_FORMAT, DATAPOINT_DATETIME_FORMAT,\
     OBSERVATION_LOCATION_ID, FORECASTMAP_SLIDER, OBSERVATIONMAP_SLIDER,\
     FORECASTMAP_LAYER_SELECTION, OBSERVATIONMAP_LAYER_SELECTION, TZ, TZUK,\
     TEMPERATUREUNITS, LATITUDE, LONGITUDE
-
-import astronomy
 
 
 @utilities.panelbusy('LeftPane')

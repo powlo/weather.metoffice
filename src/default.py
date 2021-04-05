@@ -14,13 +14,9 @@
 # *  along with XBMC; see the file COPYING. If not, write to
 # *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 # *  http://www.gnu.org/copyleft/gpl.html
-
-import urlcache
-import properties
-import utilities
-from constants import WINDOW, ADDON, API_KEY, CURRENT_VIEW, ADDON_DATA_PATH, ADDON_BANNER_PATH
-from utilities import gettext as _
-import sys
+from metoffice.utilities import gettext as _
+from metoffice.constants import WINDOW, ADDON, API_KEY, ADDON_DATA_PATH, ADDON_BANNER_PATH
+from metoffice import urlcache, properties, utilities
 import socket
 socket.setdefaulttimeout(20)
 

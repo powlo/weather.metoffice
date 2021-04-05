@@ -6,7 +6,7 @@ from math import cos, sin, acos, asin, tan
 from math import degrees as deg, radians as rad
 from datetime import datetime, time
 
-from constants import TZ
+from .constants import TZ
 
 # this module is not provided here. See text.
 # from timezone import LocalTimezone

@@ -8,7 +8,7 @@ import json
 import socket
 import shutil
 
-import utilities
+from . import utilities
 
 throwaway = utilities.strptime('20170101', '%Y%m%d')
 
