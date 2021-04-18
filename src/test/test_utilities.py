@@ -28,8 +28,8 @@ class TestUtilities(XBMCTestCase):
         decorated_func = self.utilities.xbmcbusy(mock_func)
         decorated_func(1,2,3)
         self.assertEqual(2, len(self.xbmc.executebuiltin.call_args_list))
-        self.assertEqual(self.xbmc.executebuiltin.call_args_list[0], (("ActivateWindow(busydialog)",),))
-        self.assertEqual(self.xbmc.executebuiltin.call_args_list[1], (("Dialog.Close(busydialog)",),))
+        self.assertEqual(self.xbmc.executebuiltin.call_args_list[0], (("ActivateWindow(busydialognocancel)",),))
+        self.assertEqual(self.xbmc.executebuiltin.call_args_list[1], (("Dialog.Close(busydialognocancel)",),))
         mock_func.assert_called_with(1,2,3)
 
     def test_panelbusy(self):
