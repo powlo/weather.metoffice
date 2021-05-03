@@ -3,7 +3,7 @@ import re
 import shutil
 import datetime
 from PIL import Image
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 from test.xbmctestcase import XBMCTestCase
 
 TEST_FOLDER = os.path.dirname(__file__)
@@ -26,10 +26,18 @@ GOOGLE_SURFACE_IMAGE = os.path.join(DATA_FOLDER, 'google_surface.png')
 GOOGLE_MARKER_IMAGE = os.path.join(DATA_FOLDER, 'google_marker.png')
 PRECIPITATION_LAYER_IMAGE = os.path.join(RESULTS_FOLDER, 'precipitation_layer.png')
 
-PRECIPITATION_LAYER_HOUR0_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=0&key=12345'
-PRECIPITATION_LAYER_HOUR36_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxfcs/Precipitation_Rate/png?RUN=2014-03-19T09:00:00Z&FORECAST=36&key=12345'
-OBSERVATION_LAYER0_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxobs/RADAR_UK_Composite_Highres/png?TIME=2014-04-01T16:30:00Z&key=12345'
-OBSERVATION_LAYER1_URL = 'http://datapoint.metoffice.gov.uk/public/data/layer/wxobs/RADAR_UK_Composite_Highres/png?TIME=2014-04-01T13:30:00Z&key=12345'
+PRECIPITATION_LAYER_HOUR0_URL = ('http://datapoint.metoffice.gov.uk/'
+                                 'public/data/layer/wxfcs/Precipitation_Rate/png'
+                                 '?RUN=2014-03-19T09:00:00Z&FORECAST=0&key=12345')
+PRECIPITATION_LAYER_HOUR36_URL = ('http://datapoint.metoffice.gov.uk/'
+                                  'public/data/layer/wxfcs/Precipitation_Rate/png'
+                                  '?RUN=2014-03-19T09:00:00Z&FORECAST=36&key=12345')
+OBSERVATION_LAYER0_URL = ('http://datapoint.metoffice.gov.uk/'
+                          'public/data/layer/wxobs/RADAR_UK_Composite_Highres/png'
+                          '?TIME=2014-04-01T16:30:00Z&key=12345')
+OBSERVATION_LAYER1_URL = ('http://datapoint.metoffice.gov.uk/'
+                          'public/data/layer/wxobs/RADAR_UK_Composite_Highres/png'
+                          '?TIME=2014-04-01T13:30:00Z&key=12345')
 
 
 class TestProperties(XBMCTestCase):
@@ -1052,9 +1060,9 @@ class TestProperties(XBMCTestCase):
         from metoffice import properties
         properties.sunrisesunset()
         self.assertIn('Today.Sunrise', self.window_properties)
-        self.assertTrue(re.match('\d\d:\d\d', self.window_properties['Today.Sunrise']))
+        self.assertTrue(re.match(r'\d\d:\d\d', self.window_properties['Today.Sunrise']))
         self.assertIn('Today.Sunset', self.window_properties)
-        self.assertTrue(re.match('\d\d:\d\d', self.window_properties['Today.Sunset']))
+        self.assertTrue(re.match(r'\d\d:\d\d', self.window_properties['Today.Sunset']))
 
     @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
@@ -1075,25 +1083,48 @@ class TestProperties(XBMCTestCase):
         self.assertEqual(self.window_properties['Text.Paragraph1.Title'], 'This Evening and Tonight')
         self.assertIn('Text.Paragraph1.Content', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph1.Content'],
-                         'Rain arriving in the far west around dusk will clear eastwards overnight, this heaviest in the west and over high ground, where winds will also become strong. Mild, with clear spells and scattered showers following. Minimum Temperature 5C.')
+                         ('Rain arriving in the far west around dusk will clear eastwards overnight, '
+                          'this heaviest in the west and over high ground, where winds will also become '
+                          'strong. Mild, with clear spells and scattered showers following. Minimum '
+                          'Temperature 5C.'))
         self.assertIn('Text.Paragraph2.Title', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph2.Title'], 'Tuesday')
         self.assertIn('Text.Paragraph2.Content', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph2.Content'],
-                         'Some dry and bright weather is likely at times but also scattered blustery, heavy showers. Remaining windy, especially around exposed coasts and hills where gales are likely. Maximum Temperature 9C.')
+                         ('Some dry and bright weather is likely at times but also scattered blustery, '
+                          'heavy showers. Remaining windy, especially around exposed coasts and hills '
+                          'where gales are likely. Maximum Temperature 9C.'))
         self.assertIn('Text.Paragraph3.Title', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph3.Title'], 'Wednesday to Friday')
         self.assertIn('Text.Paragraph3.Content', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph3.Content'],
-                         'Sunny spells and lighter winds on Wednesday, some showers along the coast. Wet and windy overnight, turning showery on Thursday and Friday, becoming wintry over hills.')
+                         ('Sunny spells and lighter winds on Wednesday, some showers along the coast. '
+                          'Wet and windy overnight, turning showery on Thursday and Friday, becoming '
+                          'wintry over hills.'))
         self.assertIn('Text.Paragraph4.Title', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph4.Title'], 'Saturday 1 Mar 2014 to Monday 10 Mar 2014')
         self.assertIn('Text.Paragraph4.Content', self.window_properties)
-        self.assertEqual(self.window_properties['Text.Paragraph4.Content'], 'The weekend will start unsettled with showers or longer spells of rain, with some heavier bursts at first. This will be most persistent in the far southeast and far north, with a risk of hill snow in the north. There will be some drier slots too, especially on Sunday with a risk of local frost and icy surfaces. Temperatures near normal. Through the next week it will remain unsettled in northern parts, with further rain or showers, and some hill snow. It will be mainly dry but fairly cloudy towards the south with isolated patchy frost. During the middle part of the week rain may spread southwards for a time, before turning wet and windy in the northwest again later, with a risk of gales.')
+        self.assertEqual(self.window_properties['Text.Paragraph4.Content'],
+                         ('The weekend will start unsettled with showers or longer spells of rain, with '
+                          'some heavier bursts at first. This will be most persistent in the far southeast '
+                          'and far north, with a risk of hill snow in the north. There will be some drier '
+                          'slots too, especially on Sunday with a risk of local frost and icy surfaces. '
+                          'Temperatures near normal. Through the next week it will remain unsettled in '
+                          'northern parts, with further rain or showers, and some hill snow. It will be '
+                          'mainly dry but fairly cloudy towards the south with isolated patchy frost. '
+                          'During the middle part of the week rain may spread southwards for a time, '
+                          'before turning wet and windy in the northwest again later, with a risk of gales.'))
         self.assertIn('Text.Paragraph5.Title', self.window_properties)
         self.assertEqual(self.window_properties['Text.Paragraph5.Title'], 'Tuesday 11 Mar 2014 to Tuesday 25 Mar 2014')
         self.assertIn('Text.Paragraph5.Content', self.window_properties)
-        self.assertEqual(self.window_properties['Text.Paragraph5.Content'], 'Current indications suggest a more typically unsettled pattern across the United Kingdom through much of March. Through this period we can expect to see fairly average conditions, which would mean spells of wet and windy weather, mostly in the north and west, but still some decent sunny spells in between. The best of the drier, brighter conditions is most likely in the south and east of the UK. Temperatures are likely to be around average, which may lead to more frequent incidences of frost compared to recent weeks.')
+        self.assertEqual(self.window_properties['Text.Paragraph5.Content'],
+                         ('Current indications suggest a more typically unsettled pattern across the '
+                          'United Kingdom through much of March. Through this period we can expect to '
+                          'see fairly average conditions, which would mean spells of wet and windy '
+                          'weather, mostly in the north and west, but still some decent sunny spells '
+                          'in between. The best of the drier, brighter conditions is most likely in the '
+                          'south and east of the UK. Temperatures are likely to be around average, which '
+                          'may lead to more frequent incidences of frost compared to recent weeks.'))
 
         # Test exception handling when given json without proper keys
         mock_cache.return_value.__enter__.return_value.get = Mock(return_value=EMPTY_FILE)
