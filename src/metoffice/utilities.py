@@ -31,7 +31,8 @@ def failgracefully(f):
                 e.args = ('Error',)
             if len(e.args) == 1:
                 e.args = e.args + ('See log file for details',)
-            if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or xbmcgui.getCurrentWindowId() == ADDON_BROWSER_WINDOW_ID:
+            if (xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or
+                    xbmcgui.getCurrentWindowId() == ADDON_BROWSER_WINDOW_ID):
                 args = (e.args[0].title(),) + e.args[1:4]
                 DIALOG.ok(*args)  # @UndefinedVariable
     return wrapper
@@ -67,7 +68,7 @@ def f_or_nla(f):
     def wrapper(*args, **kwds):
         try:
             return f(*args, **kwds)
-        except KeyError as e:
+        except KeyError:
             return 'n/a'
     return wrapper
 
@@ -77,7 +78,7 @@ def f_or_na(f):
     def wrapper(*args, **kwds):
         try:
             return f(*args, **kwds)
-        except KeyError as e:
+        except KeyError:
             return 'na'
     return wrapper
 
@@ -109,34 +110,34 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 def rownd(x):
     try:
-        return str(round(float(x))).split('.')[0]
+        return str(round(float(x), 0)).split('.')[0]
     except ValueError:
         return ''
 
-# TODO: This implicitly assumes that temperatures are only either
-# Celsius or Farenheit. This isn't true, Kodi now supports Kelvin
-# and other crazy units. Given that this function is only used
-# for non-standard pages, which require a custom skin, its
-# unlikely that anyone will hit the problem.
-
 
 def localised_temperature(t):
+    # TODO: This implicitly assumes that temperatures are only either
+    # Celsius or Farenheit. This isn't true, Kodi now supports Kelvin
+    # and other crazy units. Given that this function is only used
+    # for non-standard pages, which require a custom skin, its
+    # unlikely that anyone will hit the problem.
     if TEMPERATUREUNITS[-1] == 'C':
         return t
     else:
         try:
-            return str(int(float(t)*9)/5+32)
+            return str(int(float(t)*9/5+32))
         except ValueError:
             return ''
-
-# Convert miles per hour to kilomenters per hour
-# Required because Kodi assumes that wind speed is provided in
-# kilometers per hour
 
 
 @f_or_nla
 def mph_to_kmph(obj, key):
-    return str(round(float(obj[key]) * 1.609344))
+    """
+    Convert miles per hour to kilomenters per hour
+    Required because Kodi assumes that wind speed is provided in
+    kilometers per hour.
+    """
+    return str(round(float(obj[key]) * 1.609344, 0))
 
 
 def gettext(s):
