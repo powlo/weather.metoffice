@@ -1317,15 +1317,15 @@ class TestProperties(XBMCTestCase):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
         # Assert that the pretend image in cache has not been resized
-        img = Image.open(PRECIPITATION_LAYER_IMAGE)
-        (width, height) = img.size
+        with Image.open(PRECIPITATION_LAYER_IMAGE) as img:
+            (width, height) = img.size
         self.assertEqual(500, width)
         self.assertEqual(500, height)
 
         from metoffice import properties
         properties.image_resize(PRECIPITATION_LAYER_IMAGE)
-        img = Image.open(PRECIPITATION_LAYER_IMAGE)
-        (width, height) = img.size
+        with Image.open(PRECIPITATION_LAYER_IMAGE) as img:
+            (width, height) = img.size
         self.assertEqual(420, width)
         self.assertEqual(460, height)
 

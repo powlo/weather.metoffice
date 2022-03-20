@@ -446,8 +446,8 @@ def observationlayer_capabilities_expiry(filename):
 
 def image_resize(filename):
     # remove the 'cone' from the image
-    img = Image.open(filename)
-    (width, height) = img.size
-    if width == RAW_DATAPOINT_IMG_WIDTH:
-        img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH,
-                 height-CROP_HEIGHT)).save(filename, img.format)
+    with Image.open(filename) as img:
+        (width, height) = img.size
+        if width == RAW_DATAPOINT_IMG_WIDTH:
+            img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH,
+                    height-CROP_HEIGHT)).save(filename, img.format)

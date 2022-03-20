@@ -5,7 +5,7 @@
     <import addon="script.module.pytz" version="2014.2" />
     <import addon="script.module.pil" />
   </requires>
-  <extension point="xbmc.python.weather" library="src/metoffice/default.py" />
+  <extension point="xbmc.python.weather" library="src/default.py" />
   <extension point="xbmc.addon.metadata">
     <assets>
       <icon>icon.png</icon>
@@ -15,7 +15,7 @@
     <description lang="en">UK weather forecast provided by Met Office (http://www.metoffice.gov.uk/)</description>
     <platform>all</platform>
     <language>en</language>
-    <license>GNU GPL v2</license>
+    <license>GPL-2.0-or-later</license>
     <forum>https://forum.kodi.tv/showthread.php?tid=166362</forum>
     <website>https://www.metoffice.gov.uk/services/data/datapoint</website>
     <source>https://github.com/powlo/weather.metoffice</source>

@@ -1,5 +1,5 @@
 import sys
-from mock import Mock
+from unittest.mock import Mock
 from test.xbmctestcase import XBMCTestCase
 
 
@@ -8,7 +8,7 @@ class TestDefault(XBMCTestCase):
     def test_main(self):
         from metoffice import utilities
         utilities.failgracefully = lambda f: f
-        from metoffice import default
+        import default
 
         default.properties = Mock()
         default.urlcache.URLCache = Mock()

@@ -12,8 +12,11 @@ import json
 from metoffice import utilities, urlcache
 from metoffice.utilities import gettext as _
 
-from metoffice.constants import API_KEY, ADDON_DATA_PATH, GEOIP_PROVIDER, KEYBOARD, DIALOG, ADDON, FORECAST_SITELIST_URL,\
-    OBSERVATION_SITELIST_URL, REGIONAL_SITELIST_URL, LONG_REGIONAL_NAMES, GEOLOCATION
+from metoffice.constants import (
+    API_KEY, ADDON_DATA_PATH, GEOIP_PROVIDER, KEYBOARD, DIALOG,
+    ADDON, FORECAST_SITELIST_URL, OBSERVATION_SITELIST_URL,
+    REGIONAL_SITELIST_URL, LONG_REGIONAL_NAMES, GEOLOCATION
+)
 
 
 @utilities.xbmcbusy
@@ -23,14 +26,24 @@ def getsitelist(location, text=""):
                'ObservationLocation': OBSERVATION_SITELIST_URL,
                'RegionalLocation': REGIONAL_SITELIST_URL}[location]
         filename = cache.get(url, lambda x: datetime.now()+timedelta(weeks=1))
-        data = json.load(open(filename))
+        with open(filename, encoding='utf-8') as fh:
+            data = json.load(fh)
         sitelist = data['Locations']['Location']
         if location == 'RegionalLocation':
             # fix datapoint bug where keys start with @ in Regional Sitelist
+            # Fixing up keys has to be a two step process. If we pop and add
+            # in the same loop we'll get `RuntimeError: dictionary keys
+            # changed during iteration.`
             for site in sitelist:
+                # First add the correct keys.
+                toremove = []
                 for key in site:
                     if key.startswith('@'):
-                        site[key[1:]] = site.pop(key)
+                        toremove.append(key)
+                # Now remove the keys we found above.
+                for key in toremove:
+                    site[key[1:]] = site.pop(key)
+
                 # Change regional names to long versions. Untouched otherwise.
                 site['name'] = LONG_REGIONAL_NAMES.get(site['name'], site['name'])
         if text:
@@ -41,7 +54,8 @@ def getsitelist(location, text=""):
             url = GEOIP_PROVIDER['url']
             filename = cache.get(url, lambda x: datetime.now()+timedelta(hours=1))
             try:
-                data = json.load(open(filename))
+                with open(filename) as fh:
+                    data = json.load(fh)
             except ValueError:
                 utilities.log('Failed to fetch valid data from %s' % url)
             try:
@@ -55,7 +69,7 @@ def getsitelist(location, text=""):
                 try:
                     site['distance'] = int(utilities.haversine_distance(geo['lat'], geo['long'],
                                            float(site['latitude']), float(site['longitude'])))
-                    site['display'] = "{0} ({1}km)".format(site['name'].encode('utf-8'), site['distance'])
+                    site['display'] = "{0} ({1}km)".format(site['name'], site['distance'])
                 except KeyError:
                     site['display'] = site['name']
             try:
