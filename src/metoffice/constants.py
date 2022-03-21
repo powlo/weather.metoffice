@@ -1,7 +1,7 @@
-import xbmc  # @UnresolvedImport
-import xbmcgui  # @UnresolvedImport
-import xbmcaddon  # @UnresolvedImport
-import xbmcvfs  # @UnresolvedImport
+import xbmc
+import xbmcgui
+import xbmcaddon
+import xbmcvfs
 import urllib.parse
 import pytz
 WEATHER_WINDOW_ID = 12600

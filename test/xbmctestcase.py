@@ -7,21 +7,17 @@ class XBMCTestCase(unittest.TestCase):
         # Mock up any calls to modules that cannot be imported
         self.xbmc = Mock()
         self.xbmcgui = Mock()
-        self.xbmcvfs = Mock()
         self.xbmcaddon = Mock()
 
         modules = {
             'xbmc': self.xbmc,
             'xbmcgui': self.xbmcgui,
-            'xbmcaddon': self.xbmcaddon,
-            'xbmcvfs': self.xbmcvfs
+            'xbmcaddon': self.xbmcaddon
         }
         self.module_patcher = patch.dict('sys.modules', modules)  # @UndefinedVariable
         self.addon_patcher = patch('xbmcaddon.Addon')
-        self.translate_patcher = patch('xbmcvfs.translatePath')
         self.module_patcher.start()
         self.addon_patcher.start()
-        self.translate_patcher.start()
 
         self.info_labels = {'System.TemperatureUnits': 'C',
                             'System.BuildVersion': '16.0 Git:12345678-90a1234'}
@@ -42,4 +38,3 @@ class XBMCTestCase(unittest.TestCase):
     def tearDown(self):
         self.module_patcher.stop()
         self.addon_patcher.stop()
-        self.translate_patcher.stop()
