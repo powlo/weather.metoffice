@@ -7,16 +7,18 @@ class XBMCTestCase(unittest.TestCase):
         # Mock up any calls to modules that cannot be imported
         self.xbmc = Mock()
         self.xbmcgui = Mock()
+        self.xbmcvfs = Mock()
         self.xbmcaddon = Mock()
 
         modules = {
             'xbmc': self.xbmc,
             'xbmcgui': self.xbmcgui,
-            'xbmcaddon': self.xbmcaddon
+            'xbmcaddon': self.xbmcaddon,
+            'xbmcvfs': self.xbmcvfs
         }
         self.module_patcher = patch.dict('sys.modules', modules)  # @UndefinedVariable
         self.addon_patcher = patch('xbmcaddon.Addon')
-        self.translate_patcher = patch('xbmc.translatePath')
+        self.translate_patcher = patch('xbmcvfs.translatePath')
         self.module_patcher.start()
         self.addon_patcher.start()
         self.translate_patcher.start()

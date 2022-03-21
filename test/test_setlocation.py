@@ -34,7 +34,7 @@ class TestSetLocation(XBMCTestCase):
                          'RegionalLocationID': '516',
                          }
 
-        self.xbmc.translatePath.return_value = RESULTS_FOLDER
+        self.xbmcvfs.translatePath.return_value = RESULTS_FOLDER
         addon = self.xbmcaddon.Addon.return_value
         addon.getSetting.side_effect = self.mock_getSetting
         addon.setSetting.side_effect = self.mock_setSetting

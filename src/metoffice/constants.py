@@ -1,6 +1,7 @@
 import xbmc  # @UnresolvedImport
 import xbmcgui  # @UnresolvedImport
 import xbmcaddon  # @UnresolvedImport
+import xbmcvfs  # @UnresolvedImport
 import urllib.parse
 import pytz
 WEATHER_WINDOW_ID = 12600
@@ -18,8 +19,8 @@ CURRENT_VIEW = WINDOW.getProperty('Weather.CurrentView')
 ADDON = xbmcaddon.Addon(id="weather.metoffice")
 DIALOG = xbmcgui.Dialog()
 KEYBOARD = xbmc.Keyboard()
-ADDON_BANNER_PATH = xbmc.translatePath('special://home/addons/%s/resources/banner.png' % ADDON.getAddonInfo('id'))
-ADDON_DATA_PATH = xbmc.translatePath('special://profile/addon_data/%s/' % ADDON.getAddonInfo('id'))
+ADDON_BANNER_PATH = xbmcvfs.translatePath('special://home/addons/%s/resources/banner.png' % ADDON.getAddonInfo('id'))
+ADDON_DATA_PATH = xbmcvfs.translatePath('special://profile/addon_data/%s/' % ADDON.getAddonInfo('id'))
 
 TEMPERATUREUNITS = xbmc.getRegion('tempunit')
 

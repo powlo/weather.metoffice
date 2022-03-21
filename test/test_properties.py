@@ -43,7 +43,7 @@ OBSERVATION_LAYER1_URL = ('http://datapoint.metoffice.gov.uk/'
 class TestProperties(XBMCTestCase):
     def setUp(self):
         super(TestProperties, self).setUp()
-        self.xbmc.translatePath.side_effect = lambda x: x
+        self.xbmcvfs.translatePath.side_effect = lambda x: x
 
         self.settings = {'ApiKey': '12345',
                          'GeoLocation': 'true',
