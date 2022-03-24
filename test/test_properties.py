@@ -5,6 +5,7 @@ import datetime
 from PIL import Image
 from unittest.mock import Mock, patch
 from test.xbmctestcase import XBMCTestCase
+import xbmc
 
 TEST_FOLDER = os.path.dirname(__file__)
 DATA_FOLDER = os.path.join(TEST_FOLDER, 'data')
@@ -40,6 +41,13 @@ OBSERVATION_LAYER1_URL = ('http://datapoint.metoffice.gov.uk/'
                           '?TIME=2014-04-01T13:30:00Z&key=12345')
 
 
+def mock_get_region(id):
+    region_settings = {
+        'tempunit': 'C'
+    }
+    return region_settings[id]
+
+
 class TestProperties(XBMCTestCase):
     def setUp(self):
         super(TestProperties, self).setUp()
@@ -70,6 +78,8 @@ class TestProperties(XBMCTestCase):
         window = self.xbmcgui.Window.return_value
         window.getProperty.side_effect = self.mock_getProperty
         window.setProperty.side_effect = self.mock_setProperty
+
+        xbmc.getRegion = Mock(side_effect=mock_get_region)
 
         from metoffice import constants
         self.constants = constants

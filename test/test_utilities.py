@@ -1,6 +1,7 @@
 from datetime import datetime
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from test.xbmctestcase import XBMCTestCase
+import xbmc
 
 
 class TestUtilities(XBMCTestCase):
@@ -17,20 +18,22 @@ class TestUtilities(XBMCTestCase):
         fmt = '%H:%M %a %d %b %Y'
         self.assertEqual(datetime.strptime(date, fmt), self.utilities.strptime(date, fmt))
 
-    def test_log(self):
+    @patch('xbmc.log')
+    def test_log(self, mock_log):
         msg = "Log message"
         self.utilities.log(msg)
-        self.xbmc.log.assert_called_with('weather.metoffice: {0}'.format(msg), self.xbmc.LOGINFO)
+        mock_log.assert_called_with('weather.metoffice: {0}'.format(msg), xbmc.LOGINFO)
 
-    def test_xbmcbusy(self):
+    @patch('xbmc.executebuiltin')
+    def test_xbmcbusy(self, mock_executebuiltin):
         mock_func = Mock()
         mock_func.__name__ = "Mock"
         self.xbmcgui.getCurrentWindowId = Mock(return_value=self.constants.WEATHER_WINDOW_ID)
         decorated_func = self.utilities.xbmcbusy(mock_func)
         decorated_func(1, 2, 3)
-        self.assertEqual(2, len(self.xbmc.executebuiltin.call_args_list))
-        self.assertEqual(self.xbmc.executebuiltin.call_args_list[0], (("ActivateWindow(busydialog)",),))
-        self.assertEqual(self.xbmc.executebuiltin.call_args_list[1], (("Dialog.Close(busydialog)",),))
+        self.assertEqual(2, len(mock_executebuiltin.call_args_list))
+        self.assertEqual(mock_executebuiltin.call_args_list[0], (("ActivateWindow(busydialog)",),))
+        self.assertEqual(mock_executebuiltin.call_args_list[1], (("Dialog.Close(busydialog)",),))
         mock_func.assert_called_with(1, 2, 3)
 
     def test_panelbusy(self):
@@ -47,7 +50,8 @@ class TestUtilities(XBMCTestCase):
     def lambda_raise(self):
         raise IOError('An IOError occurred')
 
-    def test_failgracefully(self):
+    @patch('xbmc.log')
+    def test_failgracefully(self, mock_log):
         message = ('Oh no', 'It all went wrong')
         mock_func = Mock(side_effect=IOError(*message))
         mock_func.__name__ = "Mock"
@@ -55,7 +59,7 @@ class TestUtilities(XBMCTestCase):
         decorated_func = self.utilities.failgracefully(mock_func)
         decorated_func(1, 2, 3)
         mock_func.assert_called_once_with(1, 2, 3)
-        self.assertTrue(self.xbmc.log.called)
+        self.assertTrue(mock_log.called)
         self.assertTrue(self.xbmcgui.Dialog.return_value.ok.called)
         self.xbmcgui.Dialog.return_value.ok.assert_called_once_with(message[0].title(), message[1])
 

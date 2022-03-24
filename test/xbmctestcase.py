@@ -5,12 +5,10 @@ from unittest.mock import patch, Mock
 class XBMCTestCase(unittest.TestCase):
     def setUp(self):
         # Mock up any calls to modules that cannot be imported
-        self.xbmc = Mock()
         self.xbmcgui = Mock()
         self.xbmcaddon = Mock()
 
         modules = {
-            'xbmc': self.xbmc,
             'xbmcgui': self.xbmcgui,
             'xbmcaddon': self.xbmcaddon
         }
@@ -25,15 +23,8 @@ class XBMCTestCase(unittest.TestCase):
         self.region = {'tempunit': 'C',
                        'speedunit': 'mph'}
 
-        self.xbmc.getInfoLabel.side_effect = self.mock_getInfoLabel
-
-        self.xbmc.getRegion.side_effect = self.mock_getRegion
-
     def mock_getInfoLabel(self, key):
         return self.info_labels[key]
-
-    def mock_getRegion(self, key):
-        return self.region[key]
 
     def tearDown(self):
         self.module_patcher.stop()

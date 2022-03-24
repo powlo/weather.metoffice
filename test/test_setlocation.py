@@ -62,6 +62,11 @@ class TestSetLocation(XBMCTestCase):
 
     @patch('metoffice.utilities.failgracefully')
     def test_noapikey(self, mock_failgracefully):
+        """
+        If the user has not added an API key in addon settings then
+        an exception should be raised.
+        """
+        # Remove the graceful failure so the exception can be detected.
         mock_failgracefully.side_effect = lambda f: f
         import setlocation
         setlocation.API_KEY = ''
@@ -75,7 +80,6 @@ class TestSetLocation(XBMCTestCase):
     def test_getsitelist(self, mock_cache, mock_xbmcbusy):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
         mock_xbmcbusy.side_effect = lambda f: f
-        # Why?
         import setlocation
 
         # Get Regional sitelist
@@ -127,21 +131,23 @@ class TestSetLocation(XBMCTestCase):
                      'id': '3072'}]
         self.assertEqual(expected, result)
 
+    @patch('metoffice.constants.KEYBOARD')
     @patch('metoffice.utilities.failgracefully')
     @patch('metoffice.urlcache.URLCache')
-    def test_main(self, mock_cache, mock_failgracefully):
+    def test_main(self, mock_cache, mock_failgracefully, mock_keyboard):
         # allow main to use getsitelist
         # Pontpandy shouldn't be found, and a message should be displayed saying so
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
         mock_failgracefully.side_effect = lambda f: f
-        self.xbmc.Keyboard.return_value.getText = Mock(return_value='Pontypandy')
-        self.xbmc.Keyboard.return_value.isConfirmed = Mock(return_value=True)
+
+        mock_keyboard.getText = Mock(return_value='Pontypandy')
+        mock_keyboard.isConfirmed = Mock(return_value=True)
         import setlocation
         setlocation.main('ForecastLocation')
         self.assertTrue(self.xbmcgui.Dialog.return_value.ok.called)
 
         # Rosehearty Samos should be found given search text 'hearty'
-        self.xbmc.Keyboard.return_value.getText = Mock(return_value='hearty')
+        mock_keyboard.getText = Mock(return_value='hearty')
         self.xbmcgui.Dialog.return_value.select = Mock(return_value=0)
         setlocation.main('ForecastLocation')
         self.assertTrue(self.xbmcgui.Dialog.return_value.select.called)
