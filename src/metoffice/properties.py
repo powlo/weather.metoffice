@@ -450,4 +450,4 @@ def image_resize(filename):
         (width, height) = img.size
         if width == RAW_DATAPOINT_IMG_WIDTH:
             img.crop((CROP_WIDTH, CROP_HEIGHT, width-CROP_WIDTH,
-                    height-CROP_HEIGHT)).save(filename, img.format)
+                      height-CROP_HEIGHT)).save(filename, img.format)

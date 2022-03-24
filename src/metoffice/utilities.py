@@ -20,6 +20,12 @@ def strptime(dt, fmt):
 
 
 def failgracefully(f):
+    """
+    Function decorator. When a script fails (raises an exception) we
+    don't want it to make an awful 'parp' noise. Instead catch the
+    generic exception, log it and if the user is on a weather page,
+    show something to the user in a dialog box.
+    """
     @wraps(f)
     def wrapper(*args, **kwds):
         try:
