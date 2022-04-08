@@ -1,8 +1,12 @@
 import os
 import shutil
-from test.xbmctestcase import XBMCTestCase
-
+from unittest import TestCase
 from unittest.mock import Mock, patch
+
+
+import setlocation
+from metoffice import constants
+
 
 TEST_FOLDER = os.path.dirname(__file__)
 RESULTS_FOLDER = os.path.join(TEST_FOLDER, 'results')
@@ -12,7 +16,20 @@ REGIONALSITELIST = os.path.join(DATA_FOLDER, 'regionalsitelist.json')
 GEOIP = os.path.join(DATA_FOLDER, 'ip-api.json')
 
 
-class TestSetLocation(XBMCTestCase):
+def mock_get(url, callback):
+    if url == constants.FORECAST_SITELIST_URL:
+        return FORECASTSITELIST
+    elif url == constants.REGIONAL_SITELIST_URL:
+        return REGIONALSITELIST
+    elif url == constants.GEOIP_PROVIDER['url']:
+        return GEOIP
+    elif url == 'www.bad-geo.com':
+        return os.path.join(DATA_FOLDER, 'bad-geo.json')
+    else:
+        return None
+
+
+class TestSetLocation(TestCase):
     def setUp(self):
         super(TestSetLocation, self).setUp()
         # create a disposable area for testing
@@ -34,61 +51,32 @@ class TestSetLocation(XBMCTestCase):
                          'RegionalLocationID': '516',
                          }
 
-        addon = self.xbmcaddon.Addon.return_value
-        addon.getSetting.side_effect = self.mock_getSetting
-        addon.setSetting.side_effect = self.mock_setSetting
-
-        from metoffice import constants
-        self.constants = constants
-
-    def mock_getSetting(self, key):
-        return self.settings[key]
-
-    def mock_setSetting(self, key, value):
-        self.settings[key] = value
-
-    def mock_get(self, url, callback):
-        if url == self.constants.FORECAST_SITELIST_URL:
-            return FORECASTSITELIST
-        elif url == self.constants.REGIONAL_SITELIST_URL:
-            return REGIONALSITELIST
-        elif url == self.constants.GEOIP_PROVIDER['url']:
-            if url == 'www.bad-geo.com':
-                return os.path.join(DATA_FOLDER, 'bad-geo.json')
-            else:
-                return GEOIP
-        else:
-            return None
-
-    @patch('metoffice.utilities.failgracefully')
-    def test_noapikey(self, mock_failgracefully):
+    @patch('setlocation.API_KEY', '')
+    @patch('setlocation._', lambda x: x)
+    def test_noapikey(self):
         """
         If the user has not added an API key in addon settings then
         an exception should be raised.
         """
-        # Remove the graceful failure so the exception can be detected.
-        mock_failgracefully.side_effect = lambda f: f
-        import setlocation
-        setlocation.API_KEY = ''
-        setlocation._ = lambda x: x
+
         with self.assertRaises(Exception) as cm:
-            setlocation.main('ForecastLocation')
+            # Expect function under test to be decorated, so access to __wrapped__
+            # method to test the raw function. This is a bit cleaner than doing
+            # late dynamic imports with mock shenanigans.
+            setlocation.main.__wrapped__('ForecastLocation')
         self.assertEqual(('No API Key.', 'Enter your Met Office API Key under settings.',), cm.exception.args)
 
-    @patch('metoffice.utilities.xbmcbusy')
     @patch('metoffice.urlcache.URLCache')
-    def test_getsitelist(self, mock_cache, mock_xbmcbusy):
-        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
-        mock_xbmcbusy.side_effect = lambda f: f
-        import setlocation
-
+    @patch('setlocation.GEOLOCATION', 'true')
+    def test_getsitelist_with_geolocation(self, mock_cache):
+        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=mock_get)
         # Get Regional sitelist
-        result = setlocation.getsitelist('RegionalLocation', 'Northeast England')
+        result = setlocation.getsitelist.__wrapped__('RegionalLocation', 'Northeast England')
         expected = [{'display': 'Northeast England', 'id': '508', 'name': 'Northeast England'}]
         self.assertEqual(expected, result)
 
         # Get Forecast sitelist
-        result = setlocation.getsitelist('ForecastLocation', 'Cairnwell')
+        result = setlocation.getsitelist.__wrapped__('ForecastLocation', 'Cairnwell')
         expected = [{'distance': 640,
                      'elevation': '933.0',
                      'name': 'Cairnwell',
@@ -101,61 +89,66 @@ class TestSetLocation(XBMCTestCase):
                      'id': '3072'}]
         self.assertEqual(expected, result)
 
-        # Same request for forecast location, but with geolocation off
-        setlocation.GEOLOCATION = 'false'
-        result = setlocation.getsitelist('ForecastLocation', 'Cairnwell')
-        expected = [{'elevation': '933.0',
-                     'name': 'Cairnwell',
-                     'region': 'ta',
-                     'longitude': '-3.42',
-                     'display': 'Cairnwell',
-                     'nationalPark': 'Cairngorms National Park',
-                     'latitude': '56.879',
-                     'unitaryAuthArea': 'Perth and Kinross',
-                     'id': '3072'}]
-        self.assertEqual(expected, result)
-
-        # Put geolocation back on, but test with a "dirty" geolocation provider
-        setlocation.GEOLOCATION = 'true'
-        setlocation.GEOIP_PROVIDER['url'] = 'www.bad-geo.com'
-
-        result = setlocation.getsitelist('ForecastLocation', 'Cairnwell')
-        expected = [{'elevation': '933.0',
-                     'name': 'Cairnwell',
-                     'region': 'ta',
-                     'longitude': '-3.42',
-                     'display': 'Cairnwell',
-                     'nationalPark': 'Cairngorms National Park',
-                     'latitude': '56.879',
-                     'unitaryAuthArea': 'Perth and Kinross',
-                     'id': '3072'}]
-        self.assertEqual(expected, result)
-
-    @patch('metoffice.constants.KEYBOARD')
-    @patch('metoffice.utilities.failgracefully')
     @patch('metoffice.urlcache.URLCache')
-    def test_main(self, mock_cache, mock_failgracefully, mock_keyboard):
-        # allow main to use getsitelist
-        # Pontpandy shouldn't be found, and a message should be displayed saying so
-        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
-        mock_failgracefully.side_effect = lambda f: f
+    @patch('setlocation.GEOLOCATION', 'false')
+    def test_getsitelist_without_geolocation(self, mock_cache):
+        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=mock_get)
+        # Same request for forecast location, but with geolocation off
+        result = setlocation.getsitelist.__wrapped__('ForecastLocation', 'Cairnwell')
+        expected = [{'elevation': '933.0',
+                     'name': 'Cairnwell',
+                     'region': 'ta',
+                     'longitude': '-3.42',
+                     'display': 'Cairnwell',
+                     'nationalPark': 'Cairngorms National Park',
+                     'latitude': '56.879',
+                     'unitaryAuthArea': 'Perth and Kinross',
+                     'id': '3072'}]
+        self.assertEqual(expected, result)
 
+    @patch('metoffice.urlcache.URLCache')
+    @patch('setlocation.GEOLOCATION', 'true')
+    @patch('setlocation.GEOIP_PROVIDER', {'url': 'www.bad-geo.com'})
+    def test_getsitelist_bad_provider(self, mock_cache):
+        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=mock_get)
+        result = setlocation.getsitelist.__wrapped__('ForecastLocation', 'Cairnwell')
+        expected = [{'elevation': '933.0',
+                     'name': 'Cairnwell',
+                     'region': 'ta',
+                     'longitude': '-3.42',
+                     'display': 'Cairnwell',
+                     'nationalPark': 'Cairngorms National Park',
+                     'latitude': '56.879',
+                     'unitaryAuthArea': 'Perth and Kinross',
+                     'id': '3072'}]
+        self.assertEqual(expected, result)
+
+    @patch('setlocation.ADDON')
+    @patch('setlocation.DIALOG')
+    @patch('setlocation.KEYBOARD')
+    @patch('setlocation.API_KEY', '12345')
+    @patch('metoffice.urlcache.URLCache')
+    def test_main(self, mock_cache, mock_keyboard, mock_dialog, mock_addon):
+        # Pontpandy shouldn't be found, and a message should be displayed saying so
+        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=mock_get)
         mock_keyboard.getText = Mock(return_value='Pontypandy')
         mock_keyboard.isConfirmed = Mock(return_value=True)
-        import setlocation
-        setlocation.main('ForecastLocation')
-        self.assertTrue(self.xbmcgui.Dialog.return_value.ok.called)
+
+        # Assume that main is decorated with failgracefully
+        # get and test the wrapped function, sidestepping the decorator.
+        setlocation.main.__wrapped__('ForecastLocation')
+        self.assertTrue(mock_dialog.ok.called)
 
         # Rosehearty Samos should be found given search text 'hearty'
         mock_keyboard.getText = Mock(return_value='hearty')
-        self.xbmcgui.Dialog.return_value.select = Mock(return_value=0)
-        setlocation.main('ForecastLocation')
-        self.assertTrue(self.xbmcgui.Dialog.return_value.select.called)
+        mock_dialog.select = Mock(return_value=0)
+        setlocation.main.__wrapped__('ForecastLocation')
+        self.assertTrue(mock_dialog.select.called)
         expected = [(('ForecastLocation', 'Rosehearty Samos'),),
                     (('ForecastLocationID', '3094'),),
                     (('ForecastLocationLatitude', '57.698'),),
                     (('ForecastLocationLongitude', '-2.121'),)]
-        self.assertEqual(expected, self.xbmcaddon.Addon.return_value.setSetting.call_args_list)
+        self.assertEqual(expected, mock_addon.setSetting.call_args_list)
 
     def tearDown(self):
         super(TestSetLocation, self).tearDown()

@@ -7,12 +7,11 @@ import json
 import tempfile
 from unittest.mock import Mock
 
-from test.xbmctestcase import XBMCTestCase
 
 RESULTS_FOLDER = os.path.join(os.path.dirname(__file__), 'results')
 
 
-class TestURLCache(XBMCTestCase):
+class TestURLCache(unittest.TestCase):
     def setUp(self):
         # create a disposable area for testing
         super(TestURLCache, self).setUp()

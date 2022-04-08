@@ -1,49 +1,51 @@
-import sys
-from unittest.mock import Mock
-from test.xbmctestcase import XBMCTestCase
+from unittest import TestCase
+from unittest.mock import Mock, patch
+
+import default
 
 
-class TestDefault(XBMCTestCase):
+class TestMain(TestCase):
 
-    def test_main(self):
-        from metoffice import utilities
-        utilities.failgracefully = lambda f: f
-        import default
+    @patch('default.properties')
+    @patch('default.API_KEY', '12345')
+    def test_simple(self, mock_properties):
+        default.main.__wrapped__()
+        self.assertTrue(mock_properties.observation.called)
+        self.assertTrue(mock_properties.daily.called)
+        self.assertTrue(mock_properties.threehourly.called)
+        self.assertFalse(mock_properties.forecastlayer.called)
+        self.assertFalse(mock_properties.observationlayer.called)
+        self.assertFalse(mock_properties.text.called)
 
-        default.properties = Mock()
-        default.urlcache.URLCache = Mock()
-        default.ADDON = Mock()
-        default.ADDON.getSetting = Mock(return_value='false')
-        default._ = lambda x: x
+    @patch('default.properties')
+    @patch('default._', Mock(side_effect=lambda x: x))
+    @patch('default.API_KEY', '')
+    def test_no_api_key(self, mock_properties):
+        """When the user has not added an api key an exception should be raised."""
+        mock_properties.ADDON.getSetting = Mock(return_value='false')
 
         # Test no API Key Exception raising
-        default.API_KEY = ''
         with self.assertRaises(Exception) as cm:
-            default.main()
+            default.main.__wrapped__()
         self.assertEqual(('No API Key.', 'Enter your Met Office API Key under settings.',), cm.exception.args)
-        self.assertFalse(default.properties.observation.called)  # @UndefinedVariable
-        self.assertFalse(default.properties.daily.called)  # @UndefinedVariable
-        self.assertFalse(default.properties.threehourly.called)  # @UndefinedVariable
-        self.assertFalse(default.properties.forecastlayer.called)  # @UndefinedVariable
-        self.assertFalse(default.properties.observationlayer.called)  # @UndefinedVariable
-        self.assertFalse(default.properties.text.called)  # @UndefinedVariable
-        default.properties.reset_mock()  # @UndefinedVariable
+        self.assertFalse(mock_properties.observation.called)
+        self.assertFalse(mock_properties.daily.called)
+        self.assertFalse(mock_properties.threehourly.called)
+        self.assertFalse(mock_properties.forecastlayer.called)
+        self.assertFalse(mock_properties.observationlayer.called)
+        self.assertFalse(mock_properties.text.called)
+        mock_properties.reset_mock()
 
-        # Test call with digit
-        default.API_KEY = '12345'
-        default.CURRENT_VIEW = ''  # Implicit request for daily forecast
-        sys.argv = ['default.py', '1']
-        default.main()
-        self.assertTrue(default.properties.observation.called)  # @UndefinedVariable
-        self.assertTrue(default.properties.daily.called)  # @UndefinedVariable
-        self.assertTrue(default.properties.threehourly.called)  # @UndefinedVariable
-        self.assertFalse(default.properties.forecastlayer.called)  # @UndefinedVariable
-        self.assertFalse(default.properties.observationlayer.called)  # @UndefinedVariable
-        self.assertFalse(default.properties.text.called)  # @UndefinedVariable
-        default.properties.reset_mock()  # @UndefinedVariable
-
-        # Test erase cache setting
-        default.ADDON.getSetting = Mock(return_value='true')
-        default.main()
-        self.assertTrue(default.urlcache.URLCache.return_value.erase.called)  # @UndefinedVariable
-        default.ADDON.setSetting.assert_called_once_with('EraseCache', 'false')  # @UndefinedVariable
+    @patch('default.properties', Mock())  # Stub out functions to speed up test.
+    @patch('default.ADDON')
+    @patch('default.API_KEY', '12345')
+    @patch('default.urlcache.URLCache')
+    def test_erase_cache(self, mock_urlcache, mock_addon):
+        """
+        If the EraseCache setting is true then we erase the
+        cache and reset the value to false.
+        """
+        mock_addon.getSetting = Mock(return_value='true')
+        default.main.__wrapped__()
+        self.assertTrue(mock_urlcache.return_value.erase.called)
+        mock_addon.setSetting.assert_called_once_with('EraseCache', 'false')

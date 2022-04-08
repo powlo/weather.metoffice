@@ -1,8 +1,10 @@
-from test.xbmctestcase import XBMCTestCase
+from unittest import TestCase
 import datetime
 
+from metoffice import astronomy
 
-class TestAstronomy(XBMCTestCase):
+
+class TestAstronomy(TestCase):
     def setUp(self):
         # Setup contains mocks for xbmc modules that would normally
         # not be found in an isolated test environment.
@@ -13,7 +15,6 @@ class TestAstronomy(XBMCTestCase):
         Basic test to make sure that we get
         something moderately sensible back
         """
-        from metoffice import astronomy
         sun = astronomy.Sun()
         # We get a sun object back
         self.assertTrue(isinstance(sun, astronomy.Sun))
