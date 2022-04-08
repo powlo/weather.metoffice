@@ -3,8 +3,8 @@ from datetime import datetime
 import time
 import traceback
 import math
-import xbmc  # @UnresolvedImport
-import xbmcgui  # @UnresolvedImport
+import xbmc
+import xbmcgui
 
 from .constants import WEATHER_WINDOW_ID, ADDON_BROWSER_WINDOW_ID, DIALOG, WINDOW, TEMPERATUREUNITS, ADDON
 
@@ -60,11 +60,11 @@ def panelbusy(pane):
     def decorate(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            WINDOW.setProperty('{0}.IsBusy'.format(pane), 'true')  # @UndefinedVariable
+            WINDOW.setProperty('{0}.IsBusy'.format(pane), 'true')
             try:
                 return f(*args, **kwargs)
             finally:
-                WINDOW.clearProperty('{0}.IsBusy'.format(pane))  # @UndefinedVariable
+                WINDOW.clearProperty('{0}.IsBusy'.format(pane))
         return wrapper
     return decorate
 
@@ -164,7 +164,7 @@ def gettext(s):
                     "No locations found containing": 32010,
                     "Matching Sites": 32011}
     try:
-        translation = ADDON.getLocalizedString(translatable[s])  # @UndefinedVariable
+        translation = ADDON.getLocalizedString(translatable[s])
         if not translation:
             raise TranslationError
         else:

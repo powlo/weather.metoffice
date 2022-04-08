@@ -4,6 +4,8 @@ import xbmcaddon
 import xbmcvfs
 import urllib.parse
 import pytz
+
+# Magic numbers. See https://kodi.wiki/view/Window_IDs
 WEATHER_WINDOW_ID = 12600
 ADDON_BROWSER_WINDOW_ID = 10040
 

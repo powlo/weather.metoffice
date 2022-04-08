@@ -88,20 +88,20 @@ def main(location):
     if not API_KEY:
         raise Exception(_("No API Key."), _("Enter your Met Office API Key under settings."))
 
-    KEYBOARD.doModal()  # @UndefinedVariable
-    text = KEYBOARD.isConfirmed() and KEYBOARD.getText()  # @UndefinedVariable
+    KEYBOARD.doModal()
+    text = KEYBOARD.isConfirmed() and KEYBOARD.getText()
     sitelist = getsitelist(location, text)
     if sitelist == []:
-        DIALOG.ok(_("No Matches"), _("No locations found containing")+" {0}".format(text))  # @UndefinedVariable
+        DIALOG.ok(_("No Matches"), _("No locations found containing")+" {0}".format(text))
         utilities.log("No locations found containing '%s'" % text)
     else:
         display_list = [site['display'] for site in sitelist]
-        selected = DIALOG.select(_("Matching Sites"), display_list)  # @UndefinedVariable
+        selected = DIALOG.select(_("Matching Sites"), display_list)
         if selected != -1:
-            ADDON.setSetting(location, sitelist[selected]['name'])  # @UndefinedVariable
-            ADDON.setSetting("%sID" % location, sitelist[selected]['id'])  # @UndefinedVariable
-            ADDON.setSetting("%sLatitude" % location, str(sitelist[selected].get('latitude')))  # @UndefinedVariable
-            ADDON.setSetting("%sLongitude" % location, str(sitelist[selected].get('longitude')))  # @UndefinedVariable
+            ADDON.setSetting(location, sitelist[selected]['name'])
+            ADDON.setSetting("%sID" % location, sitelist[selected]['id'])
+            ADDON.setSetting("%sLatitude" % location, str(sitelist[selected].get('latitude')))
+            ADDON.setSetting("%sLongitude" % location, str(sitelist[selected].get('longitude')))
             utilities.log("Setting '{location}' to '{name} ({id})'".format(location=location,
                                                                            name=sitelist[selected]['name'].encode(
                                                                                'utf-8'),
