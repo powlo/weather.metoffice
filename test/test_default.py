@@ -22,6 +22,7 @@ class TestMain(TestCase):
     @patch('default.API_KEY', '')
     def test_no_api_key(self, mock_properties):
         """When the user has not added an api key an exception should be raised."""
+        # Assume here that the call to getSetting is for 'EraseCache'.
         mock_properties.ADDON.getSetting = Mock(return_value='false')
 
         # Test no API Key Exception raising
@@ -45,7 +46,21 @@ class TestMain(TestCase):
         If the EraseCache setting is true then we erase the
         cache and reset the value to false.
         """
+        # Assume here that the call to getSetting is for 'EraseCache'.
         mock_addon.getSetting = Mock(return_value='true')
         default.main.__wrapped__()
         self.assertTrue(mock_urlcache.return_value.erase.called)
         mock_addon.setSetting.assert_called_once_with('EraseCache', 'false')
+
+    @patch('sys.argv', ['something', 'ForecastLocation'])
+    @patch('default.API_KEY', '12345')
+    @patch('setlocation.main')
+    @patch('default.properties', Mock())
+    def test_setlocation(self, mock_setlocation_main):
+        """
+        When default is invoked with Location setting args, the
+        setlocation script is run.
+        """
+        default.main.__wrapped__()
+        self.assertTrue(mock_setlocation_main.called)
+        self.assertEqual(mock_setlocation_main.call_args.args, ('ForecastLocation',))

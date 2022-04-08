@@ -51,21 +51,6 @@ class TestSetLocation(TestCase):
                          'RegionalLocationID': '516',
                          }
 
-    @patch('setlocation.API_KEY', '')
-    @patch('setlocation._', lambda x: x)
-    def test_noapikey(self):
-        """
-        If the user has not added an API key in addon settings then
-        an exception should be raised.
-        """
-
-        with self.assertRaises(Exception) as cm:
-            # Expect function under test to be decorated, so access to __wrapped__
-            # method to test the raw function. This is a bit cleaner than doing
-            # late dynamic imports with mock shenanigans.
-            setlocation.main.__wrapped__('ForecastLocation')
-        self.assertEqual(('No API Key.', 'Enter your Met Office API Key under settings.',), cm.exception.args)
-
     @patch('metoffice.urlcache.URLCache')
     @patch('setlocation.GEOLOCATION', 'true')
     def test_getsitelist_with_geolocation(self, mock_cache):
@@ -126,7 +111,6 @@ class TestSetLocation(TestCase):
     @patch('setlocation.ADDON')
     @patch('setlocation.DIALOG')
     @patch('setlocation.KEYBOARD')
-    @patch('setlocation.API_KEY', '12345')
     @patch('metoffice.urlcache.URLCache')
     def test_main(self, mock_cache, mock_keyboard, mock_dialog, mock_addon):
         # Pontpandy shouldn't be found, and a message should be displayed saying so

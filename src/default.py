@@ -18,6 +18,10 @@ from metoffice.utilities import gettext as _
 from metoffice.constants import WINDOW, ADDON, API_KEY, ADDON_DATA_PATH, ADDON_BANNER_PATH
 from metoffice import urlcache, properties, utilities
 import socket
+import sys
+
+import setlocation
+
 socket.setdefaulttimeout(20)
 
 
@@ -31,6 +35,9 @@ def main():
 
     if not API_KEY:
         raise Exception(_("No API Key."), _("Enter your Met Office API Key under settings."))
+
+    if sys.argv[1] in ['ObservationLocation', 'ForecastLocation', 'RegionalLocation']:
+        setlocation.main(sys.argv[1])
 
     properties.observation()
     properties.daily()

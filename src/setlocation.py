@@ -5,7 +5,6 @@ site list. All matches are presented as a select list to
 the user. On successful selection internal addon setting
 is set.
 """
-import sys
 from datetime import datetime, timedelta
 from operator import itemgetter
 import json
@@ -13,7 +12,7 @@ from metoffice import utilities, urlcache
 from metoffice.utilities import gettext as _
 
 from metoffice.constants import (
-    API_KEY, ADDON_DATA_PATH, GEOIP_PROVIDER, KEYBOARD, DIALOG,
+    ADDON_DATA_PATH, GEOIP_PROVIDER, KEYBOARD, DIALOG,
     ADDON, FORECAST_SITELIST_URL, OBSERVATION_SITELIST_URL,
     REGIONAL_SITELIST_URL, LONG_REGIONAL_NAMES, GEOLOCATION
 )
@@ -85,8 +84,6 @@ def getsitelist(location, text=""):
 
 @utilities.failgracefully
 def main(location):
-    if not API_KEY:
-        raise Exception(_("No API Key."), _("Enter your Met Office API Key under settings."))
 
     KEYBOARD.doModal()
     text = KEYBOARD.isConfirmed() and KEYBOARD.getText()
@@ -106,8 +103,3 @@ def main(location):
                                                                            name=sitelist[selected]['name'].encode(
                                                                                'utf-8'),
                                                                            id=sitelist[selected]['id']))
-
-
-if __name__ == '__main__':
-    # check sys.argv
-    main(sys.argv[1])
