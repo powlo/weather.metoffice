@@ -148,13 +148,6 @@ class TestProperties(TestCase):
         }
         return cache[url]
 
-    def mock_panelbusy(self, pane):
-        def decorate(f):
-            def wrapper(*args, **kwargs):
-                return f(*args, **kwargs)
-            return wrapper
-        return decorate
-
     @patch('metoffice.urlcache.URLCache')
     def test_observation(self, mock_cache):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
@@ -316,12 +309,10 @@ class TestProperties(TestCase):
                           "Key 'SiteRep' not found while processing file from url:",
                           constants.DAILY_LOCATION_FORECAST_URL), cm.exception.args)
 
-    @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
     @patch('metoffice.utilities.TEMPERATUREUNITS', 'C')
-    def test_threehourly(self, mock_cache, mock_panelbusy):
+    def test_threehourly(self, mock_cache):
         # This test is a bit long and cumbersome. TODO: Figure out how to cut it down.
-        mock_panelbusy.side_effect = self.mock_panelbusy
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
         properties.threehourly()
@@ -1172,11 +1163,9 @@ class TestProperties(TestCase):
                           "Key 'RegionalFcst' not found while processing file from url:",
                           constants.TEXT_FORECAST_URL), cm.exception.args)
 
-    @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
     @patch('metoffice.properties.API_KEY', '12345')
-    def test_forecastlayer(self, mock_cache, mock_panelbusy):
-        mock_panelbusy.side_effect = mock_panelbusy
+    def test_forecastlayer(self, mock_cache):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
         properties.forecastlayer()
@@ -1292,64 +1281,50 @@ class TestProperties(TestCase):
             properties.observationlayer()
         self.assertEqual(('Error', "Couldn't find layer 'Unknown'"), cm.exception.args)
 
-    @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
-    def test_daily_expiry(self, mock_cache, mock_panelbusy):
-        mock_panelbusy.side_effect = self.mock_panelbusy
+    def test_daily_expiry(self, mock_cache):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
         result = properties.daily_expiry(FORECASTDAILY)
         self.assertEqual(datetime.datetime(2014, 2, 24, 15, 30), result)
 
-    @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
-    def test_threehourly_expiry(self, mock_cache, mock_panelbusy):
-        mock_panelbusy.side_effect = self.mock_panelbusy
+    def test_threehourly_expiry(self, mock_cache):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
         result = properties.threehourly_expiry(FORECAST3HOURLY)
         self.assertEqual(datetime.datetime(2014, 3, 1, 17, 30), result)
 
-    @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
-    def test_text_expiry(self, mock_cache, mock_panelbusy):
-        mock_panelbusy.side_effect = self.mock_panelbusy
+    def test_text_expiry(self, mock_cache):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
         result = properties.text_expiry(FORECASTTEXT)
         self.assertEqual(datetime.datetime(2014, 2, 25, 4, 0), result)
 
-    @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
-    def test_observation_expiry(self, mock_cache, mock_panelbusy):
-        mock_panelbusy.side_effect = self.mock_panelbusy
+    def test_observation_expiry(self, mock_cache):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
         result = properties.observation_expiry(OBSERVATIONHOURLY)
         self.assertEqual(datetime.datetime(2014, 3, 6, 18, 30), result)
 
-    @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
-    def test_forecastlayer_capabilities_expiry(self, mock_cache, mock_panelbusy):
-        mock_panelbusy.side_effect = self.mock_panelbusy
+    def test_forecastlayer_capabilities_expiry(self, mock_cache):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
         result = properties.forecastlayer_capabilities_expiry(FORECASTLAYERCAPABILITIES)
         self.assertEqual(datetime.datetime(2014, 3, 19, 18, 0), result)
 
-    @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
-    def test_observationlayer_capabilities_expiry(self, mock_cache, mock_panelbusy):
-        mock_panelbusy.side_effect = self.mock_panelbusy
+    def test_observationlayer_capabilities_expiry(self, mock_cache):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
         result = properties.observationlayer_capabilities_expiry(OBSERVATIONLAYERCAPABILITIES)
         self.assertEqual(datetime.datetime(2014, 4, 1, 17, 0), result)
 
-    @patch('metoffice.utilities.panelbusy')
     @patch('metoffice.urlcache.URLCache')
-    def test_layer_image_resize_callback(self, mock_cache, mock_panelbusy):
-        mock_panelbusy.side_effect = self.mock_panelbusy
+    def test_layer_image_resize_callback(self, mock_cache):
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=self.mock_get)
 
         # Assert that the pretend image in cache has not been resized

@@ -32,21 +32,6 @@ class TestUtilities(TestCase):
         self.assertEqual(mock_executebuiltin.call_args_list[1], (("Dialog.Close(busydialognocancel)",),))
         mock_func.assert_called_with(1, 2, 3)
 
-    @patch('metoffice.utilities.WINDOW')
-    def test_panelbusy(self, mock_window):
-        mock_func = Mock()
-        mock_func.__name__ = "Mock"
-        rightbusy = utilities.panelbusy("RightPanel")
-        decorated_func = rightbusy(mock_func)
-        decorated_func(1, 2, 3)
-        mock_window.setProperty.assert_called_once_with('RightPanel.IsBusy', 'true')
-        mock_window.clearProperty.assert_called_once_with('RightPanel.IsBusy')
-        mock_func.assert_called_with(1, 2, 3)
-
-    # Have to write a stubby because lambdas contain expressions not statements
-    def lambda_raise(self):
-        raise IOError('An IOError occurred')
-
     @patch('xbmc.log')
     @patch('metoffice.utilities.DIALOG')
     @patch('xbmcgui.getCurrentWindowId', Mock(return_value=constants.WEATHER_WINDOW_ID))
