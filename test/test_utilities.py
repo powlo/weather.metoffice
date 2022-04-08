@@ -28,8 +28,8 @@ class TestUtilities(TestCase):
         decorated_func = utilities.xbmcbusy(mock_func)
         decorated_func(1, 2, 3)
         self.assertEqual(2, len(mock_executebuiltin.call_args_list))
-        self.assertEqual(mock_executebuiltin.call_args_list[0], (("ActivateWindow(busydialog)",),))
-        self.assertEqual(mock_executebuiltin.call_args_list[1], (("Dialog.Close(busydialog)",),))
+        self.assertEqual(mock_executebuiltin.call_args_list[0], (("ActivateWindow(busydialognocancel)",),))
+        self.assertEqual(mock_executebuiltin.call_args_list[1], (("Dialog.Close(busydialognocancel)",),))
         mock_func.assert_called_with(1, 2, 3)
 
     @patch('metoffice.utilities.WINDOW')

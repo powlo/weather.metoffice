@@ -48,11 +48,11 @@ def xbmcbusy(f):
     @wraps(f)
     def wrapper(*args, **kwds):
         if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or xbmcgui.getCurrentWindowId() == ADDON_BROWSER_WINDOW_ID:
-            xbmc.executebuiltin("ActivateWindow(busydialog)")
+            xbmc.executebuiltin("ActivateWindow(busydialognocancel)")
         try:
             return f(*args, **kwds)
         finally:
-            xbmc.executebuiltin("Dialog.Close(busydialog)")
+            xbmc.executebuiltin("Dialog.Close(busydialognocancel)")
     return wrapper
 
 
