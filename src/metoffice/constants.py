@@ -13,17 +13,7 @@ ADDON_BROWSER_WINDOW_ID = 10040
 TZ = pytz.timezone(
     "Europe/London"
 )  # TODO: Need to pull the actual timezone out of xbmc. Somehow.
-TZUK = pytz.timezone("Europe/London")
 WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
-FORECASTMAP_SLIDER = WINDOW.getProperty("ForecastMap.Slider") or "0"
-OBSERVATIONMAP_SLIDER = WINDOW.getProperty("ObservationMap.Slider") or "0"
-FORECASTMAP_LAYER_SELECTION = (
-    WINDOW.getProperty("ForecastMap.LayerSelection") or "Rainfall"
-)
-OBSERVATIONMAP_LAYER_SELECTION = (
-    WINDOW.getProperty("ObservationMap.LayerSelection") or "Rainfall"
-)
-CURRENT_VIEW = WINDOW.getProperty("Weather.CurrentView")
 
 ADDON = xbmcaddon.Addon(id="weather.metoffice")
 DIALOG = xbmcgui.Dialog()
@@ -57,16 +47,6 @@ SHORT_DATE_FORMAT = "%d %b"
 MAPTIME_FORMAT = "%H%M %a"
 ISSUEDAT_FORMAT = "%H:%M %a %d %b %Y"
 TIME_FORMAT = "%H:%M"
-
-GOOGLE_BASE = "http://maps.googleapis.com/maps/api/staticmap"
-GOOGLE_GLOBAL = GOOGLE_BASE + "?sensor=false&center=55,-3.5&zoom=5&size=323x472"
-GOOGLE_SURFACE = GOOGLE_GLOBAL + "&maptype=satellite"
-GOOGLE_MARKER = (
-    GOOGLE_GLOBAL
-    + "&style=feature:all|element:all|visibility:off&markers={0},{1}".format(
-        LATITUDE, LONGITUDE
-    )
-)
 
 RAW_DATAPOINT_IMG_WIDTH = 500
 CROP_WIDTH = 40

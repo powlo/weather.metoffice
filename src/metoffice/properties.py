@@ -3,13 +3,10 @@ import time
 from datetime import timedelta
 
 import pytz
-from PIL import Image
 
 from . import astronomy, urlcache, utilities
 from .constants import (
     ADDON_DATA_PATH,
-    CROP_HEIGHT,
-    CROP_WIDTH,
     DAILY_LOCATION_FORECAST_URL,
     DATAPOINT_DATE_FORMAT,
     DATAPOINT_DATETIME_FORMAT,
@@ -21,7 +18,6 @@ from .constants import (
     LONGITUDE,
     OBSERVATION_LOCATION,
     OBSERVATION_LOCATION_ID,
-    RAW_DATAPOINT_IMG_WIDTH,
     REGIONAL_LOCATION,
     REGIONAL_LOCATION_ID,
     SHORT_DATE_FORMAT,
@@ -372,13 +368,3 @@ def observation_expiry(filename):
     return utilities.strptime(dataDate, DATAPOINT_DATETIME_FORMAT) + timedelta(
         hours=1.5
     )
-
-
-def image_resize(filename):
-    # remove the 'cone' from the image
-    with Image.open(filename) as img:
-        (width, height) = img.size
-        if width == RAW_DATAPOINT_IMG_WIDTH:
-            img.crop(
-                (CROP_WIDTH, CROP_HEIGHT, width - CROP_WIDTH, height - CROP_HEIGHT)
-            ).save(filename, img.format)

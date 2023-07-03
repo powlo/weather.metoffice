@@ -6,7 +6,6 @@ from unittest import TestCase
 from unittest.mock import Mock, patch
 
 import xbmc
-from PIL import Image
 
 from metoffice import constants, properties
 
@@ -32,9 +31,6 @@ FORECASTSITELIST = os.path.join(DATA_FOLDER, "forecastsitelist.json")
 TEXTSITELIST = os.path.join(DATA_FOLDER, "textsitelist.json")
 GEOIP = os.path.join(DATA_FOLDER, "ip-api.json")
 EMPTY_FILE = os.path.join(DATA_FOLDER, "empty.json")
-GOOGLE_SURFACE_IMAGE = os.path.join(DATA_FOLDER, "google_surface.png")
-GOOGLE_MARKER_IMAGE = os.path.join(DATA_FOLDER, "google_marker.png")
-PRECIPITATION_LAYER_IMAGE = os.path.join(RESULTS_FOLDER, "precipitation_layer.png")
 
 PRECIPITATION_LAYER_HOUR0_URL = (
     "http://datapoint.metoffice.gov.uk/"
@@ -157,12 +153,6 @@ class TestProperties(TestCase):
             constants.TEXT_FORECAST_URL: FORECASTTEXT,
             constants.HOURLY_LOCATION_OBSERVATION_URL: OBSERVATIONHOURLY,
             constants.GEOIP_PROVIDER["url"]: GEOIP,
-            constants.GOOGLE_SURFACE: GOOGLE_SURFACE_IMAGE,
-            constants.GOOGLE_MARKER: GOOGLE_MARKER_IMAGE,
-            PRECIPITATION_LAYER_HOUR0_URL: PRECIPITATION_LAYER_IMAGE,
-            PRECIPITATION_LAYER_HOUR36_URL: PRECIPITATION_LAYER_IMAGE,
-            OBSERVATION_LAYER0_URL: PRECIPITATION_LAYER_IMAGE,
-            OBSERVATION_LAYER1_URL: PRECIPITATION_LAYER_IMAGE,
         }
         return cache[url]
 
@@ -1276,24 +1266,6 @@ class TestProperties(TestCase):
 
         result = properties.observation_expiry(OBSERVATIONHOURLY)
         self.assertEqual(datetime.datetime(2014, 3, 6, 18, 30), result)
-
-    @patch("metoffice.urlcache.URLCache")
-    def test_layer_image_resize_callback(self, mock_cache):
-        mock_cache.return_value.__enter__.return_value.get = Mock(
-            side_effect=self.mock_get
-        )
-
-        # Assert that the pretend image in cache has not been resized
-        with Image.open(PRECIPITATION_LAYER_IMAGE) as img:
-            (width, height) = img.size
-        self.assertEqual(500, width)
-        self.assertEqual(500, height)
-
-        properties.image_resize(PRECIPITATION_LAYER_IMAGE)
-        with Image.open(PRECIPITATION_LAYER_IMAGE) as img:
-            (width, height) = img.size
-        self.assertEqual(420, width)
-        self.assertEqual(460, height)
 
     def tearDown(self):
         super(TestProperties, self).tearDown()
