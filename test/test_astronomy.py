@@ -1,5 +1,5 @@
-from unittest import TestCase
 import datetime
+from unittest import TestCase
 
 from metoffice import astronomy
 
@@ -29,8 +29,9 @@ class TestAstronomy(TestCase):
         sunrise and sunset
         """
         from metoffice import astronomy
+
         london = (51.51, -0.13)
-        today = datetime.datetime.strptime('Aug 5 2017', '%b %d %Y')
+        today = datetime.datetime.strptime("Aug 5 2017", "%b %d %Y")
         sun = astronomy.Sun(*london)
         sunrise = sun.sunrise(today)
         sunset = sun.sunset(today)
