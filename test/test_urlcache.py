@@ -100,31 +100,31 @@ class TestURLCache(unittest.TestCase):
         with self.urlcache.URLCache(RESULTS_FOLDER) as cache:
             # check item is fetched from the internet
             cache.get(url, mock_expiry_callback, mock_resource_callback)
-            self.assertTrue(request.urlopen.called)  # @UndefinedVariable
-            self.assertTrue(mock_expiry_callback.called)  # @UndefinedVariable
-            self.assertTrue(mock_resource_callback.called)  # @UndefinedVariable
+            self.assertTrue(request.urlopen.called)
+            self.assertTrue(mock_expiry_callback.called)
+            self.assertTrue(mock_resource_callback.called)
 
             # check item is not fetched from internet
-            request.urlopen.reset_mock()  # @UndefinedVariable
+            request.urlopen.reset_mock()
             mock_expiry_callback.reset_mock()
             mock_resource_callback.reset_mock()
             filename = cache.get(url, mock_expiry_callback, mock_resource_callback)
-            self.assertFalse(request.urlopen.called)  # @UndefinedVariable
-            self.assertFalse(mock_expiry_callback.called)  # @UndefinedVariable
-            self.assertFalse(mock_resource_callback.called)  # @UndefinedVariable
+            self.assertFalse(request.urlopen.called)
+            self.assertFalse(mock_expiry_callback.called)
+            self.assertFalse(mock_resource_callback.called)
 
             # check item is fetched because its invalid
             os.remove(filename)
-            request.urlopen.reset_mock()  # @UndefinedVariable
+            request.urlopen.reset_mock()
             mock_expiry_callback.reset_mock()
             mock_resource_callback.reset_mock()
             cache.get(url, mock_expiry_callback, mock_resource_callback)
-            self.assertTrue(request.urlopen.called)  # @UndefinedVariable
-            self.assertTrue(mock_expiry_callback.called)  # @UndefinedVariable
-            self.assertTrue(mock_resource_callback.called)  # @UndefinedVariable
+            self.assertTrue(request.urlopen.called)
+            self.assertTrue(mock_expiry_callback.called)
+            self.assertTrue(mock_resource_callback.called)
 
             # check an exception is modified and reraised when exception occurs with urlopen
-            request.urlopen.reset_mock()  # @UndefinedVariable
+            request.urlopen.reset_mock()
             mock_expiry_callback.reset_mock()
             mock_resource_callback.reset_mock()
             request.urlopen = Mock(side_effect=request.URLError('Name or service not known'))

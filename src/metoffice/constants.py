@@ -14,8 +14,8 @@ TZUK = pytz.timezone('Europe/London')
 WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
 FORECASTMAP_SLIDER = WINDOW.getProperty('ForecastMap.Slider') or '0'
 OBSERVATIONMAP_SLIDER = WINDOW.getProperty('ObservationMap.Slider') or '0'
-FORECASTMAP_LAYER_SELECTION = WINDOW.getProperty('ForecastMap.LayerSelection') or 'Rainfall'  # @UndefinedVariable
-OBSERVATIONMAP_LAYER_SELECTION = WINDOW.getProperty('ObservationMap.LayerSelection') or 'Rainfall'  # @UndefinedVariable
+FORECASTMAP_LAYER_SELECTION = WINDOW.getProperty('ForecastMap.LayerSelection') or 'Rainfall'
+OBSERVATIONMAP_LAYER_SELECTION = WINDOW.getProperty('ObservationMap.LayerSelection') or 'Rainfall'
 CURRENT_VIEW = WINDOW.getProperty('Weather.CurrentView')
 
 ADDON = xbmcaddon.Addon(id="weather.metoffice")

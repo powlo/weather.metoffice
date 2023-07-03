@@ -40,7 +40,7 @@ def failgracefully(f):
             if (xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID or
                     xbmcgui.getCurrentWindowId() == ADDON_BROWSER_WINDOW_ID):
                 args = (e.args[0].title(),) + e.args[1:4]
-                DIALOG.ok(*args)  # @UndefinedVariable
+                DIALOG.ok(*args)
     return wrapper
 
 
