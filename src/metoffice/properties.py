@@ -1,6 +1,6 @@
 import json
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytz
 from PIL import Image
@@ -8,29 +8,19 @@ from PIL import Image
 from . import astronomy, urlcache, utilities
 from .constants import (
     ADDON_DATA_PATH,
-    API_KEY,
     CROP_HEIGHT,
     CROP_WIDTH,
     DAILY_LOCATION_FORECAST_URL,
     DATAPOINT_DATE_FORMAT,
     DATAPOINT_DATETIME_FORMAT,
-    FORECAST_LAYER_CAPABILITIES_URL,
     FORECAST_LOCATION,
     FORECAST_LOCATION_ID,
-    FORECASTMAP_LAYER_SELECTION,
-    FORECASTMAP_SLIDER,
-    GOOGLE_MARKER,
-    GOOGLE_SURFACE,
     HOURLY_LOCATION_OBSERVATION_URL,
     ISSUEDAT_FORMAT,
     LATITUDE,
     LONGITUDE,
-    MAPTIME_FORMAT,
-    OBSERVATION_LAYER_CAPABILITIES_URL,
     OBSERVATION_LOCATION,
     OBSERVATION_LOCATION_ID,
-    OBSERVATIONMAP_LAYER_SELECTION,
-    OBSERVATIONMAP_SLIDER,
     RAW_DATAPOINT_IMG_WIDTH,
     REGIONAL_LOCATION,
     REGIONAL_LOCATION_ID,
@@ -41,7 +31,6 @@ from .constants import (
     THREEHOURLY_LOCATION_FORECAST_URL,
     TIME_FORMAT,
     TZ,
-    TZUK,
     WEATHER_CODES,
     WINDOW,
 )
