@@ -125,7 +125,7 @@ class TestSetLocation(TestCase):
 
     @patch("setlocation.addon")
     @patch("setlocation.dialog")
-    @patch("setlocation.keyboard")
+    @patch("setlocation.xbmc.Keyboard")
     @patch("metoffice.urlcache.URLCache")
     def test_main(self, mock_cache, mock_keyboard, mock_dialog, mock_addon):
         # Pontpandy shouldn't be found, and a message should be displayed saying so
@@ -135,13 +135,13 @@ class TestSetLocation(TestCase):
 
         # Assume that main is decorated with failgracefully
         # get and test the wrapped function, sidestepping the decorator.
-        setlocation.main.__wrapped__("ForecastLocation")
+        setlocation.main("ForecastLocation")
         self.assertTrue(mock_dialog.return_value.ok.called)
 
         # Rosehearty Samos should be found given search text 'hearty'
         mock_keyboard.return_value.getText = Mock(return_value="hearty")
         mock_dialog.return_value.select = Mock(return_value=0)
-        setlocation.main.__wrapped__("ForecastLocation")
+        setlocation.main("ForecastLocation")
         self.assertTrue(mock_dialog.return_value.select.called)
         expected = [
             (("ForecastLocation", "Rosehearty Samos"),),

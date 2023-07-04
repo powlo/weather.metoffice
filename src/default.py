@@ -16,6 +16,9 @@
 # *  http://www.gnu.org/copyleft/gpl.html
 import socket
 import sys
+from urllib.error import HTTPError
+
+import xbmc
 
 import setlocation
 from metoffice import properties, urlcache, utilities
@@ -31,7 +34,6 @@ from metoffice.utilities import gettext as _
 socket.setdefaulttimeout(20)
 
 
-@utilities.failgracefully
 def main():
     if addon().getSetting("EraseCache") == "true":
         try:
@@ -47,10 +49,22 @@ def main():
     if sys.argv[1] in ["ObservationLocation", "ForecastLocation", "RegionalLocation"]:
         setlocation.main(sys.argv[1])
 
-    properties.observation()
-    properties.daily()
-    properties.threehourly()
-    properties.sunrisesunset()
+    try:
+        properties.observation()
+        properties.daily()
+        properties.threehourly()
+        properties.sunrisesunset()
+    except HTTPError:
+        utilities.log(
+            (
+                "Error fetching data.\n"
+                "Ensure the API key in addon configuration is correct and try again.\n"
+                "You can get an API key by creating an account at\n"
+                "https://register.metoffice.gov.uk/WaveRegistrationClient/public/register.do?service=datapoint"
+            ),
+            xbmc.LOGERROR,
+        )
+        raise
 
     window().setProperty("WeatherProvider", addon().getAddonInfo("name"))
     window().setProperty("WeatherProviderLogo", ADDON_BANNER_PATH)

@@ -8,6 +8,9 @@ is set.
 import json
 from datetime import datetime, timedelta
 from operator import itemgetter
+from urllib.error import HTTPError
+
+import xbmc
 
 from metoffice import urlcache, utilities
 from metoffice.constants import (
@@ -20,7 +23,6 @@ from metoffice.constants import (
     REGIONAL_SITELIST_URL,
     addon,
     dialog,
-    keyboard,
 )
 from metoffice.utilities import gettext as _
 
@@ -33,7 +35,20 @@ def getsitelist(location, text=""):
             "ObservationLocation": OBSERVATION_SITELIST_URL,
             "RegionalLocation": REGIONAL_SITELIST_URL,
         }[location]
-        filename = cache.get(url, lambda x: datetime.now() + timedelta(weeks=1))
+        utilities.log("Fetching %s site list from the Met Office..." % location)
+        try:
+            filename = cache.get(url, lambda x: datetime.now() + timedelta(weeks=1))
+        except HTTPError:
+            dialog().ok(
+                _("Error fetching %s site list" % location),
+                _("Check your Met Office API Key under settings and try again."),
+            )
+            utilities.log(
+                "Error fetching %s site list. Check your API Key and try again"
+                % location,
+                xbmc.LOGERROR,
+            )
+            raise
         with open(filename, encoding="utf-8") as fh:
             data = json.load(fh)
         sitelist = data["Locations"]["Location"]
@@ -101,10 +116,13 @@ def getsitelist(location, text=""):
         return sitelist
 
 
-@utilities.failgracefully
 def main(location):
-    keyboard().doModal()
-    text = keyboard().isConfirmed() and keyboard().getText()
+    # In this case we _have_ to create a keyboard object so that
+    # we can test isConfirmed and getText.
+    keyboard = xbmc.Keyboard()
+    keyboard.doModal()
+    text = keyboard.isConfirmed() and keyboard.getText()
+
     sitelist = getsitelist(location, text)
     if sitelist == []:
         dialog().ok(

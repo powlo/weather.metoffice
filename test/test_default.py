@@ -8,7 +8,7 @@ class TestMain(TestCase):
     @patch("default.properties")
     @patch("default.API_KEY", "12345")
     def test_simple(self, mock_properties):
-        default.main.__wrapped__()
+        default.main()
         self.assertTrue(mock_properties.observation.called)
         self.assertTrue(mock_properties.daily.called)
         self.assertTrue(mock_properties.threehourly.called)
@@ -26,7 +26,7 @@ class TestMain(TestCase):
 
         # Test no API Key Exception raising
         with self.assertRaises(Exception) as cm:
-            default.main.__wrapped__()
+            default.main()
         self.assertEqual(
             (
                 "No API Key.",
@@ -53,7 +53,7 @@ class TestMain(TestCase):
         """
         # Assume here that the call to getSetting is for 'EraseCache'.
         mock_addon.return_value.getSetting = Mock(return_value="true")
-        default.main.__wrapped__()
+        default.main()
         self.assertTrue(mock_urlcache.return_value.erase.called)
         mock_addon.return_value.setSetting.assert_called_once_with(
             "EraseCache", "false"
@@ -68,6 +68,6 @@ class TestMain(TestCase):
         When default is invoked with Location setting args, the
         setlocation script is run.
         """
-        default.main.__wrapped__()
+        default.main()
         self.assertTrue(mock_setlocation_main.called)
         self.assertEqual(mock_setlocation_main.call_args.args, ("ForecastLocation",))
