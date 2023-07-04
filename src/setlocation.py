@@ -5,24 +5,24 @@ site list. All matches are presented as a select list to
 the user. On successful selection internal addon setting
 is set.
 """
+import json
 from datetime import datetime, timedelta
 from operator import itemgetter
-import json
-from metoffice import utilities, urlcache
-from metoffice.utilities import gettext as _
 
+from metoffice import urlcache, utilities
 from metoffice.constants import (
     ADDON_DATA_PATH,
-    GEOIP_PROVIDER,
-    KEYBOARD,
-    DIALOG,
-    ADDON,
     FORECAST_SITELIST_URL,
+    GEOIP_PROVIDER,
+    GEOLOCATION,
+    LONG_REGIONAL_NAMES,
     OBSERVATION_SITELIST_URL,
     REGIONAL_SITELIST_URL,
-    LONG_REGIONAL_NAMES,
-    GEOLOCATION,
+    addon,
+    dialog,
+    keyboard,
 )
+from metoffice.utilities import gettext as _
 
 
 @utilities.xbmcbusy
@@ -103,24 +103,24 @@ def getsitelist(location, text=""):
 
 @utilities.failgracefully
 def main(location):
-    KEYBOARD.doModal()
-    text = KEYBOARD.isConfirmed() and KEYBOARD.getText()
+    keyboard().doModal()
+    text = keyboard().isConfirmed() and keyboard().getText()
     sitelist = getsitelist(location, text)
     if sitelist == []:
-        DIALOG.ok(
+        dialog().ok(
             _("No Matches"), _("No locations found containing") + " {0}".format(text)
         )
         utilities.log("No locations found containing '%s'" % text)
     else:
         display_list = [site["display"] for site in sitelist]
-        selected = DIALOG.select(_("Matching Sites"), display_list)
+        selected = dialog().select(_("Matching Sites"), display_list)
         if selected != -1:
-            ADDON.setSetting(location, sitelist[selected]["name"])
-            ADDON.setSetting("%sID" % location, sitelist[selected]["id"])
-            ADDON.setSetting(
+            addon().setSetting(location, sitelist[selected]["name"])
+            addon().setSetting("%sID" % location, sitelist[selected]["id"])
+            addon().setSetting(
                 "%sLatitude" % location, str(sitelist[selected].get("latitude"))
             )
-            ADDON.setSetting(
+            addon().setSetting(
                 "%sLongitude" % location, str(sitelist[selected].get("longitude"))
             )
             utilities.log(

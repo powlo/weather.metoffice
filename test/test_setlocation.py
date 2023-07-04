@@ -123,33 +123,33 @@ class TestSetLocation(TestCase):
         ]
         self.assertEqual(expected, result)
 
-    @patch("setlocation.ADDON")
-    @patch("setlocation.DIALOG")
-    @patch("setlocation.KEYBOARD")
+    @patch("setlocation.addon")
+    @patch("setlocation.dialog")
+    @patch("setlocation.keyboard")
     @patch("metoffice.urlcache.URLCache")
     def test_main(self, mock_cache, mock_keyboard, mock_dialog, mock_addon):
         # Pontpandy shouldn't be found, and a message should be displayed saying so
         mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=mock_get)
-        mock_keyboard.getText = Mock(return_value="Pontypandy")
-        mock_keyboard.isConfirmed = Mock(return_value=True)
+        mock_keyboard.return_value.getText = Mock(return_value="Pontypandy")
+        mock_keyboard.return_value.isConfirmed = Mock(return_value=True)
 
         # Assume that main is decorated with failgracefully
         # get and test the wrapped function, sidestepping the decorator.
         setlocation.main.__wrapped__("ForecastLocation")
-        self.assertTrue(mock_dialog.ok.called)
+        self.assertTrue(mock_dialog.return_value.ok.called)
 
         # Rosehearty Samos should be found given search text 'hearty'
-        mock_keyboard.getText = Mock(return_value="hearty")
-        mock_dialog.select = Mock(return_value=0)
+        mock_keyboard.return_value.getText = Mock(return_value="hearty")
+        mock_dialog.return_value.select = Mock(return_value=0)
         setlocation.main.__wrapped__("ForecastLocation")
-        self.assertTrue(mock_dialog.select.called)
+        self.assertTrue(mock_dialog.return_value.select.called)
         expected = [
             (("ForecastLocation", "Rosehearty Samos"),),
             (("ForecastLocationID", "3094"),),
             (("ForecastLocationLatitude", "57.698"),),
             (("ForecastLocationLongitude", "-2.121"),),
         ]
-        self.assertEqual(expected, mock_addon.setSetting.call_args_list)
+        self.assertEqual(expected, mock_addon.return_value.setSetting.call_args_list)
 
     def tearDown(self):
         super(TestSetLocation, self).tearDown()

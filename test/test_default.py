@@ -22,7 +22,7 @@ class TestMain(TestCase):
     def test_no_api_key(self, mock_properties):
         """When the user has not added an api key an exception should be raised."""
         # Assume here that the call to getSetting is for 'EraseCache'.
-        mock_properties.ADDON.getSetting = Mock(return_value="false")
+        mock_properties.addon.return_value.getSetting = Mock(return_value="false")
 
         # Test no API Key Exception raising
         with self.assertRaises(Exception) as cm:
@@ -43,7 +43,7 @@ class TestMain(TestCase):
         mock_properties.reset_mock()
 
     @patch("default.properties", Mock())  # Stub out functions to speed up test.
-    @patch("default.ADDON")
+    @patch("default.addon")
     @patch("default.API_KEY", "12345")
     @patch("default.urlcache.URLCache")
     def test_erase_cache(self, mock_urlcache, mock_addon):
@@ -52,10 +52,12 @@ class TestMain(TestCase):
         cache and reset the value to false.
         """
         # Assume here that the call to getSetting is for 'EraseCache'.
-        mock_addon.getSetting = Mock(return_value="true")
+        mock_addon.return_value.getSetting = Mock(return_value="true")
         default.main.__wrapped__()
         self.assertTrue(mock_urlcache.return_value.erase.called)
-        mock_addon.setSetting.assert_called_once_with("EraseCache", "false")
+        mock_addon.return_value.setSetting.assert_called_once_with(
+            "EraseCache", "false"
+        )
 
     @patch("sys.argv", ["something", "ForecastLocation"])
     @patch("default.API_KEY", "12345")

@@ -13,32 +13,44 @@ ADDON_BROWSER_WINDOW_ID = 10040
 TZ = pytz.timezone(
     "Europe/London"
 )  # TODO: Need to pull the actual timezone out of xbmc. Somehow.
-WINDOW = xbmcgui.Window(WEATHER_WINDOW_ID)
 
-ADDON = xbmcaddon.Addon(id="weather.metoffice")
-DIALOG = xbmcgui.Dialog()
 
-KEYBOARD = xbmc.Keyboard()
+def window():
+    return xbmcgui.Window(WEATHER_WINDOW_ID)
+
+
+def dialog():
+    return xbmcgui.Dialog()
+
+
+def keyboard():
+    return xbmc.Keyboard()
+
+
+def addon():
+    return xbmcaddon.Addon(id="weather.metoffice")
+
+
 ADDON_BANNER_PATH = xbmcvfs.translatePath(
-    "special://home/addons/%s/resources/banner.png" % ADDON.getAddonInfo("id")
+    "special://home/addons/%s/resources/banner.png" % addon().getAddonInfo("id")
 )
 ADDON_DATA_PATH = xbmcvfs.translatePath(
-    "special://profile/addon_data/%s/" % ADDON.getAddonInfo("id")
+    "special://profile/addon_data/%s/" % addon().getAddonInfo("id")
 )
 
 TEMPERATUREUNITS = xbmc.getRegion("tempunit")
 
-API_KEY = ADDON.getSetting("ApiKey")
-GEOLOCATION = ADDON.getSetting("GeoLocation")
-GEOIP = ADDON.getSetting("GeoIPProvider")
-FORECAST_LOCATION = ADDON.getSetting("ForecastLocation")
-FORECAST_LOCATION_ID = ADDON.getSetting("ForecastLocationID")
-OBSERVATION_LOCATION = ADDON.getSetting("ObservationLocation")
-OBSERVATION_LOCATION_ID = ADDON.getSetting("ObservationLocationID")
-REGIONAL_LOCATION = ADDON.getSetting("RegionalLocation")
-REGIONAL_LOCATION_ID = ADDON.getSetting("RegionalLocationID")
-LATITUDE = ADDON.getSetting("ForecastLocationLatitude")
-LONGITUDE = ADDON.getSetting("ForecastLocationLongitude")
+API_KEY = addon().getSetting("ApiKey")
+GEOLOCATION = addon().getSetting("GeoLocation")
+GEOIP = addon().getSetting("GeoIPProvider")
+FORECAST_LOCATION = addon().getSetting("ForecastLocation")
+FORECAST_LOCATION_ID = addon().getSetting("ForecastLocationID")
+OBSERVATION_LOCATION = addon().getSetting("ObservationLocation")
+OBSERVATION_LOCATION_ID = addon().getSetting("ObservationLocationID")
+REGIONAL_LOCATION = addon().getSetting("RegionalLocation")
+REGIONAL_LOCATION_ID = addon().getSetting("RegionalLocationID")
+LATITUDE = addon().getSetting("ForecastLocationLatitude")
+LONGITUDE = addon().getSetting("ForecastLocationLongitude")
 
 DATAPOINT_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 DATAPOINT_DATE_FORMAT = "%Y-%m-%dZ"

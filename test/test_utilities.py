@@ -38,7 +38,7 @@ class TestUtilities(TestCase):
         mock_func.assert_called_with(1, 2, 3)
 
     @patch("xbmc.log")
-    @patch("metoffice.utilities.DIALOG")
+    @patch("metoffice.utilities.dialog")
     @patch("xbmcgui.getCurrentWindowId", Mock(return_value=constants.WEATHER_WINDOW_ID))
     def test_failgracefully(self, mock_dialog, mock_log):
         message = ("Oh no", "It all went wrong")
@@ -48,23 +48,27 @@ class TestUtilities(TestCase):
         decorated_func(1, 2, 3)
         mock_func.assert_called_once_with(1, 2, 3)
         self.assertTrue(mock_log.called)
-        self.assertTrue(mock_dialog.ok.called)
-        mock_dialog.ok.assert_called_once_with(message[0].title(), message[1])
+        self.assertTrue(mock_dialog.return_value.ok.called)
+        mock_dialog.return_value.ok.assert_called_once_with(
+            message[0].title(), message[1]
+        )
 
         # Test when exception called with only one arg
-        mock_dialog.ok.reset_mock()
+        mock_dialog.return_value.ok.reset_mock()
         message = ("Oh no",)
         mock_func.side_effect = IOError(*message)
         decorated_func(1, 2, 3)
-        mock_dialog.ok.assert_called_once_with(
+        mock_dialog.return_value.ok.assert_called_once_with(
             message[0].title(), "See log file for details"
         )
 
         # Test when exception called with no args
-        mock_dialog.ok.reset_mock()
+        mock_dialog.return_value.ok.reset_mock()
         mock_func.side_effect = IOError()
         decorated_func(1, 2, 3)
-        mock_dialog.ok.assert_called_once_with("Error", "See log file for details")
+        mock_dialog.return_value.ok.assert_called_once_with(
+            "Error", "See log file for details"
+        )
 
     def test_minutes_as_time(self):
         self.assertEqual("03:00", utilities.minutes_as_time(180))
@@ -90,27 +94,27 @@ class TestUtilities(TestCase):
 
     @patch("xbmc.LOGWARNING", 3)
     @patch("metoffice.utilities.log")
-    @patch("metoffice.utilities.ADDON")
+    @patch("metoffice.utilities.addon")
     def test_gettext(self, mock_addon, mock_log):
         trans = "Nire aerolabangailua aingirez beteta dago"
         known_string = "Observation Location"
         unknown_string = "Observation Position"
-        mock_addon.getLocalizedString = Mock(return_value=trans)
+        mock_addon.return_value.getLocalizedString = Mock(return_value=trans)
 
         # successful translation
         result = utilities.gettext(known_string)
-        self.assertTrue(mock_addon.getLocalizedString.called)
+        self.assertTrue(mock_addon.return_value.getLocalizedString.called)
         self.assertEqual(trans, result)
 
         # KeyError
-        mock_addon.getLocalizedString.reset_mock()
+        mock_addon.return_value.getLocalizedString.reset_mock()
         result = utilities.gettext(unknown_string)
         self.assertTrue(mock_log.called)
         self.assertEqual(unknown_string, result)
 
         # TranslationError
-        mock_addon.getLocalizedString.reset_mock()
-        mock_addon.getLocalizedString = Mock(return_value="")
+        mock_addon.return_value.getLocalizedString.reset_mock()
+        mock_addon.return_value.getLocalizedString = Mock(return_value="")
         result = utilities.gettext(known_string)
-        self.assertTrue(utilities.ADDON.getLocalizedString.called)
+        self.assertTrue(utilities.addon.return_value.getLocalizedString.called)
         self.assertEqual(known_string, result)

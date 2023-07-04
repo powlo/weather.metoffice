@@ -8,11 +8,11 @@ import xbmc
 import xbmcgui
 
 from .constants import (
-    ADDON,
     ADDON_BROWSER_WINDOW_ID,
-    DIALOG,
     TEMPERATUREUNITS,
     WEATHER_WINDOW_ID,
+    addon,
+    dialog,
 )
 
 
@@ -50,7 +50,7 @@ def failgracefully(f):
                 or xbmcgui.getCurrentWindowId() == ADDON_BROWSER_WINDOW_ID
             ):
                 args = (e.args[0].title(),) + e.args[1:4]
-                DIALOG.ok(*args)
+                dialog().ok(*args)
 
     return wrapper
 
@@ -171,7 +171,7 @@ def gettext(s):
         "Matching Sites": 32011,
     }
     try:
-        translation = ADDON.getLocalizedString(translatable[s])
+        translation = addon().getLocalizedString(translatable[s])
         if not translation:
             raise TranslationError
         else:
