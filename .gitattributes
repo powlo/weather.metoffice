@@ -2,3 +2,4 @@
 *.sh export-ignore
 .* export-ignore
 requirements*.txt export-ignore
+pr_template.txt export-ignore

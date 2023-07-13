@@ -1,0 +1,8 @@
+### Description
+
+$CHANGELOG_FOR_VERSION
+
+### Checklist:
+- [X] My code follows the [add-on rules](http://kodi.wiki/view/Add-on_rules) and [piracy stance](http://kodi.wiki/view/Official:Forum_rules#Piracy_Policy) of this project. 
+- [X] I have read the [CONTRIBUTING](https://github.com/xbmc/repo-scripts/blob/master/CONTRIBUTING.md) document
+- [X] Each add-on submission should be a single commit with using the following style: [script.foo.bar] 1.0.0
