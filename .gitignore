@@ -2,4 +2,6 @@
 *.tar.gz
 __pycache__
 .venv/
+
 pr_body.txt
+repo-scripts/
