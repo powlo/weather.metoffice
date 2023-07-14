@@ -104,7 +104,7 @@ WEATHER_CODES = {
 GEOIP_PROVIDERS = [
     {"url": "http://ip-api.com/json/", "latitude": "lat", "longitude": "lon"},
     {
-        "url": "http://geoiplookup.net/geoapi.php?output=json",
+        "url": "https://api.geoiplookup.net/?json=true",
         "latitude": "latitude",
         "longitude": "longitude",
     },
