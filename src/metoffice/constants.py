@@ -108,6 +108,11 @@ GEOIP_PROVIDERS = [
         "latitude": "latitude",
         "longitude": "longitude",
     },
+    {
+        "url": "https://ipapi.co/json/",
+        "latitude": "latitude",
+        "longitude": "longitude",
+    },
 ]
 GEOIP_PROVIDER = GEOIP_PROVIDERS[int(GEOIP) if GEOIP else 0]
 
