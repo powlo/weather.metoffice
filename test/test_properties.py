@@ -13,6 +13,7 @@ DATA_FOLDER = os.path.join(TEST_FOLDER, "data")
 RESULTS_FOLDER = os.path.join(TEST_FOLDER, "results")
 OBSERVATIONHOURLY = os.path.join(DATA_FOLDER, "observationhourly.json")
 OBSERVATIONHOURLY2 = os.path.join(DATA_FOLDER, "observationhourly2.json")
+OBSERVATIONHOURLY3 = os.path.join(DATA_FOLDER, "observationhourly3.json")
 FORECASTDAILY = os.path.join(DATA_FOLDER, "forecastdaily.json")
 FORECAST3HOURLY = os.path.join(DATA_FOLDER, "forecast3hourly.json")
 FORECASTTEXT = os.path.join(DATA_FOLDER, "forecasttext.json")
@@ -192,7 +193,7 @@ class TestProperties(TestCase):
 
     @patch("metoffice.urlcache.URLCache")
     @patch("metoffice.properties.window")
-    def test_observation_missing(self, mock_window, mock_cache):
+    def test_observation_object_not_list(self, mock_window, mock_cache):
         # Test the cases when reports don't contain list items.
         mock_cache.return_value.__enter__.return_value.get = Mock(
             return_value=OBSERVATIONHOURLY2
@@ -258,6 +259,25 @@ class TestProperties(TestCase):
             (
                 "Key Error in JSON File",
                 "Key 'SiteRep' not found while processing file from url:",
+                constants.HOURLY_LOCATION_OBSERVATION_URL,
+            ),
+            cm.exception.args,
+        )
+
+    @patch("metoffice.urlcache.URLCache")
+    @patch("metoffice.properties.window")
+    def test_observation_missing_location(self, mock_window, mock_cache):
+        # Test the cases when reports don't contain any location data
+        mock_cache.return_value.__enter__.return_value.get = Mock(
+            return_value=OBSERVATIONHOURLY3
+        )
+        with self.assertRaises(KeyError) as cm:
+            properties.observation()
+
+        self.assertEqual(
+            (
+                "Key Error in JSON File",
+                "Key 'Location' not found while processing file from url:",
                 constants.HOURLY_LOCATION_OBSERVATION_URL,
             ),
             cm.exception.args,
