@@ -3,18 +3,12 @@ import time
 import traceback
 from datetime import datetime
 from functools import wraps
-import math
 
 import xbmc
 import xbmcgui
 
-from .constants import (
-    ADDON_BROWSER_WINDOW_ID,
-    TEMPERATUREUNITS,
-    WEATHER_WINDOW_ID,
-    addon,
-    dialog,
-)
+from .constants import (ADDON_BROWSER_WINDOW_ID, TEMPERATUREUNITS,
+                        WEATHER_WINDOW_ID, addon, dialog)
 
 
 def log(msg, level=xbmc.LOGINFO):
@@ -119,6 +113,7 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     c = 2 * math.asin(math.sqrt(a))
     return EARTH_RADIUS * c
 
+
 def feels_like(temp, humidity, windspeed):
     # https://blog.metoffice.gov.uk/2012/02/15/what-is-feels-like-temperature/
     # Using these facts we use a formula to adjust the air temperature based
@@ -131,17 +126,20 @@ def feels_like(temp, humidity, windspeed):
     # But for now just use the 'simplified' apparent temperature.
     return apparent_temperature_simplified(temp, humidity, windspeed)
 
+
 def water_vapour_pressure(t, rh):
     # Temperature (t) is a float from 0 to 100 representing a temperature in degrees C.
     # Relative humidity (rh) is a float from 0.00 to 1.00 representing a percentage.
-    return rh * 6.105 * math.e ** (17.27*t/(237.7+t))
+    return rh * 6.105 * math.e ** (17.27 * t / (237.7 + t))
+
 
 def apparent_temperature_simplified(t, rh, ws):
     # A version of apparent temperature that doesn't need Q factor.
     # From the Land of Oz.
     # https://www.vcalc.com/wiki/rklarsen/Australian+Apparent+Temperature+%28AT%29
     hPa = water_vapour_pressure(t, rh)
-    return t + (0.33*hPa) - (0.70*ws) - 4.00
+    return t + (0.33 * hPa) - (0.70 * ws) - 4.00
+
 
 def apparent_temperature(t, rh, ws, Q=0):
     # https://calculator.academy/apparent-temperature-calculator/
@@ -150,11 +148,18 @@ def apparent_temperature(t, rh, ws, Q=0):
     # windspeed in metres per second
     # TODO: Q is a fudge factor based on absorbed solar radiation.
     hPa = water_vapour_pressure(t, rh)
-    return t + 0.38*hPa - 0.70 * ws + 0.70*(Q/(ws + 10)) - 4.25
+    return t + 0.38 * hPa - 0.70 * ws + 0.70 * (Q / (ws + 10)) - 4.25
+
 
 def wind_chill(temp, windspeed):
     # Use wind chill at lower winter temperatures.
-    return 13.12 + 0.6215 * temp - 11.37* windspeed ** 0.16 + 0.3965 * temp * windspeed ** 0.16
+    return (
+        13.12
+        + 0.6215 * temp
+        - 11.37 * windspeed**0.16
+        + 0.3965 * temp * windspeed**0.16
+    )
+
 
 def heat_index(t, r):
     # Use heat index for high summer temperatures.
@@ -176,7 +181,18 @@ def heat_index(t, r):
     c7 = 0.002211732
     c8 = 0.00072546
     c9 = -0.000003582
-    return c1 + c2*t + c3*r + c4*t*r + c5*(t**2) + c6*(r**2) + c7*(t**2)*r + c8*t*(r**2) + c9*(t**2)*(r**2)
+    return (
+        c1
+        + c2 * t
+        + c3 * r
+        + c4 * t * r
+        + c5 * (t**2)
+        + c6 * (r**2)
+        + c7 * (t**2) * r
+        + c8 * t * (r**2)
+        + c9 * (t**2) * (r**2)
+    )
+
 
 def rownd(x):
     try:
@@ -209,8 +225,10 @@ def mph_to_kph(x):
     """
     return x * 1.609344
 
+
 def mph_to_mps(x):
     return x / 2.237
+
 
 def gettext(s):
     """

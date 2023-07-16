@@ -93,21 +93,21 @@ class TestUtilities(TestCase):
         self.assertEqual("", utilities.rownd(""))
 
     def test_water_vapour_pressure(self):
-        self.assertEqual(12, round(utilities.water_vapour_pressure(20, .50)))
+        self.assertEqual(12, round(utilities.water_vapour_pressure(20, 0.50)))
 
     def test_apparent_temperature(self):
-        self.assertEqual(13, round(utilities.apparent_temperature(20, .50, 10)))
+        self.assertEqual(13, round(utilities.apparent_temperature(20, 0.50, 10)))
 
     def test_apparent_temperature_simplified(self):
-        self.assertEqual(13, round(utilities.apparent_temperature_simplified(20, .50, 10)))
+        self.assertEqual(
+            13, round(utilities.apparent_temperature_simplified(20, 0.50, 10))
+        )
 
     def test_wind_chill(self):
         self.assertEqual(3, round(utilities.wind_chill(5, 10)))
 
     def test_heat_index(self):
         self.assertEqual(43, round(utilities.heat_index(38, 40)))
-
-
 
     @patch("xbmc.LOGWARNING", 3)
     @patch("metoffice.utilities.log")
