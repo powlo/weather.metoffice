@@ -110,7 +110,7 @@ class TestUtilities(TestCase):
         self.assertEqual(43, round(utilities.heat_index(38, 40)))
 
     @patch("xbmc.LOGWARNING", 3)
-    @patch("metoffice.utilities.log")
+    @patch("default.xbmc.log")
     @patch("metoffice.utilities.addon")
     def test_gettext(self, mock_addon, mock_log):
         trans = "Nire aerolabangailua aingirez beteta dago"

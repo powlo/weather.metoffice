@@ -35,7 +35,7 @@ def getsitelist(location, text=""):
             "ObservationLocation": OBSERVATION_SITELIST_URL,
             "RegionalLocation": REGIONAL_SITELIST_URL,
         }[location]
-        utilities.log("Fetching %s site list from the Met Office..." % location)
+        xbmc.log("Fetching %s site list from the Met Office..." % location)
         try:
             filename = cache.get(url, lambda x: datetime.now() + timedelta(weeks=1))
         except HTTPError:
@@ -43,7 +43,7 @@ def getsitelist(location, text=""):
                 _("Error fetching %s site list" % location),
                 _("Check your Met Office API Key under settings and try again."),
             )
-            utilities.log(
+            xbmc.log(
                 "Error fetching %s site list. Check your API Key and try again"
                 % location,
                 xbmc.LOGERROR,
@@ -82,13 +82,13 @@ def getsitelist(location, text=""):
                 with open(filename) as fh:
                     data = json.load(fh)
             except ValueError:
-                utilities.log("Failed to fetch valid data from %s" % url)
+                xbmc.log("Failed to fetch valid data from %s" % url)
             try:
                 geolat = float(data[GEOIP_PROVIDER["latitude"]])
                 geolong = float(data[GEOIP_PROVIDER["longitude"]])
                 geo = {"lat": geolat, "long": geolong}
             except KeyError:
-                utilities.log("Couldn't extract lat/long data from %s" % url)
+                xbmc.log("Couldn't extract lat/long data from %s" % url)
 
             for site in sitelist:
                 try:
@@ -128,7 +128,7 @@ def main(location):
         dialog().ok(
             _("No Matches"), _("No locations found containing") + " {0}".format(text)
         )
-        utilities.log("No locations found containing '%s'" % text)
+        xbmc.log("No locations found containing '%s'" % text)
     else:
         display_list = [site["display"] for site in sitelist]
         selected = dialog().select(_("Matching Sites"), display_list)
@@ -141,7 +141,7 @@ def main(location):
             addon().setSetting(
                 "%sLongitude" % location, str(sitelist[selected].get("longitude"))
             )
-            utilities.log(
+            xbmc.log(
                 "Setting '{location}' to '{name} ({id})'".format(
                     location=location,
                     name=sitelist[selected]["name"].encode("utf-8"),

@@ -22,7 +22,7 @@ from urllib.error import HTTPError
 import xbmc
 
 import setlocation
-from metoffice import properties, urlcache, utilities
+from metoffice import properties, urlcache
 from metoffice.constants import (
     ADDON_BANNER_PATH,
     ADDON_DATA_PATH,
@@ -33,6 +33,13 @@ from metoffice.constants import (
 from metoffice.utilities import gettext as _
 
 socket.setdefaulttimeout(20)
+
+# Monkeypatch xbmc.log so we don't have to use a
+# utility just to do logging.
+_xbmc_log = xbmc.log
+xbmc.log = lambda msg, level=xbmc.LOGINFO: _xbmc_log(
+    "weather.metoffice: {0}".format(msg), level
+)
 
 
 def main():
@@ -58,11 +65,11 @@ def main():
     except KeyError:
         # Expect KeyErrors to come from parsing JSON responses.
         # This is considered an intermittent error, so exception is eaten.
-        utilities.log(traceback.format_exc(), xbmc.LOGERROR)
+        xbmc.log(traceback.format_exc(), xbmc.LOGERROR)
     except HTTPError:
         # HTTPErrors are most likely to occur when the user hasn't set their API
         # key, so allow the script to raise to produce a parp.
-        utilities.log(
+        xbmc.log(
             (
                 "Error fetching data.\n"
                 "Ensure the API key in addon configuration is correct and try again.\n"

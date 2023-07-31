@@ -7,8 +7,13 @@ from functools import wraps
 import xbmc
 import xbmcgui
 
-from .constants import (ADDON_BROWSER_WINDOW_ID, TEMPERATUREUNITS,
-                        WEATHER_WINDOW_ID, addon, dialog)
+from .constants import (
+    ADDON_BROWSER_WINDOW_ID,
+    TEMPERATUREUNITS,
+    WEATHER_WINDOW_ID,
+    addon,
+    dialog,
+)
 
 
 def log(msg, level=xbmc.LOGINFO):
@@ -256,7 +261,7 @@ def gettext(s):
         else:
             return translation
     except (KeyError, TranslationError):
-        log('String "{0}" not translated.'.format(s), level=xbmc.LOGWARNING)
+        xbmc.log('String "{0}" not translated.'.format(s), level=xbmc.LOGWARNING)
         return s
 
 

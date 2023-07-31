@@ -3,6 +3,7 @@ import time
 from datetime import timedelta
 
 import pytz
+import xbmc
 
 from . import astronomy, urlcache, utilities
 from .constants import (
@@ -33,7 +34,7 @@ from .constants import (
 
 
 def observation():
-    utilities.log(
+    xbmc.log(
         "Fetching Hourly Observation for '%s (%s)' from the Met Office..."
         % (OBSERVATION_LOCATION, OBSERVATION_LOCATION_ID)
     )
@@ -120,7 +121,7 @@ def observation():
 
 
 def daily():
-    utilities.log(
+    xbmc.log(
         "Fetching Daily Forecast for '%s (%s)' from the Met Office..."
         % (FORECAST_LOCATION, FORECAST_LOCATION_ID)
     )
@@ -227,7 +228,7 @@ def daily():
 
 
 def threehourly():
-    utilities.log(
+    xbmc.log(
         "Fetching 3 Hourly Forecast for '%s (%s)' from the Met Office..."
         % (FORECAST_LOCATION, FORECAST_LOCATION_ID)
     )
@@ -311,7 +312,7 @@ def sunrisesunset():
 
 
 def text():
-    utilities.log(
+    xbmc.log(
         "Fetching Text Forecast for '%s (%s)' from the Met Office..."
         % (REGIONAL_LOCATION, REGIONAL_LOCATION_ID)
     )
