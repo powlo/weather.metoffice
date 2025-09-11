@@ -1,14 +1,19 @@
 import math
 import time
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
 
 import xbmc
 import xbmcgui
 
-from .constants import (ADDON_BROWSER_WINDOW_ID, TEMPERATUREUNITS,
-                        WEATHER_WINDOW_ID, addon, dialog)
+from .constants import (
+    ADDON_BROWSER_WINDOW_ID,
+    TEMPERATUREUNITS,
+    WEATHER_WINDOW_ID,
+    addon,
+    dialog,
+)
 
 
 def log(msg, level=xbmc.LOGINFO):
@@ -18,7 +23,7 @@ def log(msg, level=xbmc.LOGINFO):
 
 def strptime(dt, fmt):
     # python datetime.strptime is not thread safe: sometimes causes 'NoneType is not callable' error
-    return datetime.fromtimestamp(time.mktime(time.strptime(dt, fmt)))
+    return datetime.fromtimestamp(time.mktime(time.strptime(dt, fmt)), tz=timezone.utc)
 
 
 def failgracefully(f):
