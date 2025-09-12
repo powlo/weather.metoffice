@@ -113,6 +113,16 @@ GEOIP_PROVIDERS = [
         "latitude": "latitude",
         "longitude": "longitude",
     },
+    {
+        "url": "http://ipwho.is",
+        "latitude": "latitude",
+        "longitude": "longitude",
+    },
+    {
+        "url": "https://free.freeipapi.com/api/json",
+        "latitude": "latitude",
+        "longitude": "longitude",
+    },
 ]
 GEOIP_PROVIDER = GEOIP_PROVIDERS[int(GEOIP) if GEOIP else 0]
 

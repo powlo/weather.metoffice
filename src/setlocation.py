@@ -5,6 +5,7 @@ site list. All matches are presented as a select list to
 the user. On successful selection internal addon setting
 is set.
 """
+
 import json
 from datetime import datetime, timedelta
 from operator import itemgetter
@@ -77,6 +78,7 @@ def getsitelist(location, text=""):
         if GEOLOCATION == "true":
             geo = {}
             url = GEOIP_PROVIDER["url"]
+            utilities.log("Fetching location from '%s'" % url)
             filename = cache.get(url, lambda x: datetime.now() + timedelta(hours=1))
             try:
                 with open(filename) as fh:
