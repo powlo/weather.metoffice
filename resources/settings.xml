@@ -19,7 +19,7 @@
     <setting id="ApiKey" label="32003" type="text" default="" />
     <setting id="GeoLocation" label="32004" type="bool" default="true" />
     <setting id="GeoIPProvider" label="32005" type="enum"
-      values="www.ip-api.com|www.geoiplookup.net|www.ipapi.co" enable="eq(-1,true)" default="0" />
+      values="www.ip-api.com|geoiplookup.io|www.ipapi.co" enable="eq(-1,true)" default="0" />
     <setting id="EraseCache" label="32006" type="bool" default="false" />
   </category>
 </settings>
