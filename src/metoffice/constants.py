@@ -15,10 +15,6 @@ TZ = pytz.timezone(
 )  # TODO: Need to pull the actual timezone out of xbmc. Somehow.
 
 
-def window():
-    return xbmcgui.Window(WEATHER_WINDOW_ID)
-
-
 def dialog():
     return xbmcgui.Dialog()
 

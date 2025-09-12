@@ -20,6 +20,7 @@ import traceback
 from urllib.error import HTTPError
 
 import xbmc
+import xbmcgui
 
 import setlocation
 from metoffice import properties, urlcache, utilities
@@ -27,10 +28,12 @@ from metoffice.constants import (
     ADDON_BANNER_PATH,
     ADDON_DATA_PATH,
     API_KEY,
+    WEATHER_WINDOW_ID,
     addon,
-    window,
 )
 from metoffice.utilities import gettext as _
+
+window = xbmcgui.Window(WEATHER_WINDOW_ID)
 
 socket.setdefaulttimeout(20)
 
@@ -73,23 +76,21 @@ def main():
         )
         raise
 
-    window().setProperty("WeatherProvider", addon().getAddonInfo("name"))
-    window().setProperty("WeatherProviderLogo", ADDON_BANNER_PATH)
-    window().setProperty(
-        "ObservationLocation", addon().getSetting("ObservationLocation")
-    )
-    window().setProperty("Current.Location", addon().getSetting("ForecastLocation"))
-    window().setProperty("ForecastLocation", addon().getSetting("ForecastLocation"))
-    window().setProperty("RegionalLocation", addon().getSetting("RegionalLocation"))
-    window().setProperty("Location1", addon().getSetting("ForecastLocation"))
-    window().setProperty("Locations", "1")
+    window.setProperty("WeatherProvider", addon().getAddonInfo("name"))
+    window.setProperty("WeatherProviderLogo", ADDON_BANNER_PATH)
+    window.setProperty("ObservationLocation", addon().getSetting("ObservationLocation"))
+    window.setProperty("Current.Location", addon().getSetting("ForecastLocation"))
+    window.setProperty("ForecastLocation", addon().getSetting("ForecastLocation"))
+    window.setProperty("RegionalLocation", addon().getSetting("RegionalLocation"))
+    window.setProperty("Location1", addon().getSetting("ForecastLocation"))
+    window.setProperty("Locations", "1")
 
     # Explicitly set unused flags to false, so there are no unusual side
     # effects/residual data when moving from another weather provider.
-    window().setProperty("36Hour.IsFetched", "")
-    window().setProperty("Weekend.IsFetched", "")
-    window().setProperty("Map.IsFetched", "")
-    window().setProperty("Weather.CurrentView", "")
+    window.setProperty("36Hour.IsFetched", "")
+    window.setProperty("Weekend.IsFetched", "")
+    window.setProperty("Map.IsFetched", "")
+    window.setProperty("Weather.CurrentView", "")
 
 
 if __name__ == "__main__":
