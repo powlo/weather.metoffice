@@ -3,7 +3,6 @@ import urllib.parse
 import pytz
 import xbmc
 import xbmcaddon
-import xbmcgui
 import xbmcvfs
 
 # Magic numbers. See https://kodi.wiki/view/Window_IDs
@@ -13,14 +12,6 @@ ADDON_BROWSER_WINDOW_ID = 10040
 TZ = pytz.timezone(
     "Europe/London"
 )  # TODO: Need to pull the actual timezone out of xbmc. Somehow.
-
-
-def dialog():
-    return xbmcgui.Dialog()
-
-
-def keyboard():
-    return xbmc.Keyboard()
 
 
 def addon():

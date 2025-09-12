@@ -12,6 +12,7 @@ from operator import itemgetter
 from urllib.error import HTTPError
 
 import xbmc
+import xbmcgui
 
 from metoffice import urlcache, utilities
 from metoffice.constants import (
@@ -23,9 +24,10 @@ from metoffice.constants import (
     OBSERVATION_SITELIST_URL,
     REGIONAL_SITELIST_URL,
     addon,
-    dialog,
 )
 from metoffice.utilities import gettext as _
+
+dialog = xbmcgui.Dialog()
 
 
 @utilities.xbmcbusy
@@ -40,7 +42,7 @@ def getsitelist(location, text=""):
         try:
             filename = cache.get(url, lambda x: datetime.now() + timedelta(weeks=1))
         except HTTPError:
-            dialog().ok(
+            dialog.ok(
                 _("Error fetching %s site list" % location),
                 _("Check your Met Office API Key under settings and try again."),
             )
@@ -127,7 +129,7 @@ def main(location):
 
     sitelist = getsitelist(location, text)
     if sitelist == []:
-        dialog().ok(
+        dialog.ok(
             _("No Matches"), _("No locations found containing") + " {0}".format(text)
         )
         utilities.log("No locations found containing '%s'" % text)
