@@ -12,22 +12,42 @@ from operator import itemgetter
 from urllib.error import HTTPError
 
 import xbmc
+import xbmcaddon
 import xbmcgui
 
 from metoffice import urlcache, utilities
 from metoffice.constants import (
     ADDON_DATA_PATH,
+    ADDON_ID,
     FORECAST_SITELIST_URL,
-    GEOIP_PROVIDER,
-    GEOLOCATION,
+    GEOIP_PROVIDERS,
     LONG_REGIONAL_NAMES,
     OBSERVATION_SITELIST_URL,
     REGIONAL_SITELIST_URL,
-    addon,
 )
 from metoffice.utilities import gettext as _
 
 dialog = xbmcgui.Dialog()
+addon = xbmcaddon.Addon(ADDON_ID)
+
+
+def get_geolocation(provider: dict):
+    # Fetch the data from the given provider.
+    url = provider["url"]
+
+    utilities.log("Fetching location from '%s'" % url)
+    with urlcache.URLCache(ADDON_DATA_PATH) as cache:
+        filename = cache.get(url, lambda x: datetime.now() + timedelta(hours=1))
+    with open(filename) as fh:
+        data = json.load(fh)
+
+    # Transform the data.
+    # The "latitude" and "longitude" values are intended to provide
+    # key translations for those proiders who have different key names.
+    # Eg, "lat", "long", "lon" etc.
+    geolat = float(data[provider["latitude"]])
+    geolong = float(data[provider["longitude"]])
+    return {"lat": geolat, "long": geolong}
 
 
 @utilities.xbmcbusy
@@ -77,29 +97,17 @@ def getsitelist(location, text=""):
                 lambda x: x["name"].lower().find(text.lower()) >= 0, sitelist
             )
 
-        if GEOLOCATION == "true":
-            geo = {}
-            url = GEOIP_PROVIDER["url"]
-            utilities.log("Fetching location from '%s'" % url)
-            filename = cache.get(url, lambda x: datetime.now() + timedelta(hours=1))
-            try:
-                with open(filename) as fh:
-                    data = json.load(fh)
-            except ValueError:
-                utilities.log("Failed to fetch valid data from %s" % url)
-            try:
-                geolat = float(data[GEOIP_PROVIDER["latitude"]])
-                geolong = float(data[GEOIP_PROVIDER["longitude"]])
-                geo = {"lat": geolat, "long": geolong}
-            except KeyError:
-                utilities.log("Couldn't extract lat/long data from %s" % url)
+        if addon.getSetting("GeoLocation") == "true":
+            provider_id = int(addon.getSetting("GeoIPProvider"))
+            provider = GEOIP_PROVIDERS[provider_id]
+            location = get_geolocation(provider)
 
             for site in sitelist:
                 try:
                     site["distance"] = int(
                         utilities.haversine_distance(
-                            geo["lat"],
-                            geo["long"],
+                            location["lat"],
+                            location["long"],
                             float(site["latitude"]),
                             float(site["longitude"]),
                         )
@@ -135,14 +143,14 @@ def main(location):
         utilities.log("No locations found containing '%s'" % text)
     else:
         display_list = [site["display"] for site in sitelist]
-        selected = dialog().select(_("Matching Sites"), display_list)
+        selected = dialog.select(_("Matching Sites"), display_list)
         if selected != -1:
-            addon().setSetting(location, sitelist[selected]["name"])
-            addon().setSetting("%sID" % location, sitelist[selected]["id"])
-            addon().setSetting(
+            addon.setSetting(location, sitelist[selected]["name"])
+            addon.setSetting("%sID" % location, sitelist[selected]["id"])
+            addon.setSetting(
                 "%sLatitude" % location, str(sitelist[selected].get("latitude"))
             )
-            addon().setSetting(
+            addon.setSetting(
                 "%sLongitude" % location, str(sitelist[selected].get("longitude"))
             )
             utilities.log(
