@@ -18,6 +18,8 @@ def addon():
     return xbmcaddon.Addon(id="weather.metoffice")
 
 
+ADDON_ID = "weather.metoffice"
+
 ADDON_BANNER_PATH = xbmcvfs.translatePath(
     "special://home/addons/%s/resources/banner.png" % addon().getAddonInfo("id")
 )

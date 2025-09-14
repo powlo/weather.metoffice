@@ -20,6 +20,7 @@ import traceback
 from urllib.error import HTTPError
 
 import xbmc
+import xbmcaddon
 import xbmcgui
 
 import setlocation
@@ -27,23 +28,24 @@ from metoffice import properties, urlcache, utilities
 from metoffice.constants import (
     ADDON_BANNER_PATH,
     ADDON_DATA_PATH,
+    ADDON_ID,
     API_KEY,
     WEATHER_WINDOW_ID,
-    addon,
 )
 from metoffice.utilities import gettext as _
 
 window = xbmcgui.Window(WEATHER_WINDOW_ID)
+addon = xbmcaddon.Addon(ADDON_ID)
 
 socket.setdefaulttimeout(20)
 
 
 def main():
-    if addon().getSetting("EraseCache") == "true":
+    if addon.getSetting("EraseCache") == "true":
         try:
             urlcache.URLCache(ADDON_DATA_PATH).erase()
         finally:
-            addon().setSetting("EraseCache", "false")
+            addon.setSetting("EraseCache", "false")
 
     if not API_KEY:
         raise Exception(
@@ -76,13 +78,13 @@ def main():
         )
         raise
 
-    window.setProperty("WeatherProvider", addon().getAddonInfo("name"))
+    window.setProperty("WeatherProvider", addon.getAddonInfo("name"))
     window.setProperty("WeatherProviderLogo", ADDON_BANNER_PATH)
-    window.setProperty("ObservationLocation", addon().getSetting("ObservationLocation"))
-    window.setProperty("Current.Location", addon().getSetting("ForecastLocation"))
-    window.setProperty("ForecastLocation", addon().getSetting("ForecastLocation"))
-    window.setProperty("RegionalLocation", addon().getSetting("RegionalLocation"))
-    window.setProperty("Location1", addon().getSetting("ForecastLocation"))
+    window.setProperty("ObservationLocation", addon.getSetting("ObservationLocation"))
+    window.setProperty("Current.Location", addon.getSetting("ForecastLocation"))
+    window.setProperty("ForecastLocation", addon.getSetting("ForecastLocation"))
+    window.setProperty("RegionalLocation", addon.getSetting("RegionalLocation"))
+    window.setProperty("Location1", addon.getSetting("ForecastLocation"))
     window.setProperty("Locations", "1")
 
     # Explicitly set unused flags to false, so there are no unusual side
