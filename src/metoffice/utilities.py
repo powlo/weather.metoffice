@@ -12,7 +12,6 @@ from .constants import (
     TEMPERATUREUNITS,
     WEATHER_WINDOW_ID,
     addon,
-    dialog,
 )
 
 
@@ -50,7 +49,8 @@ def failgracefully(f):
                 or xbmcgui.getCurrentWindowId() == ADDON_BROWSER_WINDOW_ID
             ):
                 args = (e.args[0].title(),) + e.args[1:4]
-                dialog().ok(*args)
+                dialog = xbmcgui.Dialog()
+                dialog.ok(*args)
 
     return wrapper
 
