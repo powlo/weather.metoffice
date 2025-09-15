@@ -9,6 +9,7 @@ import xbmcgui
 
 from .constants import (
     ADDON_BROWSER_WINDOW_ID,
+    SETTINGS_WINDOW_ID,
     TEMPERATUREUNITS,
     WEATHER_WINDOW_ID,
     addon,
@@ -61,6 +62,7 @@ def xbmcbusy(f):
         if (
             xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID
             or xbmcgui.getCurrentWindowId() == ADDON_BROWSER_WINDOW_ID
+            or xbmcgui.getCurrentWindowId() == SETTINGS_WINDOW_ID
         ):
             xbmc.executebuiltin("ActivateWindow(busydialognocancel)")
         try:

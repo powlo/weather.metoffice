@@ -17,7 +17,7 @@
 import socket
 import sys
 import traceback
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 import xbmc
 import xbmcaddon
@@ -27,9 +27,11 @@ import setlocation
 from metoffice import properties, urlcache, utilities
 from metoffice.constants import (
     ADDON_BANNER_PATH,
+    ADDON_BROWSER_WINDOW_ID,
     ADDON_DATA_PATH,
     ADDON_ID,
     API_KEY,
+    SETTINGS_WINDOW_ID,
     WEATHER_WINDOW_ID,
 )
 from metoffice.utilities import gettext as _
@@ -41,6 +43,10 @@ socket.setdefaulttimeout(20)
 
 
 def main():
+    if sys.argv[1] in ["ObservationLocation", "ForecastLocation"]:
+        setlocation.main(sys.argv[1])
+        return
+
     if addon.getSetting("EraseCache") == "true":
         try:
             urlcache.URLCache(ADDON_DATA_PATH).erase()
@@ -48,12 +54,18 @@ def main():
             addon.setSetting("EraseCache", "false")
 
     if not API_KEY:
-        raise Exception(
-            _("No API Key."), _("Enter your Met Office API Key under settings.")
-        )
+        window.setProperty("Current.Condition", "[ Check API Key ]")
+        window.setProperty("Current.OutlookIcon", "na.png")
+        window.setProperty("Current.FanartCode", "na")
 
-    if sys.argv[1] in ["ObservationLocation", "ForecastLocation"]:
-        setlocation.main(sys.argv[1])
+        if xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID:
+            dialog = xbmcgui.Dialog()
+            dialog.ok(
+                "No API Key",
+                "Please register for an API Key at https://register.metoffice.gov.uk. Then save your API Key under addon settings.",
+            )
+
+        return
 
     try:
         properties.observation()
@@ -64,9 +76,14 @@ def main():
         # Expect KeyErrors to come from parsing JSON responses.
         # This is considered an intermittent error, so exception is eaten.
         utilities.log(traceback.format_exc(), xbmc.LOGERROR)
-    except HTTPError:
-        # HTTPErrors are most likely to occur when the user hasn't set their API
-        # key, so allow the script to raise to produce a parp.
+    except HTTPError as e:
+
+        if e.code != 403:
+            raise
+
+        window.setProperty("Current.Condition", "[ Check API Key ]")
+        window.setProperty("Current.OutlookIcon", "na.png")
+        window.setProperty("Current.FanartCode", "na")
         utilities.log(
             (
                 "Error fetching data.\n"
@@ -76,7 +93,15 @@ def main():
             ),
             xbmc.LOGERROR,
         )
-        raise
+        if (
+            xbmcgui.getCurrentWindowId() == WEATHER_WINDOW_ID
+            or xbmcgui.getCurrentWindowId() == SETTINGS_WINDOW_ID
+        ):
+            dialog = xbmcgui.Dialog()
+            dialog.ok(
+                "Cannot fetch data.",
+                "Ensure the API key in addon configuration is correct and try again.",
+            )
 
     window.setProperty("WeatherProvider", addon.getAddonInfo("name"))
     window.setProperty("WeatherProviderLogo", ADDON_BANNER_PATH)

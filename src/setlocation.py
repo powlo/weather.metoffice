@@ -19,6 +19,7 @@ from metoffice import urlcache, utilities
 from metoffice.constants import (
     ADDON_DATA_PATH,
     ADDON_ID,
+    API_KEY,
     FORECAST_SITELIST_URL,
     GEOIP_PROVIDERS,
     OBSERVATION_SITELIST_URL,
@@ -60,7 +61,7 @@ def getsitelist(location, text=""):
             filename = cache.get(url, lambda x: datetime.now() + timedelta(weeks=1))
         except HTTPError:
             dialog.ok(
-                _("Error fetching %s site list" % location),
+                _("Error fetching site list" % location),
                 _("Check your Met Office API Key under settings and try again."),
             )
             utilities.log(
@@ -109,6 +110,15 @@ def getsitelist(location, text=""):
 
 
 def main(location):
+    # We assume that the invocation was from settings configuration, so
+    # we don't have to check if it's acceptable to show a dialog; the user
+    # is engaged in this content.
+    if not API_KEY:
+        dialog.ok(
+            "No API Key",
+            "Please register for an API Key at https://register.metoffice.gov.uk. Then save your API Key under addon settings.",
+        )
+        return
     # In this case we _have_ to create a keyboard object so that
     # we can test isConfirmed and getText.
     keyboard = xbmc.Keyboard()
@@ -118,7 +128,7 @@ def main(location):
     sitelist = getsitelist(location, text)
     if sitelist == []:
         dialog.ok(
-            _("No Matches"), _("No locations found containing") + " {0}".format(text)
+            _("No Matches"), _("No locations found containing") + " '{0}'".format(text)
         )
         utilities.log("No locations found containing '%s'" % text)
     else:

@@ -8,6 +8,7 @@ import xbmcvfs
 # Magic numbers. See https://kodi.wiki/view/Window_IDs
 WEATHER_WINDOW_ID = 12600
 ADDON_BROWSER_WINDOW_ID = 10040
+SETTINGS_WINDOW_ID = 10018
 
 TZ = pytz.timezone(
     "Europe/London"
