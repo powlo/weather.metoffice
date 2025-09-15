@@ -10,15 +10,12 @@ TEST_FOLDER = os.path.dirname(__file__)
 RESULTS_FOLDER = os.path.join(TEST_FOLDER, "results")
 DATA_FOLDER = os.path.join(TEST_FOLDER, "data")
 FORECASTSITELIST = os.path.join(DATA_FOLDER, "forecastsitelist.json")
-REGIONALSITELIST = os.path.join(DATA_FOLDER, "regionalsitelist.json")
 GEOIP = os.path.join(DATA_FOLDER, "ip-api.json")
 
 
 def mock_get(url, callback):
     if url == constants.FORECAST_SITELIST_URL:
         return FORECASTSITELIST
-    elif url == constants.REGIONAL_SITELIST_URL:
-        return REGIONALSITELIST
     elif url == constants.GEOIP_PROVIDER["url"]:
         return GEOIP
     elif url == "www.bad-geo.com":
@@ -46,40 +43,7 @@ class TestSetLocation(TestCase):
             "ForecastLocationLongitude": "0.103",
             "ObservationLocation": "BEDFORD",
             "ObservationLocationID": "3560",
-            "RegionalLocation": "Wales",
-            "RegionalLocationID": "516",
         }
-
-    @patch("metoffice.urlcache.URLCache")
-    @patch("setlocation.GEOLOCATION", "true")
-    def test_getsitelist_with_geolocation(self, mock_cache):
-        mock_cache.return_value.__enter__.return_value.get = Mock(side_effect=mock_get)
-        # Get Regional sitelist
-        result = setlocation.getsitelist.__wrapped__(
-            "RegionalLocation", "Northeast England"
-        )
-        expected = [
-            {"display": "Northeast England", "id": "508", "name": "Northeast England"}
-        ]
-        self.assertEqual(expected, result)
-
-        # Get Forecast sitelist
-        result = setlocation.getsitelist.__wrapped__("ForecastLocation", "Cairnwell")
-        expected = [
-            {
-                "distance": 640,
-                "elevation": "933.0",
-                "name": "Cairnwell",
-                "region": "ta",
-                "longitude": "-3.42",
-                "display": "Cairnwell (640km)",
-                "nationalPark": "Cairngorms National Park",
-                "latitude": "56.879",
-                "unitaryAuthArea": "Perth and Kinross",
-                "id": "3072",
-            }
-        ]
-        self.assertEqual(expected, result)
 
     @patch("metoffice.urlcache.URLCache")
     @patch("setlocation.GEOLOCATION", "false")

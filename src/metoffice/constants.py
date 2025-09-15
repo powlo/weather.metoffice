@@ -36,8 +36,6 @@ FORECAST_LOCATION = addon().getSetting("ForecastLocation")
 FORECAST_LOCATION_ID = addon().getSetting("ForecastLocationID")
 OBSERVATION_LOCATION = addon().getSetting("ObservationLocation")
 OBSERVATION_LOCATION_ID = addon().getSetting("ObservationLocationID")
-REGIONAL_LOCATION = addon().getSetting("RegionalLocation")
-REGIONAL_LOCATION_ID = addon().getSetting("RegionalLocationID")
 LATITUDE = addon().getSetting("ForecastLocationLatitude")
 LONGITUDE = addon().getSetting("ForecastLocationLongitude")
 
@@ -135,15 +133,6 @@ OBSERVATION_SITELIST_URL = URL_TEMPLATE.format(
     get=urllib.parse.unquote(urllib.parse.urlencode((("key", API_KEY),))),
 )
 
-REGIONAL_SITELIST_URL = URL_TEMPLATE.format(
-    format="txt",
-    resource="wxfcs",
-    group="regionalforecast",
-    datatype="json",
-    object="sitelist",
-    get=urllib.parse.unquote(urllib.parse.urlencode((("key", API_KEY),))),
-)
-
 DAILY_LOCATION_FORECAST_URL = URL_TEMPLATE.format(
     format="val",
     resource="wxfcs",
@@ -177,15 +166,6 @@ HOURLY_LOCATION_OBSERVATION_URL = URL_TEMPLATE.format(
     ),
 )
 
-TEXT_FORECAST_URL = URL_TEMPLATE.format(
-    format="txt",
-    resource="wxfcs",
-    group="regionalforecast",
-    datatype="json",
-    object=REGIONAL_LOCATION_ID,
-    get=urllib.parse.unquote(urllib.parse.urlencode((("key", API_KEY),))),
-)
-
 FORECAST_LAYER_CAPABILITIES_URL = URL_TEMPLATE.format(
     format="layer",
     resource="wxfcs",
@@ -203,23 +183,3 @@ OBSERVATION_LAYER_CAPABILITIES_URL = URL_TEMPLATE.format(
     object="capabilities",
     get=urllib.parse.unquote(urllib.parse.urlencode((("key", API_KEY),))),
 )
-
-LONG_REGIONAL_NAMES = {
-    "os": "Orkney and Shetland",
-    "he": "Highland and Eilean Siar",
-    "gr": "Grampian",
-    "ta": "Tayside",
-    "st": "Strathclyde",
-    "dg": "Dumfries, Galloway, Lothian",
-    "ni": "Northern Ireland",
-    "yh": "Yorkshire and the Humber",
-    "ne": "Northeast England",
-    "em": "East Midlands",
-    "ee": "East of England",
-    "se": "London and Southeast England",
-    "nw": "Northwest England",
-    "wm": "West Midlands",
-    "sw": "Southwest England",
-    "wl": "Wales",
-    "uk": "United Kingdom",
-}

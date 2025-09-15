@@ -104,8 +104,6 @@ class TestProperties(TestCase):
                     "ForecastLocationLongitude": "0.103",
                     "ObservationLocation": "BEDFORD",
                     "ObservationLocationID": "3560",
-                    "RegionalLocation": "Wales",
-                    "RegionalLocationID": "516",
                 }
             )
 

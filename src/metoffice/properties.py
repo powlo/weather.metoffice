@@ -19,12 +19,9 @@ from .constants import (
     LONGITUDE,
     OBSERVATION_LOCATION,
     OBSERVATION_LOCATION_ID,
-    REGIONAL_LOCATION,
-    REGIONAL_LOCATION_ID,
     SHORT_DATE_FORMAT,
     SHORT_DAY_FORMAT,
     TEMPERATUREUNITS,
-    TEXT_FORECAST_URL,
     THREEHOURLY_LOCATION_FORECAST_URL,
     TIME_FORMAT,
     TZ,
@@ -307,56 +304,6 @@ def sunrisesunset():
     sun = astronomy.Sun(lat=float(LATITUDE), lng=float(LONGITUDE))
     window.setProperty("Today.Sunrise", sun.sunrise().strftime(TIME_FORMAT))
     window.setProperty("Today.Sunset", sun.sunset().strftime(TIME_FORMAT))
-
-
-def text():
-    utilities.log(
-        "Fetching Text Forecast for '%s (%s)' from the Met Office..."
-        % (REGIONAL_LOCATION, REGIONAL_LOCATION_ID)
-    )
-    with urlcache.URLCache(ADDON_DATA_PATH) as cache:
-        filename = cache.get(TEXT_FORECAST_URL, text_expiry)
-        with open(filename) as fh:
-            data = json.load(fh)
-    try:
-        rf = data["RegionalFcst"]
-        issuedat = utilities.strptime(
-            rf["issuedAt"].rstrip("Z"), DATAPOINT_DATETIME_FORMAT
-        ).replace(tzinfo=pytz.utc)
-        window.setProperty(
-            "TextForecast.IssuedAt", issuedat.astimezone(TZ).strftime(ISSUEDAT_FORMAT)
-        )
-        count = 0
-        for period in rf["FcstPeriods"]["Period"]:
-            # have to check type because json can return list or dict here
-            if isinstance(period["Paragraph"], list):
-                for paragraph in period["Paragraph"]:
-                    window.setProperty(
-                        "Text.Paragraph%d.Title" % count,
-                        paragraph["title"].rstrip(":").lstrip("UK Outlook for"),
-                    )
-                    window.setProperty(
-                        "Text.Paragraph%d.Content" % count, paragraph["$"]
-                    )
-                    count += 1
-            else:
-                window.setProperty(
-                    "Text.Paragraph%d.Title" % count,
-                    period["Paragraph"]["title"].rstrip(":").lstrip("UK Outlook for"),
-                )
-
-                window.setProperty(
-                    "Text.Paragraph%d.Content" % count, period["Paragraph"]["$"]
-                )
-                count += 1
-    except KeyError as e:
-        e.args = (
-            "Key Error in JSON File",
-            "Key '{0}' not found while processing file from url:".format(e.args[0]),
-            TEXT_FORECAST_URL,
-        )
-        raise
-    window.setProperty("TextForecast.IsFetched", "true")
 
 
 def daily_expiry(filename):

@@ -21,9 +21,7 @@ from metoffice.constants import (
     ADDON_ID,
     FORECAST_SITELIST_URL,
     GEOIP_PROVIDERS,
-    LONG_REGIONAL_NAMES,
     OBSERVATION_SITELIST_URL,
-    REGIONAL_SITELIST_URL,
 )
 from metoffice.utilities import gettext as _
 
@@ -56,7 +54,6 @@ def getsitelist(location, text=""):
         url = {
             "ForecastLocation": FORECAST_SITELIST_URL,
             "ObservationLocation": OBSERVATION_SITELIST_URL,
-            "RegionalLocation": REGIONAL_SITELIST_URL,
         }[location]
         utilities.log("Fetching %s site list from the Met Office..." % location)
         try:
@@ -75,23 +72,6 @@ def getsitelist(location, text=""):
         with open(filename, encoding="utf-8") as fh:
             data = json.load(fh)
         sitelist = data["Locations"]["Location"]
-        if location == "RegionalLocation":
-            # fix datapoint bug where keys start with @ in Regional Sitelist
-            # Fixing up keys has to be a two step process. If we pop and add
-            # in the same loop we'll get `RuntimeError: dictionary keys
-            # changed during iteration.`
-            for site in sitelist:
-                # First add the correct keys.
-                toremove = []
-                for key in site:
-                    if key.startswith("@"):
-                        toremove.append(key)
-                # Now remove the keys we found above.
-                for key in toremove:
-                    site[key[1:]] = site.pop(key)
-
-                # Change regional names to long versions. Untouched otherwise.
-                site["name"] = LONG_REGIONAL_NAMES.get(site["name"], site["name"])
         if text:
             sitelist[:] = filter(
                 lambda x: x["name"].lower().find(text.lower()) >= 0, sitelist

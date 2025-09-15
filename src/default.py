@@ -52,7 +52,7 @@ def main():
             _("No API Key."), _("Enter your Met Office API Key under settings.")
         )
 
-    if sys.argv[1] in ["ObservationLocation", "ForecastLocation", "RegionalLocation"]:
+    if sys.argv[1] in ["ObservationLocation", "ForecastLocation"]:
         setlocation.main(sys.argv[1])
 
     try:
@@ -83,7 +83,6 @@ def main():
     window.setProperty("ObservationLocation", addon.getSetting("ObservationLocation"))
     window.setProperty("Current.Location", addon.getSetting("ForecastLocation"))
     window.setProperty("ForecastLocation", addon.getSetting("ForecastLocation"))
-    window.setProperty("RegionalLocation", addon.getSetting("RegionalLocation"))
     window.setProperty("Location1", addon.getSetting("ForecastLocation"))
     window.setProperty("Locations", "1")
 
