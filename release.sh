@@ -13,11 +13,29 @@ TARGET_RELEASE=matrix
 CHANGELOG_FOR_VERSION=`sed '1,/^'$VERSION'$/d' changelog.txt`
 
 # Tag the branch with the extracted version.
-git tag $VERSION
-git push origin $VERSION
+if [ -z `git tag --list | grep $VERSION` ]
+then
+    echo 'Tagging...'
+    git tag $VERSION
+    git push origin $VERSION
+else
+    echo "WARNING: Tag $VERSION already exists!"
+fi
 
 # push the files to github.
-gh release create $VERSION --generate-notes
+if [ -z `gh release list | grep $VERSION` ]
+then
+    echo 'Creating github release...'
+    gh release create $VERSION --generate-notes
+else
+    echo "WARNING: Release $VERSION already exists!"
+fi
+
+if [ -d 'repo-scripts' ]
+then
+    echo 'INFO: Cleaning up previous cloned repo-scripts.'
+    rm -rf 'repo-scripts'
+fi
 
 # Specify depth to speed up clone.
 git clone git@github.com:xbmc/repo-scripts.git --branch $TARGET_RELEASE --depth 1
