@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
@@ -11,7 +11,9 @@ class TestUtilities(TestCase):
     def test_strptime(self):
         date = "23:06 Mon 4 Jan 2013"
         fmt = "%H:%M %a %d %b %Y"
-        self.assertEqual(datetime.strptime(date, fmt), utilities.strptime(date, fmt))
+        dt = datetime.strptime(date, fmt)
+        dt = dt.replace(tzinfo=timezone.utc)
+        self.assertEqual(dt, utilities.strptime(date, fmt))
 
     @patch("xbmc.log")
     def test_log(self, mock_log):
@@ -38,7 +40,7 @@ class TestUtilities(TestCase):
         mock_func.assert_called_with(1, 2, 3)
 
     @patch("xbmc.log")
-    @patch("metoffice.utilities.dialog")
+    @patch("metoffice.utilities.xbmcgui.Dialog")
     @patch("xbmcgui.getCurrentWindowId", Mock(return_value=constants.WEATHER_WINDOW_ID))
     def test_failgracefully(self, mock_dialog, mock_log):
         message = ("Oh no", "It all went wrong")

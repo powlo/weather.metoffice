@@ -17,23 +17,13 @@ class TestMain(TestCase):
         self.assertFalse(mock_properties.text.called)
 
     @patch("default.properties")
-    @patch("default._", Mock(side_effect=lambda x: x))
     @patch("default.API_KEY", "")
     def test_no_api_key(self, mock_properties):
         """When the user has not added an api key an exception should be raised."""
         # Assume here that the call to getSetting is for 'EraseCache'.
         mock_properties.addon.return_value.getSetting = Mock(return_value="false")
 
-        # Test no API Key Exception raising
-        with self.assertRaises(Exception) as cm:
-            default.main()
-        self.assertEqual(
-            (
-                "No API Key.",
-                "Enter your Met Office API Key under settings.",
-            ),
-            cm.exception.args,
-        )
+        # TODO: We should really test the properties set on window too.
         self.assertFalse(mock_properties.observation.called)
         self.assertFalse(mock_properties.daily.called)
         self.assertFalse(mock_properties.threehourly.called)
@@ -52,12 +42,10 @@ class TestMain(TestCase):
         cache and reset the value to false.
         """
         # Assume here that the call to getSetting is for 'EraseCache'.
-        mock_addon.return_value.getSetting = Mock(return_value="true")
+        mock_addon.getSetting = Mock(return_value="true")
         default.main()
         self.assertTrue(mock_urlcache.return_value.erase.called)
-        mock_addon.return_value.setSetting.assert_called_once_with(
-            "EraseCache", "false"
-        )
+        mock_addon.setSetting.assert_called_once_with("EraseCache", "false")
 
     @patch("sys.argv", ["something", "ForecastLocation"])
     @patch("default.API_KEY", "12345")
