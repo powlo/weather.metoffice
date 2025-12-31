@@ -17,7 +17,7 @@
 import socket
 import sys
 import traceback
-from urllib.error import HTTPError, URLError
+from urllib.error import HTTPError
 
 import xbmc
 import xbmcaddon
@@ -27,14 +27,12 @@ import setlocation
 from metoffice import properties, urlcache, utilities
 from metoffice.constants import (
     ADDON_BANNER_PATH,
-    ADDON_BROWSER_WINDOW_ID,
     ADDON_DATA_PATH,
     ADDON_ID,
     API_KEY,
     SETTINGS_WINDOW_ID,
     WEATHER_WINDOW_ID,
 )
-from metoffice.utilities import gettext as _
 
 window = xbmcgui.Window(WEATHER_WINDOW_ID)
 addon = xbmcaddon.Addon(ADDON_ID)
@@ -62,7 +60,8 @@ def main():
             dialog = xbmcgui.Dialog()
             dialog.ok(
                 "No API Key",
-                "Please register for an API Key at https://register.metoffice.gov.uk. Then save your API Key under addon settings.",
+                "Please register for an API Key at https://register.metoffice.gov.uk. "
+                "Then save your API Key under addon settings.",
             )
 
         return
